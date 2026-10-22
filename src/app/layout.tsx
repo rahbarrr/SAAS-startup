@@ -1,6 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/shell/AppShell";
+import type { OrgSwitcherOption } from "@/components/shell/OrgSwitcher";
+import { getActiveOrgCookie } from "@/lib/auth/active-org-cookie";
+import { getAuthenticatedUser } from "@/lib/auth/session";
+import { createUserServerSupabaseClient } from "@/lib/supabase/server";
+import type { OrgRole } from "@/modules/tenancy/domain";
+import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
+import { resolveActiveWorkspaceForUser } from "@/modules/tenancy/service";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -23,11 +30,53 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  let activeOrgId: string | undefined;
+  let activeOrgName: string | undefined;
+  let activeRole: OrgRole | undefined;
+  let organizations: OrgSwitcherOption[] = [];
+  let userEmail: string | null = null;
+
+  try {
+    const supabase = await createUserServerSupabaseClient();
+    const user = await getAuthenticatedUser(supabase);
+    if (user) {
+      userEmail = user.email;
+      const preferredOrgId = await getActiveOrgCookie();
+      const tenancyRepository = new SupabaseTenancyRepository(supabase);
+      const workspace = await resolveActiveWorkspaceForUser({
+        user,
+        preferredOrgId,
+        repository: tenancyRepository,
+      });
+
+      if (workspace.activeOrganization) {
+        activeOrgId = workspace.activeOrganization.organization.id;
+        activeOrgName = workspace.activeOrganization.organization.name;
+        activeRole = workspace.activeOrganization.membership.role;
+      }
+      organizations = workspace.organizations.map((item) => ({
+        orgId: item.organization.id,
+        orgName: item.organization.name,
+        role: item.membership.role,
+      }));
+    }
+  } catch {
+    // Non-blocking fallback for pre-auth states or unconfigured envs
+  }
+
   return (
     <html lang="en">
       <body>
-        <AppShell>{children}</AppShell>
+        <AppShell
+          activeOrgId={activeOrgId}
+          activeOrgName={activeOrgName}
+          activeRole={activeRole}
+          organizations={organizations}
+          userEmail={userEmail}
+        >
+          {children}
+        </AppShell>
       </body>
     </html>
   );

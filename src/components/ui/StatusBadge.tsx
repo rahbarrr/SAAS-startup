@@ -8,7 +8,8 @@ export type ApprovalState =
   | "changes_requested"
   | "rejected"
   | "in_progress"
-  | "completed";
+  | "completed"
+  | "reviewed";
 export type ProvenanceState = "human_verified" | "generated_draft";
 export type OrgRoleState = "admin" | "manager" | "field_employee";
 export type MembershipStatusState = "invited" | "active" | "deactivated";
@@ -91,6 +92,12 @@ const APPROVAL_DESCRIPTORS: Readonly<Record<ApprovalState, StatusDescriptor>> = 
     symbol: "✓",
     tone: "success",
     ariaLabel: "Trip status: Completed",
+  },
+  reviewed: {
+    label: "Reviewed",
+    symbol: "✓",
+    tone: "success",
+    ariaLabel: "Execution status: Reviewed by manager",
   },
 };
 

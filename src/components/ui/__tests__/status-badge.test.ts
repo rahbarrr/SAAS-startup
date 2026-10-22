@@ -32,6 +32,7 @@ describe("Accessible UI status descriptors & navigation structure", () => {
       "rejected",
       "in_progress",
       "completed",
+      "reviewed",
     ];
     for (const state of states) {
       const descriptor = getApprovalStatusDescriptor(state);
