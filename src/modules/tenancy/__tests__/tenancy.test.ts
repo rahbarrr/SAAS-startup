@@ -7,12 +7,14 @@ import {
   encodeCursor,
 } from "@/lib/http/envelope";
 import {
+  assertTenantResourceOwnership,
   hasOrgPermission,
   requireOrgPermission,
   resolveTenantContext,
 } from "@/modules/tenancy/authorization";
 import type {
   AuthenticatedUser,
+  MemberProfile,
   Organization,
   OrganizationInvitation,
   OrganizationMembership,
@@ -29,15 +31,20 @@ import type {
   ListOrgMembersQuery,
 } from "@/modules/tenancy/schemas";
 import {
+  acceptInvitationForCaller,
   addMemberToOrg,
+  createInvitationForOrg,
   createOrganizationForCaller,
   listMembersForOrg,
+  resolveActiveWorkspaceForUser,
+  switchActiveOrganizationForCaller,
 } from "@/modules/tenancy/service";
 
 class InMemoryTenancyRepository implements TenancyRepository {
   public organizations: Organization[] = [];
   public memberships: OrganizationMembership[] = [];
   public invitations: OrganizationInvitation[] = [];
+  public profiles: Record<string, MemberProfile> = {};
 
   async getMembershipByUserAndOrg(
     userId: string,
@@ -190,18 +197,27 @@ class InMemoryTenancyRepository implements TenancyRepository {
     tokenHash: string;
     nowIso?: string;
   }): Promise<OrganizationMembership> {
-    const invite = this.invitations.find(
-      (inv) => inv.tokenHash === params.tokenHash
-    );
-    if (!invite) {
-      throw new AppError("NOT_FOUND", "Invitation not found or invalid", 404);
+    const invite = this.invitations.find((inv) => inv.tokenHash === params.tokenHash);
+    if (!invite || invite.status !== "pending" || invite.acceptedAt !== null) {
+      throw new AppError(
+        "INVITATION_INVALID",
+        "This invitation link is invalid or has already been used.",
+        400
+      );
     }
     const now = params.nowIso ?? "2026-10-22T12:00:00.000Z";
-    if (invite.status !== "pending" || invite.expiresAt <= now) {
+    if (invite.expiresAt <= now) {
       throw new AppError(
-        "CONFLICT",
-        "Invitation has expired or is no longer valid",
-        409
+        "INVITATION_EXPIRED",
+        "This invitation has expired. Please request a new invitation from your organization administrator.",
+        400
+      );
+    }
+    if (invite.invitedEmail.toLowerCase() !== params.user.email.toLowerCase()) {
+      throw new AppError(
+        "INVITATION_EMAIL_MISMATCH",
+        "This invitation was issued for a different email address.",
+        403
       );
     }
     invite.status = "accepted";
@@ -220,6 +236,16 @@ class InMemoryTenancyRepository implements TenancyRepository {
     };
     this.memberships.push(membership);
     return membership;
+  }
+
+  async getProfilesByUserIds(userIds: string[]): Promise<Record<string, MemberProfile>> {
+    const result: Record<string, MemberProfile> = {};
+    for (const id of userIds) {
+      if (this.profiles[id]) {
+        result[id] = this.profiles[id];
+      }
+    }
+    return result;
   }
 }
 
@@ -684,5 +710,215 @@ describe("Boundary validation, cursor pagination, and response envelopes", () =>
       code: "VALIDATION_ERROR",
       status: 400,
     });
+  });
+});
+
+describe("Active organization resolution, switcher, and non-leaking resource checks", () => {
+  it("resolves active organization from preferred cookie org or defaults to first active membership", async () => {
+    const repository = createSeededRepository();
+
+    // Defaults to first active organization when no preferredOrgId is supplied
+    const defaultResolution = await resolveActiveWorkspaceForUser({
+      user: USER_MULTI_ORG,
+      repository,
+    });
+    expect(defaultResolution.organizations).toHaveLength(2);
+    expect(defaultResolution.activeOrganization?.organization.id).toBe(ORG_A_ID);
+
+    // Selects Org B when preferredOrgId is Org B
+    const switchedResolution = await resolveActiveWorkspaceForUser({
+      user: USER_MULTI_ORG,
+      preferredOrgId: ORG_B_ID,
+      repository,
+    });
+    expect(switchedResolution.activeOrganization?.organization.id).toBe(ORG_B_ID);
+    expect(switchedResolution.activeOrganization?.membership.role).toBe("field_employee");
+
+    // Ignores preferredOrgId if user is not an active member of that organization
+    const fallbackResolution = await resolveActiveWorkspaceForUser({
+      user: USER_MANAGER_ORG_A,
+      preferredOrgId: ORG_B_ID,
+      repository,
+    });
+    expect(fallbackResolution.activeOrganization?.organization.id).toBe(ORG_A_ID);
+  });
+
+  it("allows explicit switching between active organizations and denies switching to unauthorized orgs", async () => {
+    const repository = createSeededRepository();
+
+    const switched = await switchActiveOrganizationForCaller({
+      user: USER_MULTI_ORG,
+      rawInput: { orgId: ORG_B_ID },
+      repository,
+    });
+    expect(switched.organization.id).toBe(ORG_B_ID);
+
+    // Denies switching to an organization where caller has no active membership
+    await expect(
+      switchActiveOrganizationForCaller({
+        user: USER_MANAGER_ORG_A,
+        rawInput: { orgId: ORG_B_ID },
+        repository,
+      })
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN_ORG_ACCESS",
+      status: 403,
+    });
+  });
+
+  it("returns uniform 404 NOT_FOUND for cross-organization resource IDs without leaking existence", async () => {
+    const repository = createSeededRepository();
+    const orgAContext = await resolveTenantContext({
+      user: USER_FIELD_ORG_A,
+      candidateOrgId: ORG_A_ID,
+      repository,
+    });
+
+    const orgBResource = {
+      id: "50000000-0000-4000-8000-000000000099",
+      orgId: ORG_B_ID,
+      ownerUserId: USER_MANAGER_ORG_B.id,
+    };
+
+    expect(() =>
+      assertTenantResourceOwnership({
+        context: orgAContext,
+        resource: orgBResource,
+        requireOwnership: true,
+      })
+    ).toThrowError(
+      expect.objectContaining({
+        code: "NOT_FOUND",
+        status: 404,
+      })
+    );
+  });
+});
+
+describe("Invitation creation, expiry, one-time use, and role assignment", () => {
+  const NEW_INVITEE: AuthenticatedUser = {
+    id: "10000000-0000-4000-8000-000000000088",
+    email: "new.rep@example.com",
+  };
+
+  it("allows admin to issue invitation, verifies token server-side, assigns inviter role, and blocks reuse", async () => {
+    const repository = createSeededRepository();
+    const issuedAt = new Date("2026-10-22T10:00:00.000Z");
+
+    const { invitation, inviteToken } = await createInvitationForOrg({
+      user: USER_MULTI_ORG,
+      candidateOrgId: ORG_A_ID,
+      rawInput: {
+        email: NEW_INVITEE.email,
+        role: "manager",
+        expiresInHours: 48,
+      },
+      repository,
+      now: issuedAt,
+    });
+
+    expect(invitation.orgId).toBe(ORG_A_ID);
+    expect(invitation.role).toBe("manager");
+    expect(inviteToken.length).toBeGreaterThan(20);
+
+    // Accept invitation before expiry
+    const acceptedMembership = await acceptInvitationForCaller({
+      user: NEW_INVITEE,
+      rawInput: { token: inviteToken },
+      repository,
+      now: new Date("2026-10-22T12:00:00.000Z"),
+    });
+
+    expect(acceptedMembership.orgId).toBe(ORG_A_ID);
+    expect(acceptedMembership.userId).toBe(NEW_INVITEE.id);
+    expect(acceptedMembership.role).toBe("manager");
+    expect(acceptedMembership.status).toBe("active");
+
+    // Attempting to reuse the same token a second time is rejected (one-time use)
+    await expect(
+      acceptInvitationForCaller({
+        user: NEW_INVITEE,
+        rawInput: { token: inviteToken },
+        repository,
+        now: new Date("2026-10-22T12:05:00.000Z"),
+      })
+    ).rejects.toMatchObject({
+      code: "INVITATION_INVALID",
+      status: 400,
+    });
+  });
+
+  it("rejects expired invitations with INVITATION_EXPIRED (DENIED)", async () => {
+    const repository = createSeededRepository();
+    const issuedAt = new Date("2026-10-20T00:00:00.000Z");
+
+    const { inviteToken } = await createInvitationForOrg({
+      user: USER_MULTI_ORG,
+      candidateOrgId: ORG_A_ID,
+      rawInput: {
+        email: NEW_INVITEE.email,
+        role: "field_employee",
+        expiresInHours: 24,
+      },
+      repository,
+      now: issuedAt,
+    });
+
+    // Attempt acceptance 48 hours after issue (24h after expiry)
+    await expect(
+      acceptInvitationForCaller({
+        user: NEW_INVITEE,
+        rawInput: { token: inviteToken },
+        repository,
+        now: new Date("2026-10-22T00:00:01.000Z"),
+      })
+    ).rejects.toMatchObject({
+      code: "INVITATION_EXPIRED",
+      status: 400,
+    });
+  });
+
+  it("rejects invitation acceptance when signed-in user email does not match invited email (DENIED)", async () => {
+    const repository = createSeededRepository();
+    const issuedAt = new Date("2026-10-22T10:00:00.000Z");
+
+    const { inviteToken } = await createInvitationForOrg({
+      user: USER_MULTI_ORG,
+      candidateOrgId: ORG_A_ID,
+      rawInput: {
+        email: NEW_INVITEE.email,
+        role: "field_employee",
+        expiresInHours: 24,
+      },
+      repository,
+      now: issuedAt,
+    });
+
+    await expect(
+      acceptInvitationForCaller({
+        user: USER_MANAGER_ORG_B, // Different email address
+        rawInput: { token: inviteToken },
+        repository,
+        now: new Date("2026-10-22T11:00:00.000Z"),
+      })
+    ).rejects.toMatchObject({
+      code: "INVITATION_EMAIL_MISMATCH",
+      status: 403,
+    });
+  });
+
+  it("rejects invitation acceptance payloads that attempt to override role or orgId (DENIED)", async () => {
+    const repository = createSeededRepository();
+
+    await expect(
+      acceptInvitationForCaller({
+        user: NEW_INVITEE,
+        rawInput: {
+          token: "some-valid-length-token-1234567890",
+          role: "admin",
+        },
+        repository,
+      })
+    ).rejects.toHaveProperty("name", "ZodError");
   });
 });

@@ -95,12 +95,9 @@ export class SupabaseAuthProvider implements AuthProvider {
     input: PasswordRecoveryInput,
     redirectToUrl: string
   ): Promise<void> {
-    const { error } = await this.supabase.auth.resetPasswordForEmail(
-      input.email,
-      {
-        redirectTo: redirectToUrl,
-      }
-    );
+    const { error } = await this.supabase.auth.resetPasswordForEmail(input.email, {
+      redirectTo: redirectToUrl,
+    });
 
     if (error) {
       // Do not expose internal auth error details or whether the email exists
@@ -150,16 +147,43 @@ export async function signUpPublicCaller(params: {
   return params.authProvider.signUpWithPassword(parsed.data);
 }
 
+/**
+ * Returns true only when `redirectToUrl` is an absolute http(s) URL whose origin
+ * exactly matches the trusted application origin (prevents origin poisoning).
+ */
+export function isTrustedRedirectUrl(
+  redirectToUrl: string,
+  trustedOrigin: string
+): boolean {
+  try {
+    const target = new URL(redirectToUrl);
+    const trusted = new URL(trustedOrigin);
+    return (
+      (target.protocol === "https:" || target.protocol === "http:") &&
+      target.origin === trusted.origin &&
+      target.username === "" &&
+      target.password === ""
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function requestPasswordRecoveryForCaller(params: {
   rawInput: unknown;
   redirectToUrl: string;
+  trustedOrigin: string;
   authProvider: AuthProvider;
 }): Promise<{ message: string }> {
+  if (!isTrustedRedirectUrl(params.redirectToUrl, params.trustedOrigin)) {
+    throw new AppError(
+      "VALIDATION_ERROR",
+      "Untrusted password recovery redirect URL",
+      400
+    );
+  }
   const input = passwordRecoveryInputSchema.parse(params.rawInput);
-  await params.authProvider.sendPasswordRecoveryEmail(
-    input,
-    params.redirectToUrl
-  );
+  await params.authProvider.sendPasswordRecoveryEmail(input, params.redirectToUrl);
   return {
     message:
       "If an account exists for that email address, password recovery instructions have been sent.",

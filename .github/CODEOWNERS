@@ -1,0 +1,10 @@
+# Migrations, RLS, release automation and security-sensitive code require owner review.
+# Enable "Require review from Code Owners" in branch protection for main.
+/supabase/            @rahbarrr
+/.github/             @rahbarrr
+/scripts/             @rahbarrr
+/src/lib/env/         @rahbarrr
+/src/lib/rate-limit/  @rahbarrr
+/src/lib/supabase/    @rahbarrr
+/src/modules/auth/    @rahbarrr
+/src/modules/tenancy/ @rahbarrr

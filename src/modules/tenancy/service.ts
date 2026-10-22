@@ -40,8 +40,7 @@ export async function listUserOrganizationsForCaller(params: {
   const all = await params.repository.listUserOrganizations(params.user.id);
   return all.filter(
     (entry) =>
-      entry.membership.status === "active" &&
-      entry.organization.status === "active"
+      entry.membership.status === "active" && entry.organization.status === "active"
   );
 }
 
@@ -76,9 +75,7 @@ export async function resolveActiveWorkspaceForUser(params: {
   }
 
   const matched = params.preferredOrgId
-    ? organizations.find(
-        (entry) => entry.organization.id === params.preferredOrgId
-      )
+    ? organizations.find((entry) => entry.organization.id === params.preferredOrgId)
     : undefined;
 
   return {

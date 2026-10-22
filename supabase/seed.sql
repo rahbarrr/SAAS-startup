@@ -214,8 +214,28 @@ values
     'Joint business review with store directors',
     'submitted',
     '2026-10-22T08:15:00Z'
+  ),
+  -- Fiona's approved trip in Org A (ready for active store visit execution)
+  (
+    '50000000-0000-4000-8000-000000000004',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    '10000000-0000-4000-8000-000000000003',
+    'Approved North-East Store Execution',
+    '2026-10-22',
+    '2026-10-23',
+    'Approved store execution and shelf compliance check',
+    'submitted',
+    '2026-10-21T15:00:00Z'
   )
 on conflict (id) do nothing;
+
+update public.trips
+   set status = 'approved',
+       decided_by = '10000000-0000-4000-8000-000000000002',
+       decided_at = '2026-10-21T16:00:00Z',
+       decision_note = 'Approved for field visit execution'
+ where id = '50000000-0000-4000-8000-000000000004'
+   and status = 'submitted';
 
 -- 7. Seed Trip Stops
 insert into public.trip_stops (
@@ -245,6 +265,15 @@ values
     1,
     '2026-10-27T10:00:00Z',
     'planned'
+  ),
+  (
+    '60000000-0000-4000-8000-000000000003',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    '50000000-0000-4000-8000-000000000004',
+    '40000000-0000-4000-8000-000000000002',
+    1,
+    '2026-10-22T09:00:00Z',
+    'planned'
   )
 on conflict (id) do nothing;
 
@@ -264,7 +293,7 @@ values
   (
     '70000000-0000-4000-8000-000000000001',
     'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    '60000000-0000-4000-8000-000000000002',
+    '60000000-0000-4000-8000-000000000003',
     '10000000-0000-4000-8000-000000000003',
     '2026-10-22T09:05:00Z',
     41.8975,

@@ -1,12 +1,17 @@
 import { type CookieOptions, createServerClient } from "@supabase/ssr";
+import { isSameOriginMutation } from "@/lib/http/envelope";
+import { REQUEST_ID_HEADER, resolveRequestId } from "@/lib/observability/logger";
 import { type NextRequest, NextResponse } from "next/server";
 
 const PROTECTED_PREFIXES = [
+  "/stores",
   "/trips",
   "/visits",
   "/approvals",
   "/team",
   "/onboarding",
+  "/notifications",
+  "/reset-password",
 ] as const;
 
 const AUTH_PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password"] as const;
@@ -23,9 +28,21 @@ export function isAuthPublicRoute(pathname: string): boolean {
   );
 }
 
+/**
+ * Assigns/propagates a correlation ID: forwarded to route handlers/server code via the request
+ * header and echoed to the client on every response (including redirects and 403s).
+ */
 export async function updateSessionAndEnforceAuth(
   request: NextRequest
 ): Promise<NextResponse> {
+  const requestId = resolveRequestId(request.headers.get(REQUEST_ID_HEADER));
+  request.headers.set(REQUEST_ID_HEADER, requestId);
+  const response = await enforceSessionAndAuth(request);
+  response.headers.set(REQUEST_ID_HEADER, requestId);
+  return response;
+}
+
+async function enforceSessionAndAuth(request: NextRequest): Promise<NextResponse> {
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -69,6 +86,24 @@ export async function updateSessionAndEnforceAuth(
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+
+  if (
+    pathname.startsWith("/api/") &&
+    !isSameOriginMutation({
+      method: request.method,
+      originHeader: request.headers.get("origin"),
+      host: request.headers.get("host"),
+    })
+  ) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: { code: "FORBIDDEN", message: "Cross-origin request rejected" },
+        meta: {},
+      },
+      { status: 403 }
+    );
+  }
 
   if (!user && isProtectedPath(pathname)) {
     const loginUrl = request.nextUrl.clone();

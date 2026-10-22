@@ -286,11 +286,50 @@ body {
   background-color: var(--bg-subtle);
 }
 
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Long Name & Narrow Mobile Viewport Handling */
+.break-long-words {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
 /* Cards & Grid */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
   gap: 1rem;
+}
+
+@media (max-width: 480px) {
+  .app-body {
+    padding: 0.75rem 0.75rem 5rem;
+    gap: 1rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .quick-actions-buttons {
+    width: 100%;
+  }
+
+  .quick-actions-buttons .btn {
+    flex: 1 1 100%;
+  }
 }
 
 .card {

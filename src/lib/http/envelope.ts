@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z, ZodError } from "zod";
+import { captureException } from "@/lib/observability/error-reporting";
 
 export type ApiErrorCode =
   | "VALIDATION_ERROR"
@@ -7,6 +8,8 @@ export type ApiErrorCode =
   | "AUTH_INVALID_CREDENTIALS"
   | "FORBIDDEN_ORG_ACCESS"
   | "FORBIDDEN_INSUFFICIENT_ROLE"
+  | "FORBIDDEN_RESOURCE_ACCESS"
+  | "UNAUTHORIZED_SOURCE_RECORD"
   | "MEMBERSHIP_INACTIVE"
   | "INVITATION_INVALID"
   | "INVITATION_EXPIRED"
@@ -14,6 +17,16 @@ export type ApiErrorCode =
   | "NOT_FOUND"
   | "CONFLICT"
   | "RATE_LIMITED"
+  | "AI_FEATURE_NOT_CONFIGURED"
+  | "AI_FEATURE_DISABLED_FOR_ORG"
+  | "AI_QUOTA_EXCEEDED"
+  | "AI_COST_LIMIT_EXCEEDED"
+  | "AI_PROVIDER_RATE_LIMITED"
+  | "AI_PROVIDER_TIMEOUT"
+  | "AI_PROVIDER_UNAVAILABLE"
+  | "AI_PROVIDER_ERROR"
+  | "AI_MALFORMED_OUTPUT"
+  | "AI_POLICY_VIOLATION"
   | "INTERNAL_ERROR";
 
 export interface ApiErrorPayload {
@@ -157,8 +170,40 @@ export function jsonError(
     );
   }
 
+  captureException(error, { source: "jsonError" });
   return NextResponse.json(
     buildErrorEnvelope("INTERNAL_ERROR", "An unexpected error occurred", undefined, meta),
     { status: 500 }
   );
+}
+
+/**
+ * Strips characters that carry meaning inside PostgREST `.or()` filter strings
+ * (`,` `(` `)` `"` `\` `:` `*`) and LIKE wildcards, so user search text can never
+ * inject additional filter conditions.
+ */
+export function sanitizePostgrestSearchTerm(raw: string): string {
+  return raw.replace(/[%_,()"'\\:*]/g, "").trim();
+}
+
+/**
+ * CSRF defence-in-depth for cookie-authenticated API mutations: when a browser sends an
+ * `Origin` header on a state-changing request it must match the request host.
+ */
+export function isSameOriginMutation(params: {
+  method: string;
+  originHeader: string | null;
+  host: string | null;
+}): boolean {
+  if (["GET", "HEAD", "OPTIONS"].includes(params.method.toUpperCase())) {
+    return true;
+  }
+  if (!params.originHeader) {
+    return true; // non-browser clients (no Origin) rely on bearer/cookie SameSite protections
+  }
+  try {
+    return new URL(params.originHeader).host === params.host;
+  } catch {
+    return false;
+  }
 }

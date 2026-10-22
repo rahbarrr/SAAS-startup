@@ -1,0 +1,56 @@
+name: Migration review
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
+      - "scripts/migration-lint.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    name: Migration immutability and review summary
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Applied migrations must not be edited or deleted
+        run: |
+          set -euo pipefail
+          CHANGED=$(git diff --name-status "origin/${{ github.base_ref }}...HEAD" -- supabase/migrations | grep -v '^A' || true)
+          if [ -n "$CHANGED" ]; then
+            echo "::error::Existing migrations were modified/deleted. Add a NEW migration instead."
+            echo "$CHANGED"
+            exit 1
+          fi
+
+      - name: Safety lint
+        run: node scripts/migration-lint.mjs
+
+      - name: Summarize security-relevant SQL for the reviewer
+        run: |
+          {
+            echo "## Migration review checklist (human approval required)"
+            echo
+            echo "Changed/added migration files:"
+            git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- supabase/migrations | sed 's/^/- /'
+            echo
+            echo "### RLS / policy / privilege statements in this PR"
+            echo '```sql'
+            git diff -U0 "origin/${{ github.base_ref }}...HEAD" -- supabase/migrations \
+              | grep -iE '^\+.*(row level security|create policy|drop policy|alter policy|grant |revoke |security definer|create trigger|drop trigger)' || echo "(none)"
+            echo '```'
+            echo
+            echo "- [ ] Reviewer read every statement above and the full SQL diff"
+            echo "- [ ] New tables have RLS enabled and policies per operation"
+            echo "- [ ] Rollback/forward-fix plan written in the PR"
+          } >> "$GITHUB_STEP_SUMMARY"

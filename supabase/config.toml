@@ -1,0 +1,3 @@
+# Minimal Supabase CLI project config so `supabase link` / `supabase db push` work in CI.
+# Owner: run `supabase init` locally and reconcile if you need local-stack settings.
+project_id = "fieldtrack"

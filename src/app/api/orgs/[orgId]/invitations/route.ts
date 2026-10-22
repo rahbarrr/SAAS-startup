@@ -23,11 +23,7 @@ export async function POST(
     try {
       body = await request.json();
     } catch {
-      throw new AppError(
-        "VALIDATION_ERROR",
-        "Request body must be valid JSON",
-        400
-      );
+      throw new AppError("VALIDATION_ERROR", "Request body must be valid JSON", 400);
     }
 
     const result = await createInvitationForOrg({

@@ -13,6 +13,7 @@ import type {
 } from "@/types/database";
 import type {
   AuthenticatedUser,
+  MemberProfile,
   MembershipStatus,
   Organization,
   OrganizationInvitation,
@@ -54,10 +55,7 @@ export interface TenancyRepository {
     orgId: string,
     query: ListOrgMembersQuery
   ): Promise<PaginatedMembersResult>;
-  addOrgMember(
-    orgId: string,
-    input: AddOrgMemberInput
-  ): Promise<OrganizationMembership>;
+  addOrgMember(orgId: string, input: AddOrgMemberInput): Promise<OrganizationMembership>;
   createOrgInvitation(
     input: CreateInvitationRecordInput
   ): Promise<OrganizationInvitation>;
@@ -66,6 +64,7 @@ export interface TenancyRepository {
     tokenHash: string;
     nowIso?: string;
   }): Promise<OrganizationMembership>;
+  getProfilesByUserIds?(userIds: string[]): Promise<Record<string, MemberProfile>>;
 }
 
 function mapOrganizationRow(row: DbOrganizationRow): Organization {
@@ -80,9 +79,7 @@ function mapOrganizationRow(row: DbOrganizationRow): Organization {
   };
 }
 
-function mapMembershipRow(
-  row: DbOrganizationMemberRow
-): OrganizationMembership {
+function mapMembershipRow(row: DbOrganizationMemberRow): OrganizationMembership {
   return {
     id: row.id,
     orgId: row.organization_id,
@@ -95,9 +92,7 @@ function mapMembershipRow(
   };
 }
 
-function mapInvitationRow(
-  row: DbOrganizationInvitationRow
-): OrganizationInvitation {
+function mapInvitationRow(row: DbOrganizationInvitationRow): OrganizationInvitation {
   return {
     id: row.id,
     orgId: row.organization_id,
@@ -131,19 +126,13 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       .maybeSingle<DbOrganizationMemberRow>();
 
     if (error) {
-      throw new AppError(
-        "INTERNAL_ERROR",
-        "Failed to load organization membership",
-        500
-      );
+      throw new AppError("INTERNAL_ERROR", "Failed to load organization membership", 500);
     }
 
     return data ? mapMembershipRow(data) : null;
   }
 
-  async listUserOrganizations(
-    userId: string
-  ): Promise<UserOrganizationSummary[]> {
+  async listUserOrganizations(userId: string): Promise<UserOrganizationSummary[]> {
     const { data, error } = await this.supabase
       .from("organization_members")
       .select(
@@ -172,11 +161,7 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       .order("created_at", { ascending: false });
 
     if (error) {
-      throw new AppError(
-        "INTERNAL_ERROR",
-        "Failed to list user organizations",
-        500
-      );
+      throw new AppError("INTERNAL_ERROR", "Failed to list user organizations", 500);
     }
 
     return (data ?? []).map((row) => {
@@ -184,11 +169,7 @@ export class SupabaseTenancyRepository implements TenancyRepository {
         ? row.organizations[0]
         : row.organizations;
       if (!orgData) {
-        throw new AppError(
-          "INTERNAL_ERROR",
-          "Missing joined organization record",
-          500
-        );
+        throw new AppError("INTERNAL_ERROR", "Missing joined organization record", 500);
       }
 
       return {
@@ -262,11 +243,7 @@ export class SupabaseTenancyRepository implements TenancyRepository {
 
     const { data, error } = await builder.returns<DbOrganizationMemberRow[]>();
     if (error) {
-      throw new AppError(
-        "INTERNAL_ERROR",
-        "Failed to list organization members",
-        500
-      );
+      throw new AppError("INTERNAL_ERROR", "Failed to list organization members", 500);
     }
 
     const rows = data ?? [];
@@ -314,11 +291,7 @@ export class SupabaseTenancyRepository implements TenancyRepository {
           409
         );
       }
-      throw new AppError(
-        "INTERNAL_ERROR",
-        "Failed to add organization member",
-        500
-      );
+      throw new AppError("INTERNAL_ERROR", "Failed to add organization member", 500);
     }
 
     return mapMembershipRow(data);
@@ -395,5 +368,27 @@ export class SupabaseTenancyRepository implements TenancyRepository {
     }
 
     return mapMembershipRow(data);
+  }
+
+  async getProfilesByUserIds(userIds: string[]): Promise<Record<string, MemberProfile>> {
+    if (userIds.length === 0) return {};
+    const { data, error } = await this.supabase
+      .from("profiles")
+      .select("id, email, full_name")
+      .in("id", userIds);
+
+    if (error || !data) {
+      return {};
+    }
+
+    const result: Record<string, MemberProfile> = {};
+    for (const row of data as { id: string; email: string; full_name: string }[]) {
+      result[row.id] = {
+        id: row.id,
+        email: row.email,
+        fullName: row.full_name,
+      };
+    }
+    return result;
   }
 }

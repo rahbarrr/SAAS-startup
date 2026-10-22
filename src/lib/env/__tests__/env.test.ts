@@ -78,6 +78,7 @@ describe("Environment variable validation & secret isolation", () => {
       const content = fs.readFileSync(clientFile, "utf8");
       expect(content).not.toContain("@/lib/env/server");
       expect(content).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
+      expect(content).not.toContain("OPENAI_API_KEY");
       expect(content).not.toContain("@/lib/supabase/server");
     }
   });

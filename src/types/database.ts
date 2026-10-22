@@ -1,16 +1,11 @@
 /**
  * Explicit PostgreSQL database schema types corresponding to versioned migrations
  * under `supabase/migrations/`.
- * Note: `ai_summaries` is intentionally omitted until Phase 8 is approved.
  */
 export type DbOrgRole = "admin" | "manager" | "field_employee";
 export type DbMembershipStatus = "invited" | "active" | "deactivated";
 export type DbOrganizationStatus = "active" | "suspended" | "archived";
-export type DbInvitationStatus =
-  | "pending"
-  | "accepted"
-  | "revoked"
-  | "expired";
+export type DbInvitationStatus = "pending" | "accepted" | "revoked" | "expired";
 
 export type DbTripStatus =
   | "draft"
@@ -23,14 +18,20 @@ export type DbTripStatus =
 
 export type DbTripStopStatus = "planned" | "visited" | "skipped";
 export type DbVisitStatus = "in_progress" | "submitted" | "reviewed";
+export type DbVisitLocationStatus =
+  "captured_unverified" | "permission_denied" | "unavailable";
 export type DbChecklistAnswerType = "boolean" | "text" | "number" | "select";
+export type DbAiDraftReviewStatus = "pending_review" | "approved" | "rejected";
 
 export type DbTripAuditEventType =
   | "trip_created"
+  | "trip_updated"
   | "trip_submitted"
+  | "trip_resubmitted"
   | "trip_approved"
   | "trip_changes_requested"
   | "trip_rejected"
+  | "trip_reopened_for_edit"
   | "trip_started"
   | "trip_completed";
 
@@ -47,6 +48,8 @@ export interface DbOrganizationRow {
   name: string;
   slug: string;
   status: DbOrganizationStatus;
+  ai_report_drafts_enabled: boolean;
+  ai_daily_draft_quota: number;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -134,8 +137,14 @@ export interface DbVisitRow {
   checked_out_at: string | null;
   check_in_lat: number | null;
   check_in_lng: number | null;
+  check_in_accuracy_m: number | null;
+  check_in_location_status: DbVisitLocationStatus;
   check_out_lat: number | null;
   check_out_lng: number | null;
+  check_out_accuracy_m: number | null;
+  check_out_location_status: DbVisitLocationStatus;
+  check_in_idempotency_key: string | null;
+  check_out_idempotency_key: string | null;
   notes: string;
   status: DbVisitStatus;
   created_at: string;
@@ -168,6 +177,7 @@ export interface DbVisitEvidenceRow {
   file_size: number;
   caption: string;
   uploaded_by: string;
+  idempotency_key: string | null;
   created_at: string;
 }
 
@@ -182,6 +192,41 @@ export interface DbTripAuditEventRow {
   note: string | null;
   metadata: Record<string, unknown>;
   created_at: string;
+}
+
+export interface DbVisitAiReportDraftRow {
+  id: string;
+  organization_id: string;
+  visit_id: string;
+  model_name: string;
+  model_version: string | null;
+  prompt_template_version: string;
+  review_status: DbAiDraftReviewStatus;
+  summary: string;
+  completed_actions: unknown[];
+  issues: unknown[];
+  follow_ups: unknown[];
+  uncertainty_notes: string[];
+  source_record_ids: {
+    visit_id: string;
+    checklist_item_ids: string[];
+    evidence_ids: string[];
+  };
+  input_tokens: number | null;
+  output_tokens: number | null;
+  created_by: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbInAppNotificationReadRow {
+  organization_id: string;
+  audit_event_id: string;
+  user_id: string;
+  read_at: string;
 }
 
 export interface Database {
@@ -220,6 +265,12 @@ export interface Database {
       trip_audit_events: {
         Row: DbTripAuditEventRow;
       };
+      visit_ai_report_drafts: {
+        Row: DbVisitAiReportDraftRow;
+      };
+      in_app_notification_reads: {
+        Row: DbInAppNotificationReadRow;
+      };
     };
     Enums: {
       org_role: DbOrgRole;
@@ -252,6 +303,48 @@ export interface Database {
       accept_organization_invitation: {
         Args: { p_token_hash: string };
         Returns: DbOrganizationMemberRow;
+      };
+      decide_submitted_trip: {
+        Args: {
+          p_org_id: string;
+          p_trip_id: string;
+          p_decision: DbTripStatus;
+          p_note?: string | null;
+          p_metadata?: Record<string, unknown>;
+        };
+        Returns: DbTripRow;
+      };
+      check_in_trip_stop: {
+        Args: {
+          p_org_id: string;
+          p_trip_stop_id: string;
+          p_idempotency_key?: string | null;
+          p_lat?: number | null;
+          p_lng?: number | null;
+          p_accuracy_m?: number | null;
+          p_location_status?: DbVisitLocationStatus;
+        };
+        Returns: DbVisitRow;
+      };
+      check_out_visit: {
+        Args: {
+          p_org_id: string;
+          p_visit_id: string;
+          p_notes?: string | null;
+          p_idempotency_key?: string | null;
+          p_lat?: number | null;
+          p_lng?: number | null;
+          p_accuracy_m?: number | null;
+          p_location_status?: DbVisitLocationStatus;
+        };
+        Returns: DbVisitRow;
+      };
+      mark_in_app_notification_read: {
+        Args: {
+          p_org_id: string;
+          p_audit_event_id: string;
+        };
+        Returns: DbInAppNotificationReadRow;
       };
     };
   };

@@ -7,12 +7,7 @@ export type MembershipStatus = (typeof MEMBERSHIP_STATUSES)[number];
 export const ORGANIZATION_STATUSES = ["active", "suspended", "archived"] as const;
 export type OrganizationStatus = (typeof ORGANIZATION_STATUSES)[number];
 
-export const INVITATION_STATUSES = [
-  "pending",
-  "accepted",
-  "revoked",
-  "expired",
-] as const;
+export const INVITATION_STATUSES = ["pending", "accepted", "revoked", "expired"] as const;
 export type InvitationStatus = (typeof INVITATION_STATUSES)[number];
 
 export type OrgAction =
@@ -20,6 +15,10 @@ export type OrgAction =
   | "org:update"
   | "members:read"
   | "members:manage"
+  | "stores:read"
+  | "stores:write"
+  | "trips:read_own"
+  | "trips:read_org"
   | "trips:create_own"
   | "trips:approve"
   | "visits:record_own"
@@ -31,6 +30,10 @@ export const ROLE_PERMISSIONS: Readonly<Record<OrgRole, ReadonlySet<OrgAction>>>
     "org:update",
     "members:read",
     "members:manage",
+    "stores:read",
+    "stores:write",
+    "trips:read_own",
+    "trips:read_org",
     "trips:create_own",
     "trips:approve",
     "visits:record_own",
@@ -39,6 +42,10 @@ export const ROLE_PERMISSIONS: Readonly<Record<OrgRole, ReadonlySet<OrgAction>>>
   manager: new Set<OrgAction>([
     "org:read",
     "members:read",
+    "stores:read",
+    "stores:write",
+    "trips:read_own",
+    "trips:read_org",
     "trips:create_own",
     "trips:approve",
     "visits:record_own",
@@ -47,6 +54,8 @@ export const ROLE_PERMISSIONS: Readonly<Record<OrgRole, ReadonlySet<OrgAction>>>
   field_employee: new Set<OrgAction>([
     "org:read",
     "members:read",
+    "stores:read",
+    "trips:read_own",
     "trips:create_own",
     "visits:record_own",
   ]),
@@ -76,6 +85,12 @@ export interface OrganizationMembership {
   managerUserId: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface MemberProfile {
+  id: string;
+  email: string;
+  fullName: string;
 }
 
 export interface UserOrganizationSummary {

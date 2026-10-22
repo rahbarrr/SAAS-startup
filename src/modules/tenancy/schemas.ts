@@ -70,9 +70,7 @@ export const createOrgInvitationInputSchema = z.object({
   expiresInHours: z.coerce.number().int().min(1).max(168).default(72),
 });
 
-export type CreateOrgInvitationInput = z.infer<
-  typeof createOrgInvitationInputSchema
->;
+export type CreateOrgInvitationInput = z.infer<typeof createOrgInvitationInputSchema>;
 
 /**
  * Strict schema for invitation acceptance.
@@ -88,6 +86,4 @@ export const acceptOrgInvitationInputSchema = z
   })
   .strict();
 
-export type AcceptOrgInvitationInput = z.infer<
-  typeof acceptOrgInvitationInputSchema
->;
+export type AcceptOrgInvitationInput = z.infer<typeof acceptOrgInvitationInputSchema>;

@@ -1,0 +1,117 @@
+name: Production database release (manual)
+
+# HUMAN-CONTROLLED. Never runs automatically.
+# 1. `plan` job: dry run against production, output goes to the job summary.
+# 2. `apply` job: requires approval from the `production` GitHub Environment's required reviewers
+#    (owner must configure), then applies migrations and runs post-release verification.
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to deploy migrations from (must match v*, e.g. v1.2.0)"
+        required: true
+      backup_reference:
+        description: "Backup/PITR reference taken immediately before this release (id or timestamp)"
+        required: true
+      rollback_plan:
+        description: "Link or short text: forward-fix or restore plan for THESE migrations"
+        required: true
+      confirm:
+        description: "Type APPLY-TO-PRODUCTION to confirm"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-db
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Plan (dry run)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production-plan
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.PRODUCTION_SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.PRODUCTION_SUPABASE_DB_PASSWORD }}
+      PRODUCTION_PROJECT_REF: ${{ vars.PRODUCTION_SUPABASE_PROJECT_REF }}
+    steps:
+      - name: Validate inputs
+        run: |
+          set -euo pipefail
+          [ "${{ inputs.confirm }}" = "APPLY-TO-PRODUCTION" ] || { echo "::error::Confirmation text mismatch"; exit 1; }
+          echo "${{ inputs.release_tag }}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+([-.][A-Za-z0-9.]+)?$' || { echo "::error::release_tag must look like v1.2.3"; exit 1; }
+          for v in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD PRODUCTION_PROJECT_REF; do
+            if [ -z "${!v}" ]; then echo "::error::Missing required production configuration: $v"; exit 1; fi
+          done
+
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.release_tag }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Migration safety lint
+        run: node scripts/migration-lint.mjs
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link production project
+        run: supabase link --project-ref "$PRODUCTION_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Dry run
+        run: |
+          {
+            echo "## Production migration plan for ${{ inputs.release_tag }}"
+            echo "Backup reference: ${{ inputs.backup_reference }}"
+            echo "Rollback plan: ${{ inputs.rollback_plan }}"
+            echo '```'
+            supabase db push --dry-run 2>&1
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+  apply:
+    name: Apply (requires reviewer approval)
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.PRODUCTION_SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.PRODUCTION_SUPABASE_DB_PASSWORD }}
+      PRODUCTION_PROJECT_REF: ${{ vars.PRODUCTION_SUPABASE_PROJECT_REF }}
+      PRODUCTION_DB_URL: ${{ secrets.PRODUCTION_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.release_tag }}
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link production project
+        run: supabase link --project-ref "$PRODUCTION_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Apply migrations
+        run: supabase db push
+
+      - name: Post-release verification (RLS coverage, required functions)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+          psql "$PRODUCTION_DB_URL" -v ON_ERROR_STOP=1 -f supabase/verification/post-release.sql
+
+      - name: Record release
+        run: |
+          {
+            echo "## Production DB release applied: ${{ inputs.release_tag }}"
+            echo "Backup reference: ${{ inputs.backup_reference }}"
+            echo "Rollback plan: ${{ inputs.rollback_plan }}"
+            echo "Next: complete docs/release-process.md post-deploy smoke checks."
+          } >> "$GITHUB_STEP_SUMMARY"

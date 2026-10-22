@@ -2,10 +2,7 @@
 
 import Link from "next/link";
 import { type ChangeEvent, type ReactNode, useState, useTransition } from "react";
-import {
-  signOutAction,
-  switchActiveOrganizationAction,
-} from "@/modules/auth/actions";
+import { signOutAction, switchActiveOrganizationAction } from "@/modules/auth/actions";
 import type { OrgRole } from "@/modules/tenancy/domain";
 
 export interface OrgSwitcherOption {

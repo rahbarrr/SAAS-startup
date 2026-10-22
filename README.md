@@ -102,5 +102,44 @@ All database schema and Row-Level Security (RLS) changes live as versioned SQL f
 
 2. **Production Deployment**
    - Apply reviewed migrations to the production database during a controlled migration step **before** releasing application code that depends on new columns/tables.
-   - Configure `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` in the hosting platform's encrypted environment settings.
+   - Configure `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and optional server-only OpenAI settings (`OPENAI_API_KEY`, `OPENAI_REPORT_MODEL`) in the hosting platform's encrypted environment settings.
    - Deploy the Next.js build (`npm run build && npm run start`).
+
+---
+
+## Accessibility, UX Resilience, & In-App Notifications
+
+### 1. Accessibility (WCAG 2.1 AA) & Narrow Mobile Support
+
+- **Semantic Structure & Labels**: Every page defines a single `<h1>` heading with nested `<section aria-labelledby="...">` and `<h2>`/`<h3>` landmarks. All form controls have explicit `<label htmlFor="...">` bindings or `aria-label` attributes.
+- **Keyboard & Focus Visibility**: `.skip-link` jumps directly to `#main-content`; `:focus-visible` renders a `3px solid #1d4ed8` outline; all interactive buttons and links enforce `--touch-target-min: 2.75rem` (`44px`).
+- **Status Announcements & Contrast**: `StatusBadge` pairs color tokens (`>= 4.5:1` contrast) with distinct symbols (`✓`, `⏳`, `↺`, `✕`, `▶`, `✦`) and optional `role="status" aria-live="polite"`. Error states use `role="alert" aria-atomic="true"`.
+- **Narrow Mobile Widths (`320px–480px`) & Long Names**: `.card-grid` uses `minmax(min(100%, 17rem), 1fr)` to prevent horizontal overflow at `320px`, while `.break-long-words` and `truncateDisplayLabel()` handle 120-character store/trip names without breaking layouts while preserving full text in `title`.
+
+### 2. Timezone, Date-Only vs. Timestamp Rules, & Network Resilience
+
+- **Date-Only (`YYYY-MM-DD`) vs. Server Timestamps (`timestamptz`)**:
+  - Trip `start_date` and `end_date` are calendar dates evaluated in UTC and formatted via `formatCalendarDateOnlyUtc()` without passing through local browser timezone offsets (preventing off-by-one day shifts in negative UTC offsets).
+  - Visit `checked_in_at`, `checked_out_at`, `submitted_at`, and `decided_at` are server-recorded `timestamptz` values formatted via `formatUtcTimestamp()` (`YYYY-MM-DD HH:mm UTC`).
+- **Double-Click, Slow-Network, & Expired-Session Handling**:
+  - Client actions use `createInFlightActionGuard()` and disabled button states (`disabled` + `.btn:disabled`) alongside server/database idempotency keys (`check_in_idempotency_key`, `check_out_idempotency_key`, `ON CONFLICT DO NOTHING`) to prevent duplicate records on rapid double-taps or network retries.
+  - `classifyRequestFailure()` distinguishes expired sessions (`401` $\rightarrow$ prompts re-authentication at `/login`), slow networks/timeouts (`504`/`AbortError` $\rightarrow$ exposes a safe `Try Again` action), and concurrent state conflicts (`409`).
+
+### 3. Event-Derived In-App Notifications & Why No Job Queue Is Used
+
+- In-app notifications (`/notifications` and `/api/orgs/[orgId]/notifications`) are derived deterministically from committed `public.trip_audit_events` rows (`trip_submitted`, `trip_resubmitted`, `trip_approved`, `trip_changes_requested`, `trip_rejected`) and per-user read receipts in `public.in_app_notification_reads`.
+- Because notifications are keyed by `audit_event_id` and read receipts use `ON CONFLICT (organization_id, audit_event_id, user_id) DO NOTHING`, retries never create duplicate notifications.
+- Email, SMS, and push providers are **not** configured; the UI explicitly discloses that delivery is **in-app only**. No background job queue or in-process timer (`setImmediate`/`setTimeout`) is introduced because all current MVP workflows execute synchronously within PostgreSQL transactions or bounded request lifecycles.
+
+### 4. Remaining UX Issues & Post-MVP Backlog
+
+1. **Offline IndexedDB Queueing for Rural Stores**: While status badges and idempotency keys support retrying failed check-ins/check-outs over spotty mobile connections, full offline-first queuing (caching checklist edits in IndexedDB when completely disconnected and syncing in background when connectivity returns) is deferred to post-MVP.
+2. **External Notification Delivery (Email / Web Push)**: When an transactional email or push provider is added in a future phase, outbound delivery should be dispatched via a durable provider-backed queue (with dead-letter visibility and per-event idempotency keys) rather than synchronous request handlers.
+3. **Interactive Map Preview for Store Coordinates**: Store coordinates and point-in-time check-in/out records are currently displayed as accessible tabular text with explicit unverified-location disclosures rather than an embedded map tile widget.
+
+## Operations & Architecture Documentation
+
+- **Backup, Restore & Incident Response Runbook:** [docs/operations-runbook.md](docs/operations-runbook.md) (draft procedures, recovery checklists, and incident response).
+- **Staging-First Release Workflow & Deployment Checklist:** [docs/release-process.md](docs/release-process.md) (CI pipeline, migration review, environment isolation, kill switches, and rollback protocol).
+- **Mobile Architecture Decision Memo:** [docs/mobile-architecture-decision-memo.md](docs/mobile-architecture-decision-memo.md) (evaluation of Responsive Web/PWA vs. Expo React Native, offline store visit requirements, and native blueprint).
+- **Billing & Subscription Architecture Specification:** [docs/billing-architecture-specification.md](docs/billing-architecture-specification.md) (pre-implementation plan matrix, entitlement limits, trial lifecycle, failed payment dunning, and webhook idempotency).

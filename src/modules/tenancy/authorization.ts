@@ -141,10 +141,7 @@ export async function assertValidManagerInOrg(params: {
 }
 
 export function hashInvitationToken(rawToken: string): string {
-  return crypto
-    .createHash("sha256")
-    .update(rawToken.trim(), "utf8")
-    .digest("hex");
+  return crypto.createHash("sha256").update(rawToken.trim(), "utf8").digest("hex");
 }
 
 export function generateRawInvitationToken(): string {
@@ -186,8 +183,7 @@ export function assertTenantResourceOwnership<T extends TenantScopedResource>(pa
 
   if (requireOwnership && resource.ownerUserId !== context.user.id) {
     const canOverride =
-      allowManagerOverride &&
-      (context.role === "admin" || context.role === "manager");
+      allowManagerOverride && (context.role === "admin" || context.role === "manager");
     if (!canOverride) {
       throw new AppError(
         "FORBIDDEN_INSUFFICIENT_ROLE",

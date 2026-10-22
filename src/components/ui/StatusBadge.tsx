@@ -2,8 +2,16 @@ import type { ReactNode } from "react";
 
 export type SyncState = "synced" | "pending_sync" | "offline" | "sync_error";
 export type ApprovalState =
-  "draft" | "submitted" | "approved" | "rejected" | "in_progress" | "completed";
+  | "draft"
+  | "submitted"
+  | "approved"
+  | "changes_requested"
+  | "rejected"
+  | "in_progress"
+  | "completed";
 export type ProvenanceState = "human_verified" | "generated_draft";
+export type OrgRoleState = "admin" | "manager" | "field_employee";
+export type MembershipStatusState = "invited" | "active" | "deactivated";
 
 export type StatusTone = "success" | "warning" | "danger" | "info" | "neutral";
 
@@ -60,11 +68,17 @@ const APPROVAL_DESCRIPTORS: Readonly<Record<ApprovalState, StatusDescriptor>> = 
     tone: "success",
     ariaLabel: "Approval status: Approved by manager",
   },
-  rejected: {
+  changes_requested: {
     label: "Changes Requested",
+    symbol: "↺",
+    tone: "warning",
+    ariaLabel: "Approval status: Changes requested by manager",
+  },
+  rejected: {
+    label: "Rejected",
     symbol: "✕",
     tone: "danger",
-    ariaLabel: "Approval status: Rejected, changes requested",
+    ariaLabel: "Approval status: Rejected by manager",
   },
   in_progress: {
     label: "In Field",
@@ -96,6 +110,50 @@ const PROVENANCE_DESCRIPTORS: Readonly<Record<ProvenanceState, StatusDescriptor>
   },
 };
 
+const ORG_ROLE_DESCRIPTORS: Readonly<Record<OrgRoleState, StatusDescriptor>> = {
+  admin: {
+    label: "Admin",
+    symbol: "★",
+    tone: "info",
+    ariaLabel: "Role: Organization Admin",
+  },
+  manager: {
+    label: "Manager",
+    symbol: "✦",
+    tone: "success",
+    ariaLabel: "Role: Operations Manager",
+  },
+  field_employee: {
+    label: "Field Employee",
+    symbol: "●",
+    tone: "neutral",
+    ariaLabel: "Role: Field Employee",
+  },
+};
+
+const MEMBERSHIP_STATUS_DESCRIPTORS: Readonly<
+  Record<MembershipStatusState, StatusDescriptor>
+> = {
+  active: {
+    label: "Active",
+    symbol: "✓",
+    tone: "success",
+    ariaLabel: "Membership status: Active",
+  },
+  invited: {
+    label: "Invited",
+    symbol: "✉",
+    tone: "warning",
+    ariaLabel: "Membership status: Invited",
+  },
+  deactivated: {
+    label: "Deactivated",
+    symbol: "✕",
+    tone: "danger",
+    ariaLabel: "Membership status: Deactivated",
+  },
+};
+
 export function getSyncStatusDescriptor(state: SyncState): StatusDescriptor {
   return SYNC_DESCRIPTORS[state];
 }
@@ -106,6 +164,16 @@ export function getApprovalStatusDescriptor(state: ApprovalState): StatusDescrip
 
 export function getProvenanceStatusDescriptor(state: ProvenanceState): StatusDescriptor {
   return PROVENANCE_DESCRIPTORS[state];
+}
+
+export function getOrgRoleDescriptor(role: OrgRoleState): StatusDescriptor {
+  return ORG_ROLE_DESCRIPTORS[role] ?? ORG_ROLE_DESCRIPTORS.field_employee;
+}
+
+export function getMembershipStatusDescriptor(
+  status: MembershipStatusState
+): StatusDescriptor {
+  return MEMBERSHIP_STATUS_DESCRIPTORS[status] ?? MEMBERSHIP_STATUS_DESCRIPTORS.active;
 }
 
 export function StatusBadge({

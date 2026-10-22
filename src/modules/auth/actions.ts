@@ -1,12 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import {
-  clearActiveOrgCookie,
-  setActiveOrgCookie,
-} from "@/lib/auth/active-org-cookie";
+import { headers } from "next/headers";
+import { clearActiveOrgCookie, setActiveOrgCookie } from "@/lib/auth/active-org-cookie";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { AppError, sanitizeErrorMessage } from "@/lib/http/envelope";
+import { clientIpFromHeaders, enforceRateLimit } from "@/lib/rate-limit";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
 import {
@@ -49,6 +48,13 @@ export async function signInAction(rawInput: {
   try {
     const supabase = await createUserServerSupabaseClient();
     const authProvider = new SupabaseAuthProvider(supabase);
+    const ip = clientIpFromHeaders(await headers());
+    await enforceRateLimit({ supabase, scope: "auth_sign_in", subject: `ip:${ip}` });
+    await enforceRateLimit({
+      supabase,
+      scope: "auth_sign_in",
+      subject: `email:${String(rawInput.email).trim().toLowerCase()}`,
+    });
     const user = await signInCaller({ rawInput, authProvider });
 
     const repository = new SupabaseTenancyRepository(supabase);
@@ -76,6 +82,8 @@ export async function signUpAction(rawInput: {
   try {
     const supabase = await createUserServerSupabaseClient();
     const authProvider = new SupabaseAuthProvider(supabase);
+    const ip = clientIpFromHeaders(await headers());
+    await enforceRateLimit({ supabase, scope: "auth_sign_up", subject: `ip:${ip}` });
     const result = await signUpPublicCaller({ rawInput, authProvider });
 
     revalidatePath("/", "layout");
@@ -108,15 +116,24 @@ export async function signOutAction(): Promise<ActionState> {
 
 export async function requestPasswordRecoveryAction(rawInput: {
   email: string;
-  originUrl?: string;
 }): Promise<ActionState> {
   try {
     const supabase = await createUserServerSupabaseClient();
     const authProvider = new SupabaseAuthProvider(supabase);
-    const redirectBase = rawInput.originUrl ?? "http://localhost:3000";
+    const ip = clientIpFromHeaders(await headers());
+    await enforceRateLimit({ supabase, scope: "auth_recovery", subject: `ip:${ip}` });
+    await enforceRateLimit({
+      supabase,
+      scope: "auth_recovery",
+      subject: `email:${String(rawInput.email).trim().toLowerCase()}`,
+    });
+    // Origin is server-trusted configuration only; never client-supplied.
+    const trustedOrigin =
+      process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000";
     const result = await requestPasswordRecoveryForCaller({
       rawInput: { email: rawInput.email },
-      redirectToUrl: `${redirectBase}/auth/callback?next=/reset-password`,
+      redirectToUrl: `${trustedOrigin.replace(/\/+$/, "")}/auth/callback?next=/reset-password`,
+      trustedOrigin,
       authProvider,
     });
 

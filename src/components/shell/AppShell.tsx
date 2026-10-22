@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { PwaOfflineSyncIndicator } from "@/components/pwa/PwaOfflineSyncIndicator";
 import {
   getSyncStatusDescriptor,
   StatusBadge,
@@ -32,6 +33,7 @@ export function AppShell({
 
   return (
     <div className="app-shell">
+      <PwaOfflineSyncIndicator />
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
