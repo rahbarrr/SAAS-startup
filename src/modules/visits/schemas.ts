@@ -117,10 +117,8 @@ const DISALLOWED_EXECUTABLE_EXTENSION_REGEX =
 export const requestEvidenceUploadTicketInputSchema = z
   .object({
     fileType: z.enum(ALLOWED_EVIDENCE_MIME_TYPES, {
-      errorMap: () => ({
-        message:
-          "Unsupported or unsafe file type. Only JPEG, PNG, WebP images and PDF documents are allowed.",
-      }),
+      message:
+        "Unsupported or unsafe file type. Only JPEG, PNG, WebP images and PDF documents are allowed.",
     }),
     fileSize: z
       .number()

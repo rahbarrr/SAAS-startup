@@ -7,6 +7,7 @@ import {
   StatusBadge,
 } from "@/components/ui/StatusBadge";
 import { AiVisitReportDraftPanel } from "@/components/visits/AiVisitReportDraftPanel";
+import { VisitExecutionClient } from "@/components/visits/VisitExecutionClient";
 import { getActiveOrgCookie } from "@/lib/auth/active-org-cookie";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { getOpenAiReportRuntimeConfig } from "@/lib/env/server";
@@ -50,6 +51,7 @@ export default async function VisitDetailPage(
       : "AI report drafting is not configured on this server (OPENAI_API_KEY and OPENAI_REPORT_MODEL must be set in server environment variables).",
   };
   let initialAiDrafts: VisitAiReportDraft[] = [];
+  let isOwnerOrCanWrite = false;
 
   try {
     const supabase = await createUserServerSupabaseClient();
@@ -66,6 +68,7 @@ export default async function VisitDetailPage(
 
       if (workspace.activeOrganization) {
         const activeOrgId = workspace.activeOrganization.organization.id;
+        const role = workspace.activeOrganization.membership.role;
         const reportingRepository = new SupabaseReportingRepository(supabase);
         detail = await getVisitPlannedVsActualForOrg({
           user,
@@ -74,6 +77,11 @@ export default async function VisitDetailPage(
           tenancyRepository,
           reportingRepository,
         });
+
+        isOwnerOrCanWrite =
+          role === "admin" ||
+          role === "manager" ||
+          detail?.visit.employeeUserId === user.id;
 
         const visitsRepository = new SupabaseVisitsRepository(supabase);
         const aiReportsRepository = new SupabaseAiReportsRepository(supabase);
@@ -226,77 +234,22 @@ export default async function VisitDetailPage(
             ) : null}
           </section>
 
-          <section className="card" aria-labelledby="visit-checklist-heading">
-            <h2 id="visit-checklist-heading" className="card-title">
-              Checklist Completion ({detail.requiredChecklistCompletedCount}/
-              {detail.requiredChecklistTotalCount} Required Completed •{" "}
-              {detail.flaggedChecklistCount} Flagged)
-            </h2>
-            {detail.checklistItems.length === 0 ? (
-              <p className="card-meta" style={{ margin: 0 }}>
-                No checklist items recorded for this visit.
-              </p>
-            ) : (
-              <ul
-                style={{
-                  margin: 0,
-                  paddingLeft: "1.25rem",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.5rem",
-                }}
-              >
-                {detail.checklistItems.map((item) => (
-                  <li key={item.id}>
-                    <strong>{item.label}</strong>{" "}
-                    {item.required ? "(Required)" : "(Optional)"} —{" "}
-                    {item.completedAt ? `Completed at ${item.completedAt}` : "Incomplete"}
-                    {item.flagged ? " [FLAGGED]" : ""}
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <div style={{ marginTop: "1rem" }}>
-              <h3 style={{ fontSize: "1rem", margin: "0 0 0.25rem" }}>Visit Notes</h3>
-              <p style={{ margin: 0 }}>
-                {detail.visit.notes || "No notes recorded for this visit."}
-              </p>
-            </div>
-          </section>
-
-          <section className="card" aria-labelledby="visit-evidence-heading">
-            <h2 id="visit-evidence-heading" className="card-title">
-              Private Evidence ({detail.evidence.length})
-            </h2>
-            {detail.evidence.length === 0 ? (
-              <p className="card-meta" style={{ margin: 0 }}>
-                No evidence files uploaded for this visit.
-              </p>
-            ) : (
-              <ul
-                style={{
-                  margin: 0,
-                  paddingLeft: "1.25rem",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.5rem",
-                }}
-              >
-                {detail.evidence.map((ev) => (
-                  <li key={ev.id}>
-                    <strong>{ev.caption || "Evidence file"}</strong> ({ev.fileType},{" "}
-                    {Math.round(ev.fileSize / 1024)} KiB) — Uploaded at {ev.createdAt} •{" "}
-                    <a
-                      href={`/api/orgs/${detail.visit.orgId}/visits/${detail.visit.id}/evidence?evidenceId=${ev.id}`}
-                    >
-                      Request Short-Lived Signed URL
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          <VisitExecutionClient
+            activeOrgId={detail.visit.orgId}
+            visitId={detail.visit.id}
+            isOwnerOrCanWrite={isOwnerOrCanWrite}
+            initialVisitStatus={detail.visit.status}
+            initialChecklistItems={detail.checklistItems}
+            initialEvidence={detail.evidence.map((e) => ({
+              id: e.id,
+              storagePath: e.storagePath,
+              fileType: e.fileType,
+              fileSize: e.fileSize,
+              caption: e.caption,
+              createdAt: e.createdAt,
+            }))}
+            initialNotes={detail.visit.notes}
+          />
 
           <AiVisitReportDraftPanel
             orgId={detail.visit.orgId}

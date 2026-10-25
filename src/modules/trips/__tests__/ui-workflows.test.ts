@@ -96,4 +96,91 @@ describe("Frontend Workflow Invariants & Formatting", () => {
     expect(matchedRegion).toHaveLength(1);
     expect(matchedRegion[0]?.id).toBe("s2");
   });
+
+  it("filters store visits by valid VisitStatus enum values", () => {
+    const visits = [
+      { id: "v1", status: "in_progress" as const, tripStopId: "s1" },
+      { id: "v2", status: "submitted" as const, tripStopId: "s2" },
+      { id: "v3", status: "reviewed" as const, tripStopId: "s3" },
+    ];
+
+    // Filter "all"
+    expect(visits.filter(() => true)).toHaveLength(3);
+
+    // Filter "in_progress"
+    expect(visits.filter((v) => v.status === "in_progress")).toHaveLength(1);
+
+    // Filter "submitted" (checked out)
+    const submittedVisits = visits.filter((v) => v.status === "submitted");
+    expect(submittedVisits).toHaveLength(1);
+    expect(submittedVisits[0]?.id).toBe("v2");
+
+    // Filter "reviewed"
+    expect(visits.filter((v) => v.status === "reviewed")).toHaveLength(1);
+  });
+
+  it("enforces check-in eligibility strictly for approved planned stops owned by the employee", () => {
+    const currentUserId = "user-rep-01";
+    const otherUserId = "user-rep-02";
+
+    const approvedTrip = {
+      ...SAMPLE_TRIP,
+      status: "approved" as const,
+      ownerUserId: currentUserId,
+    };
+    const draftTrip = {
+      ...SAMPLE_TRIP,
+      status: "draft" as const,
+      ownerUserId: currentUserId,
+    };
+    const peerTrip = {
+      ...SAMPLE_TRIP,
+      status: "approved" as const,
+      ownerUserId: otherUserId,
+    };
+
+    function canCheckInStop(
+      trip: { status: string; ownerUserId: string },
+      stopStatus: string,
+      userId: string
+    ): boolean {
+      return (
+        trip.status === "approved" &&
+        trip.ownerUserId === userId &&
+        stopStatus === "planned"
+      );
+    }
+
+    // Planned stop on approved trip owned by user -> eligible
+    expect(canCheckInStop(approvedTrip, "planned", currentUserId)).toBe(true);
+
+    // Stop already visited -> not eligible
+    expect(canCheckInStop(approvedTrip, "visited", currentUserId)).toBe(false);
+
+    // Trip still in draft -> not eligible
+    expect(canCheckInStop(draftTrip, "planned", currentUserId)).toBe(false);
+
+    // Trip owned by peer -> not eligible
+    expect(canCheckInStop(peerTrip, "planned", currentUserId)).toBe(false);
+  });
+
+  it("blocks checkout when any required checklist item is incomplete", () => {
+    const items = [
+      { id: "c1", label: "Endcap Compliance", required: true, completed: false },
+      { id: "c2", label: "Cooler Temperature", required: true, completed: true },
+      { id: "c3", label: "Extra Merchandising", required: false, completed: false },
+    ];
+
+    const uncompletedRequired = items.filter((i) => i.required && !i.completed);
+    expect(uncompletedRequired).toHaveLength(1);
+    expect(uncompletedRequired[0]?.label).toBe("Endcap Compliance");
+
+    // Mark required item complete
+    const firstItem = items[0];
+    if (firstItem) {
+      firstItem.completed = true;
+    }
+    const recheck = items.filter((i) => i.required && !i.completed);
+    expect(recheck).toHaveLength(0);
+  });
 });

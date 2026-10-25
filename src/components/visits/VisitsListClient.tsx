@@ -63,7 +63,8 @@ export function VisitsListClient({
           >
             <option value="all">All Visits</option>
             <option value="in_progress">In Progress (Checked In)</option>
-            <option value="completed">Completed (Checked Out)</option>
+            <option value="submitted">Submitted (Checked Out)</option>
+            <option value="reviewed">Reviewed</option>
           </select>
         </div>
       </section>

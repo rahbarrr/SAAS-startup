@@ -27,6 +27,7 @@ export default async function TripDetailPage(
   let userRole: OrgRole = "field_employee";
   let tripDetail: TripDetail | null = null;
   const storesMap: Record<string, { name: string; city: string; region: string }> = {};
+  const visitsMap: Record<string, { id: string; status: string }> = {};
   let errorMessage: string | null = null;
   let isAuthenticated = false;
   let hasActiveOrg = false;
@@ -66,6 +67,20 @@ export default async function TripDetailPage(
           const stores = await storesRepository.getStoresByIds(activeOrgId, storeIds);
           for (const s of stores) {
             storesMap[s.id] = { name: s.name, city: s.city, region: s.region };
+          }
+        }
+
+        const stopIds = tripDetail.stops.map((s) => s.id);
+        if (stopIds.length > 0) {
+          const { data: visits } = await supabase
+            .from("visits")
+            .select("id, trip_stop_id, status")
+            .eq("organization_id", activeOrgId)
+            .in("trip_stop_id", stopIds);
+          if (visits) {
+            for (const v of visits) {
+              visitsMap[v.trip_stop_id] = { id: v.id, status: v.status };
+            }
           }
         }
       }
@@ -111,6 +126,7 @@ export default async function TripDetailPage(
       currentUserId={currentUserId}
       userRole={userRole}
       storesMap={storesMap}
+      visitsMap={visitsMap}
     />
   );
 }

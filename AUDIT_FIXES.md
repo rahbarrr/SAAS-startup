@@ -128,3 +128,132 @@ This document details every defect identified during the full-stack audit, its r
   - Converted `RootLayout` into an async Server Component that extracts the authenticated user from Supabase and active organization from cookies/tenancy repository, propagating `activeOrgId`, `activeOrgName`, `activeRole`, `organizations`, and `userEmail` to `AppShell`.
 - **Regression Tests & Verification:**
   - `npm run build` succeeds, generating all app routes as server-rendered dynamic pages inheriting the session.
+
+---
+
+## Fix 8: Next.js Middleware Deprecation Migration to Proxy
+
+- **Finding ID:** `AUDIT-FIX-008`
+- **Severity:** P2 — Medium (Next.js 16.4.2 deprecation warning)
+- **Root Cause:** Next.js 16.4.2 deprecated the `middleware.ts` file convention in favor of `proxy.ts` with an exported `proxy` function (`The middleware file convention is deprecated. Please use proxy instead.`).
+- **Affected Files:**
+  - `src/middleware.ts` _(deleted)_
+  - [`src/proxy.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/proxy.ts) _(created drop-in replacement)_
+- **Remediation:**
+  1. Created `src/proxy.ts` exporting `async function proxy(request: NextRequest)` and matching configuration `config = { matcher: [...] }`.
+  2. Preserved the identical Supabase session refresh, public auth route passthrough, protected route enforcement, onboarding checks, active organization cookie validation, and security headers.
+  3. Safely removed `src/middleware.ts`.
+- **Regression Tests & Verification:**
+  - `npm run build` completed cleanly with `ƒ Proxy (Middleware)` in Turbopack build logs. Deprecation warning completely eliminated.
+  - Integration and unit tests pass with zero routing regressions.
+
+---
+
+## Fix 9: End-to-End MVP Workflow & Cross-Tenant Acceptance Test
+
+- **Finding ID:** `AUDIT-FIX-009`
+- **Severity:** P1 — High (Verification of end-to-end retail journey & tenant security)
+- **Root Cause:** Need for automated, end-to-end verification covering the entire real employee and manager lifecycle—from organization onboarding and store creation to trip submission, self-approval prevention, manager approval, GPS-verified check-in, required checklist completion, storage-constrained evidence upload, checkout, reporting, and cross-tenant isolation.
+- **Affected Files:**
+  - [`src/modules/tenancy/__tests__/end-to-end-workflow.test.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/tenancy/__tests__/end-to-end-workflow.test.ts) _(created comprehensive E2E test suite)_
+- **Remediation:**
+  - Created a 9-step E2E integration test suite running in an isolated PostgreSQL engine (PGlite) with all 11 chronological database migrations applied and RLS forced:
+    1. **Organization Onboarding & Store Directory:** Manager creates organization via `create_organization_with_owner` RPC, acquires `admin` role, and creates store. Unauthorized employee store creation is blocked by RLS.
+    2. **Trip Planning:** Employee drafts field trip with planned store destinations.
+    3. **Trip Submission:** Employee submits trip and verifies initial audit entry.
+    4. **Self-Approval Prevention & Manager Review:** Employee cannot approve trip; manager cannot approve their own trip (`Self-approval is forbidden`); authorized manager approves trip via atomic RPC `decide_submitted_trip` and immutable audit log entry is recorded.
+    5. **Visit Execution (Check-In):** Employee checks in to approved store stop via `check_in_trip_stop` with GPS coordinates. Required checklist items are verified auto-seeded.
+    6. **Checklist & Storage Compliance:** Premature checkout fails until required checklist items are marked complete. Evidence upload verifies tenant storage path `${orgId}/${visitId}/${filename}`; foreign-tenant storage path is rejected by database check constraint.
+    7. **Checkout Completion:** Employee checks out via `check_out_visit` with GPS coordinates; stop status transitions to `visited`.
+    8. **Reporting & AI Draft Review:** Manager reporting aggregations verified; AI report draft with provenance source record IDs reviewed and approved.
+    9. **Cross-Tenant Isolation & Audit Immutability:** Attacker from competitor organization receives 0 rows across stores, trips, and visits; audit log trigger `trg_trip_audit_events_invariants` raises exception `42501` on any update/delete attempt.
+- **Regression Tests & Verification:**
+  - `npm test src/modules/tenancy/__tests__/end-to-end-workflow.test.ts` (9 tests passing).
+  - Total test suite expanded to 20 test files, 127/127 tests passing.
+
+---
+
+## Fix 10: Storage Runbook Specification Inconsistency in Staging Checklist
+
+- **Finding ID:** `AUDIT-FIX-010`
+- **Severity:** P2 — Medium (Operational runbook mismatch)
+- **Root Cause:** [`STAGING_CHECKLIST.md`](file:///Users/rahbarraza/Downloads/SAAS%20startup/STAGING_CHECKLIST.md) listed storage bucket name as `evidence` and path structure as `{organization_id}/{trip_stop_id}/{evidence_id}.{ext}` with 15-minute expiration, whereas the codebase implementation in [`src/modules/visits/domain.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/visits/domain.ts) and [`src/modules/visits/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/visits/repository.ts) strictly uses `EVIDENCE_STORAGE_BUCKET = "visit-evidence"` with tenant path `{organization_id}/{visit_id}/{filename}` and 5-minute (300s) signed URLs. A staging deployment following the old checklist would have experienced `404 Bucket Not Found` errors on evidence uploads.
+- **Affected Files:**
+  - [`STAGING_CHECKLIST.md`](file:///Users/rahbarraza/Downloads/SAAS%20startup/STAGING_CHECKLIST.md)
+- **Remediation:**
+  - Corrected storage bucket name to `visit-evidence` in section 3 and section 6.
+  - Aligned storage path hierarchy documentation to `{organization_id}/{visit_id}/{evidence_id}.{ext}`.
+  - Updated signed ticket expiration time to 5 minutes (`300` seconds).
+- **Regression Tests & Verification:**
+  - Re-verified matching constant in `src/modules/visits/domain.ts` and `visits-and-evidence.test.ts` passing.
+
+---
+
+## Fix 11: Missing Interactive Store Visit Execution Client on Visit Detail Page
+
+- **Finding ID:** `AUDIT-FIX-011`
+- **Severity:** P1 — High (Visit checklist, evidence upload, and checkout unavailable in UI)
+- **Root Cause:** While the backend APIs (`PATCH /api/orgs/[orgId]/visits/[visitId]`, `POST /api/orgs/[orgId]/visits/[visitId]/evidence`, and `POST /api/orgs/[orgId]/visits/[visitId]/checkout`) were fully implemented and tested, [`src/app/visits/[visitId]/page.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/visits/[visitId]/page.tsx) rendered static read-only unordered lists (`<ul>`) for checklists and evidence files. Employees executing active visits had no interactive controls to check off items, input answers, upload photos, or submit checkouts.
+- **Affected Files:**
+  - [`src/components/visits/VisitExecutionClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/visits/VisitExecutionClient.tsx) _(new component)_
+  - [`src/app/visits/[visitId]/page.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/visits/[visitId]/page.tsx)
+- **Remediation:**
+  1. Created `VisitExecutionClient` providing:
+     - Interactive checklist answer inputs and completion toggles connected to `PATCH /api/orgs/[orgId]/visits/[visitId]`.
+     - Direct Supabase Storage signed-ticket upload form with allowlisted MIME verification (JPEG, PNG, WebP, PDF) and confirmation call to `POST /api/orgs/[orgId]/visits/[visitId]/evidence?action=confirm`.
+     - Checkout execution form requiring completion of all required checklist items and transmitting device coordinates to `POST /api/orgs/[orgId]/visits/[visitId]/checkout`.
+  2. Integrated `VisitExecutionClient` into `src/app/visits/[visitId]/page.tsx`, passing authorized workspace permissions and active visit state.
+- **Regression Tests & Verification:**
+  - Added checkout checklist validation regression test to `src/modules/trips/__tests__/ui-workflows.test.ts`.
+
+---
+
+## Fix 12: Missing Stop Check-In Action on Approved Trip Detail Page
+
+- **Finding ID:** `AUDIT-FIX-012`
+- **Severity:** P1 — High (No UI mechanism to initiate store visit from approved trips)
+- **Root Cause:** [`src/components/trips/TripDetailClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/trips/TripDetailClient.tsx) rendered planned stops with static status badges, but lacked an interactive action for the trip owner to check in to a stop (invoking `POST /api/orgs/[orgId]/visits`) and navigate to the visit execution screen.
+- **Affected Files:**
+  - [`src/app/trips/[tripId]/page.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/trips/[tripId]/page.tsx)
+  - [`src/components/trips/TripDetailClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/trips/TripDetailClient.tsx)
+- **Remediation:**
+  1. Updated `TripDetailPage` to query active visits for the trip's stops from the database and pass `visitsMap` to the client.
+  2. Enhanced `TripDetailClient` to render:
+     - A "Check In" button for trip owners when a stop is `planned` and the trip is `approved`.
+     - Live links to existing visits (`Visit (in_progress) →` or `Visit (submitted) →`) when a stop has already been checked into.
+     - Connected the check-in button to `POST /api/orgs/[orgId]/visits` with unverified location telemetry, seamlessly navigating the employee to the visit execution screen upon completion.
+- **Regression Tests & Verification:**
+  - Added check-in eligibility rule test to `src/modules/trips/__tests__/ui-workflows.test.ts`.
+
+---
+
+## Fix 13: Visits List Status Filter Inconsistent with Database Enum
+
+- **Finding ID:** `AUDIT-FIX-013`
+- **Severity:** P2 — Medium (Filter dropdown dropped submitted visits)
+- **Root Cause:** [`src/components/visits/VisitsListClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/visits/VisitsListClient.tsx) had `<option value="completed">Completed (Checked Out)</option>`, but the PostgreSQL `visit_status` enum and `VISIT_STATUSES` domain constant use `submitted` and `reviewed`. Selecting "Completed" filtered out 100% of checked-out visits.
+- **Affected Files:**
+  - [`src/components/visits/VisitsListClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/visits/VisitsListClient.tsx)
+- **Remediation:**
+  - Aligned the filter options with actual domain statuses:
+    - `<option value="all">All Visits</option>`
+    - `<option value="in_progress">In Progress (Checked In)</option>`
+    - `<option value="submitted">Submitted (Checked Out)</option>`
+    - `<option value="reviewed">Reviewed</option>`
+- **Regression Tests & Verification:**
+  - Added `VisitStatus` filtering test to `src/modules/trips/__tests__/ui-workflows.test.ts`.
+
+---
+
+## Fix 14: Staging Checklist Environment Configuration & Startup Mismatches
+
+- **Finding ID:** `AUDIT-FIX-014`
+- **Severity:** P2 — Medium (Staging deployment startup failure risk)
+- **Root Cause:** [`STAGING_CHECKLIST.md`](file:///Users/rahbarraza/Downloads/SAAS%20startup/STAGING_CHECKLIST.md) listed `FIELDTRACK_ENV` instead of the variable validated by [`src/lib/env/startup.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/lib/env/startup.ts) (`APP_ENV`), omitted the mandatory `EXPECTED_SUPABASE_PROJECT_REF` required in non-development environments, and did not document the kill switches `AI_REPORTS_ENABLED` and `UPLOADS_ENABLED` or Supabase Auth email confirmation settings. Deploying staging with the old checklist would fail at server startup in `assertStartupEnv()`.
+- **Affected Files:**
+  - [`STAGING_CHECKLIST.md`](file:///Users/rahbarraza/Downloads/SAAS%20startup/STAGING_CHECKLIST.md)
+- **Remediation:**
+  - Updated section 1 to document `APP_ENV`, `EXPECTED_SUPABASE_PROJECT_REF`, `AI_REPORTS_ENABLED`, and `UPLOADS_ENABLED`.
+  - Added section 2.4 documenting Supabase Auth email confirmation settings and the requirement for email autoconfirm or staging SMTP credentials.
+- **Regression Tests & Verification:**
+  - Verified with `validateStartupEnv()` for `APP_ENV: "staging"`.

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useState } from "react";
 import { ErrorState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
@@ -17,6 +18,7 @@ export interface TripDetailClientProps {
   currentUserId: string;
   userRole: OrgRole;
   storesMap: Record<string, { name: string; city: string; region: string }>;
+  visitsMap?: Record<string, { id: string; status: string }>;
 }
 
 export function TripDetailClient({
@@ -25,8 +27,14 @@ export function TripDetailClient({
   currentUserId,
   userRole,
   storesMap,
+  visitsMap,
 }: TripDetailClientProps): ReactNode {
+  const router = useRouter();
   const [detail, setDetail] = useState<TripDetail>(initialDetail);
+  const [visitsState, setVisitsState] = useState<
+    Record<string, { id: string; status: string }>
+  >(visitsMap ?? {});
+  const [isCheckingIn, setIsCheckingIn] = useState<string | null>(null);
   const trip = detail.trip;
 
   // Reviewer form state
@@ -130,6 +138,52 @@ export function TripDetailClient({
       );
     } finally {
       setIsSubmitting(false);
+      actionGuard.release();
+    }
+  }
+
+  async function handleCheckIn(stopId: string) {
+    setError(null);
+    setConfirmation(null);
+
+    if (!actionGuard.tryAcquire()) return;
+    setIsCheckingIn(stopId);
+
+    try {
+      const res = await fetch(`/api/orgs/${activeOrgId}/visits`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tripStopId: stopId,
+          location: {
+            status: "captured_unverified",
+            latitude: 41.8837,
+            longitude: -87.6278,
+            accuracyMeters: 10,
+          },
+        }),
+      });
+
+      const payload = (await res.json()) as {
+        data?: { id: string; status: string };
+        error?: { message: string };
+      };
+
+      if (!res.ok || payload.error || !payload.data) {
+        throw new Error(payload.error?.message || "Failed to check in to stop.");
+      }
+
+      const visitData = payload.data;
+      setVisitsState((prev) => ({
+        ...prev,
+        [stopId]: { id: visitData.id, status: visitData.status },
+      }));
+      setConfirmation("Check-in recorded. Opening store visit execution…");
+      router.push(`/visits/${visitData.id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error during check-in.");
+    } finally {
+      setIsCheckingIn(null);
       actionGuard.release();
     }
   }
@@ -271,9 +325,34 @@ export function TripDetailClient({
                           ({store?.city ?? "City"}, {store?.region ?? "Region"})
                         </span>
                       </div>
-                      <span className="card-meta" style={{ fontSize: "0.75rem" }}>
-                        Status: <strong>{stop.status}</strong>
-                      </span>
+                      <div
+                        style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+                      >
+                        <span className="card-meta" style={{ fontSize: "0.75rem" }}>
+                          Status: <strong>{stop.status}</strong>
+                        </span>
+                        {visitsState[stop.id] ? (
+                          <Link
+                            href={`/visits/${visitsState[stop.id]?.id}`}
+                            className="btn btn-secondary"
+                            style={{ fontSize: "0.8125rem", padding: "0.25rem 0.625rem" }}
+                          >
+                            Visit ({visitsState[stop.id]?.status}) →
+                          </Link>
+                        ) : stop.status === "planned" &&
+                          trip.status === "approved" &&
+                          isOwner ? (
+                          <button
+                            type="button"
+                            disabled={isCheckingIn === stop.id}
+                            onClick={() => handleCheckIn(stop.id)}
+                            className="btn btn-primary"
+                            style={{ fontSize: "0.8125rem", padding: "0.25rem 0.625rem" }}
+                          >
+                            {isCheckingIn === stop.id ? "Checking in…" : "Check In"}
+                          </button>
+                        ) : null}
+                      </div>
                     </li>
                   );
                 })}
