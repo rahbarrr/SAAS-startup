@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { isAiReportsEnabled } from "@/lib/env/startup";
 import { AppError } from "@/lib/http/envelope";
 import { hasOrgPermission, resolveTenantContext } from "@/modules/tenancy/authorization";
 import type { AuthenticatedUser } from "@/modules/tenancy/domain";
@@ -75,6 +76,7 @@ export async function getVisitAiReportDraftsStateForOrg(params: {
     );
   }
 
+  const aiReportsSystemEnabled = isAiReportsEnabled();
   const runtimeConfig = params.aiProvider.getRuntimeConfig();
   const orgSettings = await params.aiReportsRepository.getOrganizationAiSettings(
     context.orgId
@@ -90,7 +92,10 @@ export async function getVisitAiReportDraftsStateForOrg(params: {
   const dailyOrgRemaining = Math.max(0, dailyOrgQuota - dailyOrgUsed);
 
   let disabledReason: string | null = null;
-  if (!runtimeConfig.configured) {
+  if (!aiReportsSystemEnabled) {
+    disabledReason =
+      "AI report drafting is temporarily disabled by the system administrator (AI_REPORTS_ENABLED=false).";
+  } else if (!runtimeConfig.configured) {
     disabledReason =
       "AI report drafting is not configured on this server (OPENAI_API_KEY and OPENAI_REPORT_MODEL must be set in server environment variables).";
   } else if (!enabledForOrg) {
@@ -106,7 +111,11 @@ export async function getVisitAiReportDraftsStateForOrg(params: {
 
   return {
     availability: {
-      enabled: runtimeConfig.configured && enabledForOrg && dailyOrgRemaining > 0,
+      enabled:
+        aiReportsSystemEnabled &&
+        runtimeConfig.configured &&
+        enabledForOrg &&
+        dailyOrgRemaining > 0,
       configuredOnServer: runtimeConfig.configured,
       enabledForOrg,
       configuredModel: runtimeConfig.model,
@@ -161,7 +170,24 @@ export async function generateVisitAiReportDraftForOrg(params: {
     );
   }
 
-  // 1. Check server-only OpenAI configuration
+  // 1. Check master system kill switch & visit eligibility
+  if (!isAiReportsEnabled()) {
+    throw new AppError(
+      "AI_FEATURE_DISABLED_FOR_ORG",
+      "AI report drafting is temporarily disabled by the system administrator.",
+      503
+    );
+  }
+
+  if (!visitDetail.visit.checkedInAt) {
+    throw new AppError(
+      "VALIDATION_ERROR",
+      "Only checked-in or completed visits are eligible for an AI report draft.",
+      400
+    );
+  }
+
+  // 2. Check server-only OpenAI configuration
   const runtimeConfig = params.aiProvider.getRuntimeConfig();
   if (!runtimeConfig.configured || !runtimeConfig.model) {
     throw new AppError(

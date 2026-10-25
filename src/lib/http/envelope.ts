@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z, ZodError } from "zod";
 import { captureException } from "@/lib/observability/error-reporting";
+import { containsSecretValue } from "@/lib/observability/logger";
 
 export type ApiErrorCode =
   | "VALIDATION_ERROR"
@@ -109,14 +110,15 @@ const SENSITIVE_PATTERN =
   /\b(select\s+.+\s+from|insert\s+into|update\s+\w+\s+set|delete\s+from|row-level security|sqlstate|pgrst\d+|eyJ[A-Za-z0-9_-]{10,}|[0-9a-f]{64}|supabase_service_role_key)\b/i;
 
 /**
- * Redacts any accidental SQL fragments, JWTs, or 64-char token hashes from user-facing messages.
+ * Redacts any accidental SQL fragments, credentials (JWTs, Supabase secret keys, bearer tokens,
+ * provider keys, DB URLs) or 64-char token hashes from user-facing messages.
  */
 export function sanitizeErrorMessage(
   message: string,
   fallback = "The request could not be completed. Please check your input and try again."
 ): string {
   const trimmed = message.trim();
-  if (!trimmed || SENSITIVE_PATTERN.test(trimmed)) {
+  if (!trimmed || SENSITIVE_PATTERN.test(trimmed) || containsSecretValue(trimmed)) {
     return fallback;
   }
   return trimmed;

@@ -70,9 +70,10 @@ export function sanitizeRedirectPath(
   if (
     !trimmed.startsWith("/") ||
     trimmed.startsWith("//") ||
-    trimmed.startsWith("/\\") ||
-    trimmed.includes("\n") ||
-    trimmed.includes("\r")
+    // Browsers drop tab/CR/LF and treat backslash as a slash inside URLs, so any control
+    // character or backslash can turn an apparently internal path into a protocol-relative one.
+    // eslint-disable-next-line no-control-regex
+    /[\u0000-\u001f\u007f\\]/.test(trimmed)
   ) {
     return fallback;
   }

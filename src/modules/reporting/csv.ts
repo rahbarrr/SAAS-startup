@@ -1,6 +1,6 @@
 import type { PlannedVsActualStopRow } from "./domain";
 
-const FORMULA_INJECTION_PREFIX_REGEX = /^(?:[\t\r]|[ \t\r\n]*[=+\-@])/;
+const FORMULA_INJECTION_PREFIX_REGEX = /^[ \t\r\n]*[=+\-@\t\r]/;
 
 /**
  * Escapes a string value to prevent CSV/spreadsheet formula injection (OWASP CSV Injection)

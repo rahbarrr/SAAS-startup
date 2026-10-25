@@ -93,6 +93,7 @@ function mapDraftRow(row: DbVisitAiReportDraftRow): VisitAiReportDraft {
     modelVersion: row.model_version,
     promptTemplateVersion: row.prompt_template_version,
     reviewStatus: row.review_status,
+    requiresHumanReview: row.review_status === "pending_review",
     isFinalApproved: row.review_status === "approved",
     aiGeneratedLabel: getAiGeneratedLabel(row.review_status),
     summary: row.summary,

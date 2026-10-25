@@ -220,3 +220,57 @@ export function createInFlightActionGuard(): InFlightActionGuard {
     },
   };
 }
+
+export interface CapturedDeviceLocationPayload {
+  status: "captured_unverified" | "permission_denied" | "unavailable";
+  latitude?: number;
+  longitude?: number;
+  accuracyMeters?: number;
+}
+
+/**
+ * Captures device location on-demand with explicit user consent via browser Geolocation API.
+ * Requests a single, point-in-time fix strictly for visit check-in or check-out telemetry.
+ * Continuous background employee tracking is strictly NOT implemented.
+ */
+export async function captureDeviceLocationWithConsent(): Promise<CapturedDeviceLocationPayload> {
+  const nav =
+    typeof navigator !== "undefined"
+      ? navigator
+      : typeof window !== "undefined"
+        ? window.navigator
+        : undefined;
+
+  if (!nav || !("geolocation" in nav) || !nav.geolocation) {
+    return { status: "unavailable" };
+  }
+
+  return new Promise<CapturedDeviceLocationPayload>((resolve) => {
+    try {
+      nav.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            status: "captured_unverified",
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracyMeters: position.coords.accuracy,
+          });
+        },
+        (error) => {
+          if (error.code === error.PERMISSION_DENIED) {
+            resolve({ status: "permission_denied" });
+          } else {
+            resolve({ status: "unavailable" });
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 8000,
+          maximumAge: 10000,
+        }
+      );
+    } catch {
+      resolve({ status: "unavailable" });
+    }
+  });
+}

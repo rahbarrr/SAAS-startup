@@ -28,8 +28,8 @@ Every pre-flight quality gate was executed locally against the active repository
 | **Code Formatting**       | `npm run format:check`                    | **PASS (0 errors)**             | Prettier checked all `ts`, `tsx`, `css`, `json`, `mjs`, `md` files.                   |
 | **Static Analysis**       | `npm run lint`                            | **PASS (0 errors, 0 warnings)** | ESLint 9 validated all TypeScript source files under `src/`.                          |
 | **Type Checking**         | `npm run typecheck`                       | **PASS (0 errors)**             | TypeScript 5.8 `tsc --noEmit` verified strict type safety.                            |
-| **Migration Safety Lint** | `npm run lint:migrations`                 | **PASS (0 errors, 0 warnings)** | 11 migrations verified for RLS enforcement, safe search paths, and triggers.          |
-| **Automated Test Suite**  | `npm test` (`vitest run`)                 | **PASS (130 / 130 passed)**     | 20 test files: unit tests, in-memory PGlite WASM Postgres tests, E2E lifecycle tests. |
+| **Migration Safety Lint** | `npm run lint:migrations`                 | **PASS (0 errors, 0 warnings)** | 12 migrations verified for RLS enforcement, safe search paths, and triggers.          |
+| **Automated Test Suite**  | `npm test` (`vitest run`)                 | **PASS (259 / 259 passed)**     | 24 test files: unit tests, in-memory PGlite WASM Postgres tests, E2E lifecycle tests. |
 | **Production Build**      | `npm run build` (`next build`)            | **PASS (Turbopack)**            | Compiled 20 app routes + `ƒ Proxy (Middleware)` with 0 deprecation warnings.          |
 | **Dependency Security**   | `npm audit --omit=dev --audit-level=high` | **PASS (0 vulnerabilities)**    | Patched high-severity CVEs via `zod@4.6.7`.                                           |
 
@@ -68,7 +68,7 @@ The following environment variables must be configured in the staging hosting pl
 
 ## 4. Database Migrations Status & Review
 
-The FieldTrack schema relies on 11 chronological PostgreSQL migrations. All migrations are strictly additive, idempotently checked, and enforced with PostgreSQL Row-Level Security.
+The FieldTrack schema relies on 12 chronological PostgreSQL migrations. All migrations are strictly additive, idempotently checked, and enforced with PostgreSQL Row-Level Security.
 
 ### 4.1 Migration Inventory & Architectural Impact
 
@@ -112,6 +112,10 @@ The FieldTrack schema relies on 11 chronological PostgreSQL migrations. All migr
 11. **`20261022000011_rate_limits.sql`**:
     - Implements Postgres token-bucket rate limiter via `rate_limit_buckets` table.
     - Atomic RPC `consume_rate_limit(scope, identifier, max_tokens, window_seconds)` protects auth and AI endpoints.
+12. **`20261022000012_revoke_anon_and_internal_function_execute.sql`**:
+    - Revokes `anon` permissions from all application tables and sequences in `public`.
+    - Revokes `EXECUTE` from `anon` on all public functions except `consume_rate_limit`.
+    - Revokes `EXECUTE` on internal trigger functions from `public`, `anon`, and `authenticated`.
 
 ### 4.2 Applying Migrations to the Staging Project
 
@@ -272,7 +276,7 @@ In the event of an issue on the staging deployment:
 
 To complete the staging release:
 
-1. [ ] **Push Migrations:** Run `npx supabase db push` to apply migrations `000001` through `000011` to Supabase staging project `lrolhonkrjhuwgnmcdsj`.
+1. [ ] **Push Migrations:** Run `npx supabase db push` to apply migrations `000001` through `000012` to Supabase staging project `lrolhonkrjhuwgnmcdsj`.
 2. [ ] **Create Storage Bucket:** In Supabase dashboard, create private bucket `visit-evidence` (max 25MB).
 3. [ ] **Enable Auth Autoconfirm:** In Supabase Auth -> Providers -> Email, enable "Enable Email Autoconfirm".
 4. [ ] **Deploy Vercel:** Link repository to Vercel and set the environment variables listed in Section 3.

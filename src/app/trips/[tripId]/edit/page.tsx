@@ -19,6 +19,7 @@ export default async function EditTripPage(props: EditTripPageProps): Promise<Re
   const { tripId } = await props.params;
 
   let activeOrgId: string | null = null;
+  let currentUserId: string | null = null;
   let availableStores: {
     id: string;
     name: string;
@@ -37,6 +38,7 @@ export default async function EditTripPage(props: EditTripPageProps): Promise<Re
 
     if (user) {
       isAuthenticated = true;
+      currentUserId = user.id;
       const preferredOrgId = await getActiveOrgCookie();
       const tenancyRepository = new SupabaseTenancyRepository(supabase);
       const workspace = await resolveActiveWorkspaceForUser({
@@ -99,6 +101,29 @@ export default async function EditTripPage(props: EditTripPageProps): Promise<Re
       <EmptyState
         title="Trip not found"
         description="The requested trip was not found in your active organization."
+      />
+    );
+  }
+
+  if (tripDetail.trip.ownerUserId !== currentUserId) {
+    return (
+      <EmptyState
+        title="Cannot edit trip"
+        description="Only the trip owner can edit trip details and planned stops."
+      />
+    );
+  }
+
+  const isEditable =
+    tripDetail.trip.status === "draft" ||
+    tripDetail.trip.status === "changes_requested" ||
+    tripDetail.trip.status === "approved";
+
+  if (!isEditable) {
+    return (
+      <EmptyState
+        title="Trip cannot be edited"
+        description={`Trips in '${tripDetail.trip.status}' status cannot be edited.`}
       />
     );
   }

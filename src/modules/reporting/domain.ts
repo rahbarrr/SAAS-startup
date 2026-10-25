@@ -82,6 +82,7 @@ export interface DashboardMetricsSummary {
     inProgress: number;
     completedAllStopsCheckedOut: number;
   };
+  tripsByStatus: Record<TripStatus, number>;
   completedVisits: number;
   pendingVisits: number;
   exceptionsRequiringAttention: number;

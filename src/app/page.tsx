@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { EmptyState } from "@/components/ui/States";
+import { EmptyState, ErrorState } from "@/components/ui/States";
 import {
   getApprovalStatusDescriptor,
   getSyncStatusDescriptor,
@@ -39,6 +39,15 @@ function buildEmptyMetricsSummary(referenceDateUtc: string): DashboardMetricsSum
       inProgress: 0,
       completedAllStopsCheckedOut: 0,
     },
+    tripsByStatus: {
+      draft: 0,
+      submitted: 0,
+      approved: 0,
+      in_progress: 0,
+      completed: 0,
+      changes_requested: 0,
+      rejected: 0,
+    },
     completedVisits: 0,
     pendingVisits: 0,
     exceptionsRequiringAttention: 0,
@@ -67,6 +76,7 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
   let items: PlannedVsActualStopRow[] = [];
   let nextCursor: string | null = null;
   let accessNote: string | null = null;
+  let dashboardError: string | null = null;
 
   try {
     const supabase = await createUserServerSupabaseClient();
@@ -113,9 +123,11 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
         }
       }
     }
-  } catch {
-    // When running without an active Supabase session or before database connection is configured,
-    // render zeroed metrics and an explicit empty state without inventing sample numbers.
+  } catch (err) {
+    dashboardError =
+      err instanceof Error
+        ? err.message
+        : "An unexpected error occurred while loading dashboard operational metrics.";
   }
 
   const exportQuery = new URLSearchParams();
@@ -151,6 +163,13 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
           <StatusBadge descriptor={getSyncStatusDescriptor("synced")} />
         </div>
       </section>
+
+      {dashboardError ? (
+        <ErrorState
+          title="Dashboard operational data unavailable"
+          message={dashboardError}
+        />
+      ) : null}
 
       {accessNote ? (
         <div
@@ -240,6 +259,54 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
             <strong>Definition:</strong>{" "}
             {metrics.definitions.exceptionsRequiringAttention.formulaSummary}
           </p>
+        </article>
+
+        <article className="card">
+          <div className="card-header">
+            <h2 className="card-title">Trips by Status</h2>
+            <StatusBadge descriptor={getApprovalStatusDescriptor("approved")} />
+          </div>
+          <p className="card-meta" style={{ margin: "0.25rem 0" }}>
+            Operational count across all lifecycle states for the active scope.
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0.5rem",
+              marginTop: "0.5rem",
+              fontSize: "0.875rem",
+            }}
+          >
+            <span className="card-meta">
+              Submitted: <strong>{metrics.tripsByStatus.submitted}</strong>
+            </span>
+            <span className="card-meta">•</span>
+            <span className="card-meta">
+              Approved: <strong>{metrics.tripsByStatus.approved}</strong>
+            </span>
+            <span className="card-meta">•</span>
+            <span className="card-meta">
+              In Progress: <strong>{metrics.tripsByStatus.in_progress}</strong>
+            </span>
+            <span className="card-meta">•</span>
+            <span className="card-meta">
+              Completed: <strong>{metrics.tripsByStatus.completed}</strong>
+            </span>
+            <span className="card-meta">•</span>
+            <span className="card-meta">
+              Changes Requested:{" "}
+              <strong>{metrics.tripsByStatus.changes_requested}</strong>
+            </span>
+            <span className="card-meta">•</span>
+            <span className="card-meta">
+              Rejected: <strong>{metrics.tripsByStatus.rejected}</strong>
+            </span>
+            <span className="card-meta">•</span>
+            <span className="card-meta">
+              Draft: <strong>{metrics.tripsByStatus.draft}</strong>
+            </span>
+          </div>
         </article>
       </section>
 
@@ -523,8 +590,9 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
                   <StatusBadge descriptor={getApprovalStatusDescriptor(row.tripStatus)} />
                 </div>
                 <p className="card-meta" style={{ margin: "0.25rem 0" }}>
-                  Planned Dates (UTC): {row.tripStartDate} to {row.tripEndDate} • Planned
-                  Stop Status: <code>{row.plannedStopStatus}</code> • Actual Visit Status:{" "}
+                  Planned Dates (UTC): {row.tripStartDate} to {row.tripEndDate} • Field
+                  Rep: <code>{row.ownerUserId}</code> • Planned Stop Status:{" "}
+                  <code>{row.plannedStopStatus}</code> • Actual Visit Status:{" "}
                   <code>{row.actualVisitStatus}</code>
                 </p>
                 <p className="card-meta" style={{ margin: "0.25rem 0" }}>

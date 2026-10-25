@@ -583,6 +583,15 @@ describe("Manager Dashboard aggregates, server-side filters, planned-vs-actual v
     expect(dashboard.metrics.completedVisits).toBe(2);
     expect(dashboard.metrics.pendingVisits).toBe(1);
     expect(dashboard.metrics.exceptionsRequiringAttention).toBe(2);
+    expect(dashboard.metrics.tripsByStatus).toEqual({
+      draft: 0,
+      submitted: 1,
+      approved: 0,
+      in_progress: 1,
+      completed: 1,
+      changes_requested: 1,
+      rejected: 0,
+    });
 
     // Every metric has a documented definition
     expect(dashboard.metrics.definitions.approvedTrips.completionRuleNote).toContain(
@@ -805,5 +814,322 @@ describe("Manager Dashboard aggregates, server-side filters, planned-vs-actual v
     expect(emptyExport.rowCount).toBe(0);
     expect(emptyExport.csv).toBe(`${MANAGER_REPORT_CSV_HEADERS.join(",")}\r\n`);
     expect(buildManagerReportCsv([])).toBe(`${MANAGER_REPORT_CSV_HEADERS.join(",")}\r\n`);
+  });
+
+  it("verifies operational metric correctness across filter permutations (onlyExceptions, tripStatus, visitStatus)", async () => {
+    const { tenancyRepository, reportingRepository } = setupReportingFixtures();
+
+    // 1. Filter by onlyExceptions: true
+    const exceptionsOnly = await getManagerDashboardForOrg({
+      user: MANAGER_A,
+      candidateOrgId: ORG_A_ID,
+      rawQuery: { onlyExceptions: "true" },
+      tenancyRepository,
+      reportingRepository,
+      now: new Date("2026-10-22T12:00:00.000Z"),
+    });
+
+    expect(exceptionsOnly.metrics.tripsAwaitingApproval).toBe(0);
+    expect(exceptionsOnly.metrics.approvedTrips).toBe(1);
+    expect(exceptionsOnly.metrics.approvedTripsBreakdown).toEqual({
+      approvedNotStarted: 0,
+      inProgress: 1,
+      completedAllStopsCheckedOut: 0,
+    });
+    expect(exceptionsOnly.metrics.completedVisits).toBe(0);
+    expect(exceptionsOnly.metrics.pendingVisits).toBe(1);
+    expect(exceptionsOnly.metrics.exceptionsRequiringAttention).toBe(2);
+    expect(exceptionsOnly.metrics.tripsByStatus).toEqual({
+      draft: 0,
+      submitted: 0,
+      approved: 0,
+      in_progress: 1,
+      completed: 0,
+      changes_requested: 1,
+      rejected: 0,
+    });
+    expect(exceptionsOnly.items).toHaveLength(2);
+    expect(exceptionsOnly.items.every((r) => r.requiresAttention)).toBe(true);
+
+    // 2. Filter by tripStatus: "submitted"
+    const submittedOnly = await getManagerDashboardForOrg({
+      user: MANAGER_A,
+      candidateOrgId: ORG_A_ID,
+      rawQuery: { tripStatus: "submitted" },
+      tenancyRepository,
+      reportingRepository,
+      now: new Date("2026-10-22T12:00:00.000Z"),
+    });
+
+    expect(submittedOnly.metrics.tripsAwaitingApproval).toBe(1);
+    expect(submittedOnly.metrics.approvedTrips).toBe(0);
+    expect(submittedOnly.metrics.completedVisits).toBe(0);
+    expect(submittedOnly.metrics.pendingVisits).toBe(0);
+    expect(submittedOnly.metrics.tripsByStatus.submitted).toBe(1);
+    expect(submittedOnly.items).toHaveLength(1);
+    expect(submittedOnly.items[0]?.tripStatus).toBe("submitted");
+
+    // 3. Filter by visitStatus: "submitted"
+    const visitedSubmittedOnly = await getManagerDashboardForOrg({
+      user: MANAGER_A,
+      candidateOrgId: ORG_A_ID,
+      rawQuery: { visitStatus: "submitted" },
+      tenancyRepository,
+      reportingRepository,
+      now: new Date("2026-10-22T12:00:00.000Z"),
+    });
+    expect(visitedSubmittedOnly.metrics.completedVisits).toBe(1);
+    expect(visitedSubmittedOnly.items).toHaveLength(1);
+    expect(visitedSubmittedOnly.items[0]?.actualVisitStatus).toBe("submitted");
+  });
+
+  it("enforces strict ISO-8601 UTC date boundaries, including exact match, outer exclusion, overdue trip calculation, and inverted range rejection", async () => {
+    const { tenancyRepository, reportingRepository } = setupReportingFixtures();
+
+    // 1. Exact date boundary match on start date
+    const exactDate = await getManagerDashboardForOrg({
+      user: MANAGER_A,
+      candidateOrgId: ORG_A_ID,
+      rawQuery: {
+        startDateFrom: "2026-10-22",
+        startDateTo: "2026-10-22",
+      },
+      tenancyRepository,
+      reportingRepository,
+      now: new Date("2026-10-22T12:00:00.000Z"),
+    });
+    expect(exactDate.items).toHaveLength(2);
+    expect(exactDate.items.every((r) => r.tripStartDate === "2026-10-22")).toBe(true);
+
+    // 2. Outer boundary: trips starting before startDateFrom are excluded
+    const laterBound = await getManagerDashboardForOrg({
+      user: MANAGER_A,
+      candidateOrgId: ORG_A_ID,
+      rawQuery: {
+        startDateFrom: "2026-10-25",
+      },
+      tenancyRepository,
+      reportingRepository,
+      now: new Date("2026-10-25T12:00:00.000Z"),
+    });
+    expect(laterBound.items).toHaveLength(1);
+    expect(laterBound.items[0]?.tripId).toBe(TRIP_SUBMITTED_A);
+
+    // 3. Inverted date range (startDateTo < startDateFrom) throws validation error
+    await expect(
+      getManagerDashboardForOrg({
+        user: MANAGER_A,
+        candidateOrgId: ORG_A_ID,
+        rawQuery: {
+          startDateFrom: "2026-10-25",
+          startDateTo: "2026-10-20",
+        },
+        tenancyRepository,
+        reportingRepository,
+      })
+    ).rejects.toThrow();
+
+    // 4. Overdue calculation: trip end_date passed without completed checkout
+    // When now is 2026-10-24, TRIP_APPROVED_IN_PROGRESS_A (end_date: 2026-10-23) is overdue
+    const overdueDashboard = await getManagerDashboardForOrg({
+      user: MANAGER_A,
+      candidateOrgId: ORG_A_ID,
+      rawQuery: {
+        storeId: STORE_A2_ID,
+      },
+      tenancyRepository,
+      reportingRepository,
+      now: new Date("2026-10-24T12:00:00.000Z"),
+    });
+    const overdueStop = overdueDashboard.items.find(
+      (r) => r.tripStopId === STOP_INPROG_2_ACTIVE
+    );
+    expect(overdueStop?.requiresAttention).toBe(true);
+    expect(overdueStop?.attentionReasons.some((r) => r.includes("Overdue stop"))).toBe(
+      true
+    );
+  });
+
+  it("validates comprehensive OWASP formula injection prefix escaping and RFC 4180 export formatting", () => {
+    // Escaping of all formula characters: =, +, -, @
+    expect(sanitizeAndQuoteCsvText("=cmd|' /C calc'!A0")).toBe("'=cmd|' /C calc'!A0");
+    expect(sanitizeAndQuoteCsvText("+1234")).toBe("'+1234");
+    expect(sanitizeAndQuoteCsvText("-5678")).toBe("'-5678");
+    expect(sanitizeAndQuoteCsvText("@SUM(A1:A5)")).toBe("'@SUM(A1:A5)");
+
+    // Leading whitespace before formula characters
+    expect(sanitizeAndQuoteCsvText("   =SUM(1,2)")).toBe('"\'   =SUM(1,2)"');
+    expect(sanitizeAndQuoteCsvText("  +test")).toBe("'  +test");
+    expect(sanitizeAndQuoteCsvText("  +test, with comma")).toBe(
+      '"\'  +test, with comma"'
+    );
+    expect(sanitizeAndQuoteCsvText(" \t=evil")).toBe("' \t=evil");
+
+    // Leading tab and carriage return characters
+    expect(sanitizeAndQuoteCsvText("\tdata")).toBe("'\tdata");
+    expect(sanitizeAndQuoteCsvText("\rdata")).toBe('"\'\rdata"');
+    expect(sanitizeAndQuoteCsvText("  \tdata")).toBe("'  \tdata");
+
+    // Quotes and commas per RFC 4180
+    expect(sanitizeAndQuoteCsvText('Store "Flagship", North')).toBe(
+      '"Store ""Flagship"", North"'
+    );
+    expect(sanitizeAndQuoteCsvText("Line 1\r\nLine 2")).toBe('"Line 1\r\nLine 2"');
+
+    // Safe regular text and null/empty
+    expect(sanitizeAndQuoteCsvText("Chicago Downtown")).toBe("Chicago Downtown");
+    expect(sanitizeAndQuoteCsvText("")).toBe("");
+    expect(sanitizeAndQuoteCsvText(null)).toBe("");
+    expect(sanitizeAndQuoteCsvText(undefined)).toBe("");
+  });
+
+  it("enforces organization isolation and role permissions across all dashboard, export, and comparison endpoints", async () => {
+    const { tenancyRepository, reportingRepository } = setupReportingFixtures();
+
+    // 1. Unauthenticated requests fail with 401
+    await expect(
+      getManagerDashboardForOrg({
+        user: null,
+        candidateOrgId: ORG_A_ID,
+        rawQuery: {},
+        tenancyRepository,
+        reportingRepository,
+      })
+    ).rejects.toMatchObject({
+      code: "UNAUTHENTICATED",
+      status: 401,
+    });
+
+    await expect(
+      exportManagerReportCsvForOrg({
+        user: null,
+        candidateOrgId: ORG_A_ID,
+        rawQuery: {},
+        tenancyRepository,
+        reportingRepository,
+      })
+    ).rejects.toMatchObject({
+      code: "UNAUTHENTICATED",
+      status: 401,
+    });
+
+    // 2. Field rep is denied from CSV export with 403
+    await expect(
+      exportManagerReportCsvForOrg({
+        user: EMPLOYEE_A1,
+        candidateOrgId: ORG_A_ID,
+        rawQuery: {},
+        tenancyRepository,
+        reportingRepository,
+      })
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN_INSUFFICIENT_ROLE",
+      status: 403,
+    });
+
+    // 3. Cross-tenant manager is denied from CSV export with 403
+    await expect(
+      exportManagerReportCsvForOrg({
+        user: MANAGER_B,
+        candidateOrgId: ORG_A_ID,
+        rawQuery: {},
+        tenancyRepository,
+        reportingRepository,
+      })
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN_ORG_ACCESS",
+      status: 403,
+    });
+
+    // 4. Cross-tenant user requesting non-existent trip in active org returns 404
+    await expect(
+      getTripPlannedVsActualForOrg({
+        user: MANAGER_A,
+        candidateOrgId: ORG_A_ID,
+        candidateTripId: TRIP_ORG_B,
+        tenancyRepository,
+        reportingRepository,
+      })
+    ).rejects.toMatchObject({
+      code: "NOT_FOUND",
+      status: 404,
+    });
+  });
+
+  it("handles completely empty operational datasets safely with zeroed metrics, empty collections, and header-only CSV", async () => {
+    const tenancyRepository = new InMemoryTenancyRepo();
+    tenancyRepository.organizations.push({
+      id: ORG_A_ID,
+      name: "Empty Org",
+      slug: "empty-org",
+      status: "active",
+      createdBy: MANAGER_A.id,
+      createdAt: "2026-10-20T08:00:00.000Z",
+      updatedAt: "2026-10-20T08:00:00.000Z",
+    });
+    tenancyRepository.memberships.push({
+      id: "30000000-0000-4000-8000-000000000002",
+      orgId: ORG_A_ID,
+      userId: MANAGER_A.id,
+      role: "manager",
+      status: "active",
+      managerUserId: null,
+      createdAt: "2026-10-20T08:00:00.000Z",
+      updatedAt: "2026-10-20T08:00:00.000Z",
+    });
+
+    const emptyDataset: OrgOperationalDataset = {
+      stores: [],
+      trips: [],
+      tripStops: [],
+      visits: [],
+      checklistItems: [],
+      evidence: [],
+      auditEvents: [],
+    };
+
+    const emptyReportingRepo = new InMemoryReportingRepo(emptyDataset);
+
+    const dashboard = await getManagerDashboardForOrg({
+      user: MANAGER_A,
+      candidateOrgId: ORG_A_ID,
+      rawQuery: {},
+      tenancyRepository,
+      reportingRepository: emptyReportingRepo,
+    });
+
+    expect(dashboard.metrics.tripsAwaitingApproval).toBe(0);
+    expect(dashboard.metrics.approvedTrips).toBe(0);
+    expect(dashboard.metrics.approvedTripsBreakdown).toEqual({
+      approvedNotStarted: 0,
+      inProgress: 0,
+      completedAllStopsCheckedOut: 0,
+    });
+    expect(dashboard.metrics.tripsByStatus).toEqual({
+      draft: 0,
+      submitted: 0,
+      approved: 0,
+      in_progress: 0,
+      completed: 0,
+      changes_requested: 0,
+      rejected: 0,
+    });
+    expect(dashboard.metrics.completedVisits).toBe(0);
+    expect(dashboard.metrics.pendingVisits).toBe(0);
+    expect(dashboard.metrics.exceptionsRequiringAttention).toBe(0);
+    expect(dashboard.items).toEqual([]);
+    expect(dashboard.pagination.hasMore).toBe(false);
+    expect(dashboard.pagination.nextCursor).toBeNull();
+
+    const emptyExport = await exportManagerReportCsvForOrg({
+      user: MANAGER_A,
+      candidateOrgId: ORG_A_ID,
+      rawQuery: {},
+      tenancyRepository,
+      reportingRepository: emptyReportingRepo,
+    });
+
+    expect(emptyExport.rowCount).toBe(0);
+    expect(emptyExport.csv).toBe(`${MANAGER_REPORT_CSV_HEADERS.join(",")}\r\n`);
   });
 });

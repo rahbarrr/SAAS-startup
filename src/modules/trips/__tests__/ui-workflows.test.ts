@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { formatUtcTimestamp } from "@/lib/ux/formatting-and-resilience";
-import type { Trip, TripDecisionStatus } from "@/modules/trips/domain";
+import type { Trip, TripDecisionStatus, TripStatus } from "@/modules/trips/domain";
 
 describe("Frontend Workflow Invariants & Formatting", () => {
   const SAMPLE_TRIP: Trip = {
@@ -182,5 +182,74 @@ describe("Frontend Workflow Invariants & Formatting", () => {
     }
     const recheck = items.filter((i) => i.required && !i.completed);
     expect(recheck).toHaveLength(0);
+  });
+
+  it("filters trips list by all valid TripStatus values including in_progress and completed", () => {
+    const allTrips: { id: string; status: TripStatus }[] = [
+      { id: "t1", status: "draft" },
+      { id: "t2", status: "submitted" },
+      { id: "t3", status: "approved" },
+      { id: "t4", status: "in_progress" },
+      { id: "t5", status: "completed" },
+      { id: "t6", status: "changes_requested" },
+      { id: "t7", status: "rejected" },
+    ];
+
+    function filterByStatus(trips: typeof allTrips, filter: string) {
+      return trips.filter((t) => (filter === "all" ? true : t.status === filter));
+    }
+
+    expect(filterByStatus(allTrips, "all")).toHaveLength(7);
+    expect(filterByStatus(allTrips, "in_progress")).toHaveLength(1);
+    expect(filterByStatus(allTrips, "completed")).toHaveLength(1);
+    expect(filterByStatus(allTrips, "draft")).toHaveLength(1);
+    expect(filterByStatus(allTrips, "approved")).toHaveLength(1);
+  });
+
+  it("enforces trip editing permissions and status constraints", () => {
+    const ownerId = "user-rep-01";
+    const nonOwnerId = "user-mgr-01";
+
+    function canUserEditTrip(
+      trip: { ownerUserId: string; status: TripStatus },
+      userId: string
+    ): boolean {
+      if (trip.ownerUserId !== userId) return false;
+      return (
+        trip.status === "draft" ||
+        trip.status === "changes_requested" ||
+        trip.status === "approved"
+      );
+    }
+
+    // Owner can edit in draft, changes_requested, approved
+    expect(canUserEditTrip({ ownerUserId: ownerId, status: "draft" }, ownerId)).toBe(
+      true
+    );
+    expect(
+      canUserEditTrip({ ownerUserId: ownerId, status: "changes_requested" }, ownerId)
+    ).toBe(true);
+    expect(canUserEditTrip({ ownerUserId: ownerId, status: "approved" }, ownerId)).toBe(
+      true
+    );
+
+    // Non-owner cannot edit even if in draft
+    expect(canUserEditTrip({ ownerUserId: ownerId, status: "draft" }, nonOwnerId)).toBe(
+      false
+    );
+
+    // Owner cannot edit in non-permitted states
+    expect(canUserEditTrip({ ownerUserId: ownerId, status: "submitted" }, ownerId)).toBe(
+      false
+    );
+    expect(
+      canUserEditTrip({ ownerUserId: ownerId, status: "in_progress" }, ownerId)
+    ).toBe(false);
+    expect(canUserEditTrip({ ownerUserId: ownerId, status: "completed" }, ownerId)).toBe(
+      false
+    );
+    expect(canUserEditTrip({ ownerUserId: ownerId, status: "rejected" }, ownerId)).toBe(
+      false
+    );
   });
 });

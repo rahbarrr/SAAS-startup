@@ -67,18 +67,14 @@ describe("FieldTrack — Core Retail Workflow & Access Control End-to-End Accept
       grant execute on function auth.uid() to public, authenticated;
     `);
 
-    // 2. Apply all 11 versioned migrations in order
-    for (let i = 1; i <= 11; i++) {
-      const padded = String(i).padStart(6, "0");
-      const filenamePattern = `20261022${padded}`;
-      const dir = path.resolve(process.cwd(), "supabase/migrations");
-      const matched = fs
-        .readdirSync(dir)
-        .find((f) => f.startsWith(filenamePattern) && f.endsWith(".sql"));
-      if (!matched) {
-        throw new Error(`Migration file starting with ${filenamePattern} not found`);
-      }
-      const sql = fs.readFileSync(path.join(dir, matched), "utf8");
+    // 2. Apply all versioned migrations in order
+    const dir = path.resolve(process.cwd(), "supabase/migrations");
+    const migrationFiles = fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith(".sql"))
+      .sort();
+    for (const file of migrationFiles) {
+      const sql = fs.readFileSync(path.join(dir, file), "utf8");
       await db.exec(sql);
     }
 
@@ -450,12 +446,28 @@ describe("FieldTrack — Core Retail Workflow & Access Control End-to-End Accept
       [activeStopId]
     );
     expect(requireRow(stopCheck.rows[0]).status).toBe("visited");
+
+    // Verify parent trip is automatically transitioned to 'completed' since all stops are checked out
+    const tripCheck = await db.query<{ status: string }>(
+      `select status from public.trips where id = $1`,
+      [activeTripId]
+    );
+    expect(requireRow(tripCheck.rows[0]).status).toBe("completed");
+
+    // Verify trip_completed audit event is logged
+    const completionAudit = await db.query<{ event_type: string; actor_user_id: string }>(
+      `select event_type, actor_user_id from public.trip_audit_events
+        where trip_id = $1 and event_type = 'trip_completed'`,
+      [activeTripId]
+    );
+    expect(completionAudit.rows.length).toBe(1);
+    expect(requireRow(completionAudit.rows[0]).actor_user_id).toBe(EMPLOYEE_ID);
   });
 
   // ==========================================================================
-  // Step 3.9: Generate and review trip/visit report
+  // Step 3.9: Generate and review trip/visit report & notifications
   // ==========================================================================
-  it("Step 3.9: Manager reviews trip execution metrics and AI report draft lifecycle", async () => {
+  it("Step 3.9: Manager reviews trip execution metrics, in-app notifications, and AI report draft lifecycle", async () => {
     // 1. Verify manager reporting dataset accurately aggregates completed store visits
     const metricsRes = await runAs(MANAGER_ID, async () => {
       const visits = await db.query<{ status: string; store_name: string }>(
@@ -510,6 +522,42 @@ describe("FieldTrack — Core Retail Workflow & Access Control End-to-End Accept
 
     expect(approvedDraftRes.review_status).toBe("approved");
     expect(approvedDraftRes.reviewed_by).toBe(MANAGER_ID);
+
+    // 4. Verify in-app notifications and read receipt lifecycle via mark_in_app_notification_read RPC
+    const submittedEvent = await db.query<{ id: string }>(
+      `select id from public.trip_audit_events
+        where trip_id = $1 and event_type = 'trip_submitted'
+        limit 1`,
+      [activeTripId]
+    );
+    const submittedEventId = requireRow(submittedEvent.rows[0]).id;
+
+    // Manager marks notification as read
+    const receiptRes = await runAs(MANAGER_ID, async () => {
+      const res = await db.query<{
+        organization_id: string;
+        audit_event_id: string;
+        user_id: string;
+      }>(
+        `select organization_id, audit_event_id, user_id
+           from public.mark_in_app_notification_read($1, $2)`,
+        [activeOrgId, submittedEventId]
+      );
+      return requireRow(res.rows[0]);
+    });
+    expect(receiptRes.organization_id).toBe(activeOrgId);
+    expect(receiptRes.audit_event_id).toBe(submittedEventId);
+    expect(receiptRes.user_id).toBe(MANAGER_ID);
+
+    // Cross-tenant user from competitor org cannot mark Org A notification as read
+    await expect(
+      runAs(ATTACKER_ID, async () => {
+        await db.query(`select * from public.mark_in_app_notification_read($1, $2)`, [
+          activeOrgId,
+          submittedEventId,
+        ]);
+      })
+    ).rejects.toThrow(/membership required/i);
   });
 
   // ==========================================================================

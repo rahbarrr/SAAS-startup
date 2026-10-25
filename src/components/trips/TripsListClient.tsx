@@ -109,6 +109,8 @@ export function TripsListClient({
               <option value="draft">Draft</option>
               <option value="submitted">Pending Approval</option>
               <option value="approved">Approved</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
               <option value="changes_requested">Changes Requested</option>
               <option value="rejected">Rejected</option>
             </select>

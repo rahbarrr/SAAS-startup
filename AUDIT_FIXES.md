@@ -257,3 +257,165 @@ This document details every defect identified during the full-stack audit, its r
   - Added section 2.4 documenting Supabase Auth email confirmation settings and the requirement for email autoconfirm or staging SMTP credentials.
 - **Regression Tests & Verification:**
   - Verified with `validateStartupEnv()` for `APP_ENV: "staging"`.
+
+---
+
+## Fix 15: Phase 1 — Foundation, Secrets, and Database Privilege Hardening
+
+- **Finding ID:** `AUDIT-FIX-015`
+- **Severity:** P1 — High (Secret exposure defense, middleware fail-closed, DB default privileges)
+- **Root Cause:**
+  1. Startup environment validation accepted service-role JWTs and secret keys in public variables, accepted non-HTTPS Supabase URLs outside development, and had a hostname prefix check that allowed lookalike domains (e.g. `<ref>.attacker.com`).
+  2. Middleware failed open if Supabase configuration was missing in deployed staging/production environments.
+  3. Sensitive tokens (`sb_secret_`, `sk-`, Bearer tokens, database connection URLs) were not comprehensively scrubbed by error response sanitizers.
+  4. Supabase default privileges grant table and function execution rights to `anon` by default; trigger functions and business RPCs lacked explicit revocation from `anon` and client roles.
+- **Affected Files:**
+  - [`src/lib/env/startup.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/lib/env/startup.ts)
+  - [`src/lib/supabase/middleware.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/lib/supabase/middleware.ts)
+  - [`src/lib/observability/logger.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/lib/observability/logger.ts)
+  - [`src/lib/http/envelope.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/lib/http/envelope.ts)
+  - [`src/modules/auth/schemas.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/auth/schemas.ts)
+  - [`supabase/migrations/20261022000012_revoke_anon_and_internal_function_execute.sql`](file:///Users/rahbarraza/Downloads/SAAS%20startup/supabase/migrations/20261022000012_revoke_anon_and_internal_function_execute.sql)
+  - [`supabase/verification/post-release.sql`](file:///Users/rahbarraza/Downloads/SAAS%20startup/supabase/verification/post-release.sql)
+  - [`src/modules/security/__tests__/phase1-foundation.test.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/security/__tests__/phase1-foundation.test.ts)
+  - [`src/modules/security/__tests__/api-access-control.test.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/security/__tests__/api-access-control.test.ts)
+  - [`src/modules/security/__tests__/db-privilege-hardening.test.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/security/__tests__/db-privilege-hardening.test.ts)
+- **Remediation:**
+  1. Updated `src/lib/env/startup.ts` to decode JWTs and reject `service_role` or `sb_secret_` in `NEXT_PUBLIC_SUPABASE_ANON_KEY`, enforce HTTPS outside development, and enforce exact hostname matching against `.supabase.co` and `.supabase.in`.
+  2. Updated `src/lib/supabase/middleware.ts` with `isDeployedRuntime()`: returns 503 JSON with `INTERNAL_ERROR` and sets `x-request-id` if Supabase env is missing in staging/production, while allowing local development pass-through.
+  3. Hardened `src/lib/observability/logger.ts` and `src/lib/http/envelope.ts` to redact JWTs, `sk-` keys, `sb_secret_` tokens, Bearer headers, and DB connection strings from error messages and log contexts.
+  4. Hardened `sanitizeRedirectPath` in `src/modules/auth/schemas.ts` against control characters and backslashes.
+  5. Added migration 12 revoking table/sequence privileges and function execution from `anon` on all public functions (except `consume_rate_limit`), and revoking execution on trigger functions from all client roles.
+  6. Updated `supabase/verification/post-release.sql` to verify that `anon` has no table privileges and cannot execute non-allowlisted public functions.
+- **Regression Tests & Verification:**
+  - `src/modules/security/__tests__/phase1-foundation.test.ts`: 33 tests verifying startup env checks, secret separation, logger/error redaction, proxy routing, and fail-closed behavior.
+  - `src/modules/security/__tests__/api-access-control.test.ts`: 61 tests verifying unauthenticated 401 and cross-tenant 403 access control across all API route handlers.
+  - `src/modules/security/__tests__/db-privilege-hardening.test.ts`: 9 tests verifying RLS enforcement, default privilege revocations, SECURITY DEFINER search paths, and rate limit bucket isolation.
+
+---
+
+## Fix 16: Phase 2 — Core Field Operations Invariants, Gating, and Filter Alignment
+
+- **Finding ID:** `AUDIT-FIX-016`
+- **Severity:** P2 — Medium (Trip editing ownership & status gating, trips list status filter missing enum values, submit route invalid JSON handling)
+- **Root Cause:**
+  1. [`src/components/trips/TripsListClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/trips/TripsListClient.tsx) status filter dropdown only listed `draft`, `submitted`, `approved`, `changes_requested`, and `rejected`, omitting valid database `TripStatus` values `in_progress` and `completed`.
+  2. [`src/components/trips/TripDetailClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/trips/TripDetailClient.tsx) rendered an "Edit Stops" link without checking `isOwner`, allowing non-owners to navigate to an edit form that would fail upon submission. It also omitted `approved` status, preventing owners from taking advantage of the re-approval workflow ("Edit Trip (Re-opens Draft)").
+  3. [`src/app/trips/[tripId]/edit/page.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/trips/[tripId]/edit/page.tsx) server component did not verify that `tripDetail.trip.ownerUserId === currentUserId` or that the trip was in an editable state (`draft`, `changes_requested`, `approved`), rendering a full form rather than an informative empty state.
+  4. [`src/app/api/orgs/[orgId]/trips/[tripId]/submit/route.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/api/orgs/[orgId]/trips/[tripId]/submit/route.ts) directly invoked `JSON.parse(text)` on non-empty bodies without catching syntax errors, resulting in 500 `INTERNAL_ERROR` rather than 400 `VALIDATION_ERROR` for malformed JSON bodies.
+- **Affected Files:**
+  - [`src/components/trips/TripsListClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/trips/TripsListClient.tsx)
+  - [`src/components/trips/TripDetailClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/trips/TripDetailClient.tsx)
+  - [`src/app/trips/[tripId]/edit/page.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/trips/[tripId]/edit/page.tsx)
+  - [`src/app/api/orgs/[orgId]/trips/[tripId]/submit/route.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/api/orgs/[orgId]/trips/[tripId]/submit/route.ts)
+  - [`src/modules/trips/__tests__/ui-workflows.test.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/trips/__tests__/ui-workflows.test.ts)
+- **Remediation:**
+  1. Added `<option value="in_progress">In Progress</option>` and `<option value="completed">Completed</option>` to `TripsListClient` status filter.
+  2. Gated the edit action in `TripDetailClient` with `isOwner && (trip.status === "draft" || trip.status === "changes_requested" || trip.status === "approved")`, rendering "Edit Trip (Re-opens Draft)" for approved trips.
+  3. Added server-side checks in `EditTripPage` to verify ownership and permitted editable statuses (`draft`, `changes_requested`, `approved`), returning informative empty states for unauthorized or non-editable trips.
+  4. Wrapped `JSON.parse(text)` in a `try/catch` in the trip submission API handler, throwing `AppError("VALIDATION_ERROR", "Request body must be valid JSON", 400)`.
+- **Regression Tests & Verification:**
+  - Added trip status filtering test for all `TripStatus` values in `src/modules/trips/__tests__/ui-workflows.test.ts`.
+  - Added trip edit permissions and status constraints test in `src/modules/trips/__tests__/ui-workflows.test.ts`.
+  - Verified with full test suite (235 passed) and Next.js production build.
+
+---
+
+## Fix 17: Phase 3 — Store Visit Execution: Geolocation Consent, Client Idempotency, and Upload Gating
+
+- **Finding ID:** `AUDIT-FIX-017`
+- **Severity:** P1 — High (Hardcoded mock GPS coordinates in check-in and checkout, action guard deadlock preventing checklist saves during checkout, missing client idempotency keys on network retries, and raw JSON download links)
+- **Root Cause:**
+  1. [`src/components/trips/TripDetailClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/trips/TripDetailClient.tsx) and [`src/components/visits/VisitExecutionClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/visits/VisitExecutionClient.tsx) hardcoded static GPS coordinates (`41.8837, -87.6278` and `41.8839, -87.6279`) rather than requesting geolocation on-demand with explicit user consent via the browser Geolocation API.
+  2. In [`src/components/visits/VisitExecutionClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/visits/VisitExecutionClient.tsx), `handleCheckOut` acquired `actionGuard`, then called `handleSaveChecklist`, which also attempted to acquire `actionGuard`. This caused `handleSaveChecklist` to fail silently and abort without saving updated checklist items, leading to checkout rejections with 400 validation error ("required checklist items remain incomplete").
+  3. `TripDetailClient.tsx` (check-in), `VisitExecutionClient.tsx` (checkout), and evidence confirmation lacked client idempotency keys, exposing network retries to 409 conflict errors.
+  4. Client evidence upload did not validate maximum file size (25 MiB) or MIME types prior to requesting upload tickets.
+  5. Visiting `/api/orgs/[orgId]/visits/[visitId]/evidence?evidenceId=...` rendered raw JSON rather than redirecting to the private signed Supabase Storage URL.
+  6. [`src/app/visits/[visitId]/page.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/visits/[visitId]/page.tsx) permitted managers to view the interactive editing form for in-progress visits, but the DB trigger strictly forbids non-assigned users from mutating visits.
+- **Affected Files:**
+  - [`src/lib/ux/formatting-and-resilience.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/lib/ux/formatting-and-resilience.ts)
+  - [`src/components/trips/TripDetailClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/trips/TripDetailClient.tsx)
+  - [`src/components/visits/VisitExecutionClient.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/components/visits/VisitExecutionClient.tsx)
+  - [`src/app/api/orgs/[orgId]/visits/[visitId]/evidence/route.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/api/orgs/[orgId]/visits/[visitId]/evidence/route.ts)
+  - [`src/app/visits/[visitId]/page.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/visits/[visitId]/page.tsx)
+  - [`src/modules/visits/__tests__/visit-execution-client-workflows.test.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/visits/__tests__/visit-execution-client-workflows.test.ts)
+- **Remediation:**
+  1. Added `captureDeviceLocationWithConsent` to `src/lib/ux/formatting-and-resilience.ts` performing a single, point-in-time position fix with explicit browser consent; returns `{ status: 'captured_unverified', ... }`, `{ status: 'permission_denied' }`, or `{ status: 'unavailable' }`. Strictly no continuous background tracking.
+  2. Extracted `saveChecklistInternal` so checkout persists pending checklist items and completes checkout under the action guard without deadlock.
+  3. Added client idempotency keys (`crypto.randomUUID()`) to check-in, checkout, and evidence confirmation requests.
+  4. Added client-side file size and format validation prior to requesting tickets.
+  5. Added `download=true` / `redirect=true` query param support to the evidence GET API route, returning a 307 Redirect directly to the signed Supabase Storage URL.
+  6. Strictly gated `isOwnerOrCanWrite` in `VisitDetailPage` to the assigned employee.
+- **Regression Tests & Verification:**
+  - `src/modules/visits/__tests__/visit-execution-client-workflows.test.ts`: 17 tests verifying location consent, concurrency guards, upload validation, schema constraints, failure classification, and 307 download redirects.
+  - Verified with full test suite (252 passed) and Next.js Turbopack production build.
+
+---
+
+## Fix 18: Phase 4 — Manager Dashboard and Reporting: Operational Metrics, Trips by Status Breakdown, CSV Formula Hardening, and Error Resilience
+
+- **Finding ID:** `AUDIT-FIX-018`
+- **Severity:** P2 — Medium (Dashboard missing trips-by-status lifecycle distribution, unhandled dashboard fetch errors on authenticated manager views, missing field rep attribution in stop cards, CSV formula prefix regex edge cases)
+- **Root Cause:**
+  1. [`src/modules/reporting/domain.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/reporting/domain.ts) and [`src/modules/reporting/service.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/reporting/service.ts) lacked an explicit `tripsByStatus: Record<TripStatus, number>` distribution across all trip lifecycle states (`draft`, `submitted`, `approved`, `in_progress`, `completed`, `changes_requested`, `rejected`), limiting managers to aggregate totals without a granular status breakdown.
+  2. [`src/app/page.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/page.tsx) swallowed errors silently in an empty `catch` block, preventing signed-in managers from seeing failure reasons or retry prompts when dashboard data queries failed.
+  3. Stop execution rows in [`src/app/page.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/page.tsx) omitted the assigned field rep identifier (`row.ownerUserId`), obscuring field-team activity attribution.
+  4. The CSV formula injection regex in [`src/modules/reporting/csv.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/reporting/csv.ts) (`/^(?:[\t\r]|[ \t\r\n]*[=+\-@])/`) did not cover leading whitespace before tabs/carriage returns.
+- **Affected Files:**
+  - [`src/modules/reporting/domain.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/reporting/domain.ts)
+  - [`src/modules/reporting/service.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/reporting/service.ts)
+  - [`src/modules/reporting/csv.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/reporting/csv.ts)
+  - [`src/app/page.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/page.tsx)
+  - [`src/modules/reporting/__tests__/dashboard-and-csv.test.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/reporting/__tests__/dashboard-and-csv.test.ts)
+- **Remediation:**
+  1. Added `tripsByStatus: Record<TripStatus, number>` to `DashboardMetricsSummary` and computed it over matching trips in `evaluateFilteredDashboardDataset`.
+  2. Added a "Trips by Status" operational distribution card to the Manager Dashboard grid in `src/app/page.tsx`.
+  3. Added `dashboardError` state capture and rendered `<ErrorState title="Dashboard operational data unavailable" message={dashboardError} />` in `src/app/page.tsx`.
+  4. Displayed `Field Rep: <code>{row.ownerUserId}</code>` on every planned vs. actual stop execution card.
+  5. Enhanced formula injection regex to `/^[ \t\r\n]*[=+\-@\t\r]/`, ensuring leading whitespace preceding tabs or CR characters is neutralized per OWASP CSV Injection guidelines.
+- **Regression Tests & Verification:**
+  - Added 5 dedicated test suites in `src/modules/reporting/__tests__/dashboard-and-csv.test.ts`:
+    - Metric correctness across filter permutations (`onlyExceptions`, `tripStatus`, `visitStatus`).
+    - Strict ISO-8601 UTC date boundaries, outer boundary exclusion, overdue trip calculation (`endDate < referenceDateUtc`), and inverted date range rejection.
+    - OWASP formula injection prefix escaping (`=`, `+`, `-`, `@`, `\t`, `\r`, leading whitespace) and RFC 4180 format compliance.
+    - Organization isolation and role permission enforcement (401 unauth, 403 field rep, 403 cross-tenant).
+    - Completely empty operational datasets handling (zeroed metrics, empty lists, header-only CSV).
+  - Verified with 24 test suites (257 passed), TypeScript typecheck, ESLint, Prettier, and Next.js Turbopack build.
+
+---
+
+## Fix 19: Phase 5 — AI Visit Report Drafting: Human Review Enforcement, Server-Side Kill Switch, Visit Eligibility, and Cost Controls
+
+- **Finding ID:** `AUDIT-FIX-019`
+- **Severity:** P2 — Medium (Missing explicit `requiresHumanReview` boolean property on domain draft model, service-layer bypass of `AI_REPORTS_ENABLED` kill switch, unstarted visit eligibility validation missing in drafting service, and mock verification of draft review lifecycle states)
+- **Root Cause:**
+  1. [`src/modules/ai-reports/domain.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/ai-reports/domain.ts) and [`src/modules/ai-reports/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/ai-reports/repository.ts) defined `reviewStatus` (`pending_review | approved | rejected`) and `isFinalApproved: boolean` but lacked an explicit, top-level `requiresHumanReview: boolean` field enforcing that AI-generated content is marked as requiring human review until actively approved or rejected.
+  2. [`src/modules/ai-reports/service.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/ai-reports/service.ts) evaluated `isAiReportsEnabled()` only inside the API route handler, allowing callers of `getVisitAiReportDraftsStateForOrg` and `generateVisitAiReportDraftForOrg` to bypass the kill switch when invoking the service directly.
+  3. Visits that had not started (`checkedInAt: null`) were not rejected upfront in `generateVisitAiReportDraftForOrg`, which could lead to requesting draft reports on stops before any operational visit activities took place.
+  4. Repository mapper `mapDraftRow` mapped `review_status === "pending_review"` only implicitly through `isFinalApproved = review_status === "approved"`.
+- **Affected Files:**
+  - [`src/modules/ai-reports/domain.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/ai-reports/domain.ts)
+  - [`src/modules/ai-reports/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/ai-reports/repository.ts)
+  - [`src/modules/ai-reports/service.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/ai-reports/service.ts)
+  - [`src/modules/ai-reports/__tests__/ai-report-drafts.test.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/ai-reports/__tests__/ai-report-drafts.test.ts)
+- **Remediation:**
+  1. Added `requiresHumanReview: boolean` to `VisitAiReportDraft` domain model and populated it as `true` on creation, `false` once approved or rejected by a human reviewer.
+  2. Integrated `isAiReportsEnabled()` from `src/lib/env/startup.ts` directly into `getVisitAiReportDraftsStateForOrg` (marking `availability.enabled = false` with explanatory `disabledReason`) and `generateVisitAiReportDraftForOrg` (throwing `AI_FEATURE_DISABLED_FOR_ORG` 503).
+  3. Added upfront visit eligibility check: `if (!visitDetail.visit.checkedInAt) throw new AppError("VALIDATION_ERROR", ..., 400)`.
+  4. Verified all security boundaries:
+     - Model output treated as untrusted JSON content validated against `aiGeneratedReportDraftPayloadSchema`.
+     - Injection defense sanitizing delimiters and detecting directive override attempts (`AI_POLICY_VIOLATION` 502 for auto-approval, employee scoring, or secret leakage).
+     - Storage paths, GPS coordinates, binary image files, and personal PII (emails/user IDs) strictly excluded from prompt inputs.
+     - Immutability of provenance fields (`model_name`, `model_version`, `source_record_ids`) enforced at both database trigger level and application service level.
+     - Per-organization UTC daily quotas (`ai_daily_draft_quota`) enforced before invocation and tracked in the database.
+     - Timeouts (`OPENAI_REQUEST_TIMEOUT_MS`, default 15s) and token limits (`OPENAI_MAX_OUTPUT_TOKENS`, default 1200) strictly bounded.
+     - Manual reporting completely independent of AI availability.
+- **Regression Tests & Verification:**
+  - `src/modules/ai-reports/__tests__/ai-report-drafts.test.ts`:
+    - Verified `requiresHumanReview: true` on draft creation, `requiresHumanReview: false` on approval and rejection.
+    - Verified visit eligibility rejection (400 `VALIDATION_ERROR`) for unstarted visits.
+    - Verified kill switch behavior: `AI_REPORTS_ENABLED="false"` disables availability and rejects generation with 503.
+    - Verified tenant isolation (cross-tenant 403, non-owner employee 403).
+    - Verified prompt injection defense and policy violation blocking (auto-approval / scoring / secret leaks -> 502).
+    - Verified resilience under malformed JSON (502), hallucinated source IDs (502), provider rate limits (429), timeouts (504), and provider outages (503).
+  - All 24 test suites (259 tests) passing; zero lint errors, zero typecheck errors, Prettier verified, and Next.js Turbopack build succeeds.

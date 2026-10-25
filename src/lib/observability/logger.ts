@@ -8,14 +8,34 @@ const REDACTED = "[REDACTED]";
 const SENSITIVE_KEY_PATTERN =
   /(password|secret|token|authorization|cookie|api[-_]?key|apikey|service[-_]?role|jwt|session|email|phone|full[-_]?name|note|notes|caption|summary|lat|lng|latitude|longitude|accuracy|address|location|body|prompt|storage[-_]?path|signed[-_]?url)/i;
 
-const SENSITIVE_VALUE_PATTERNS: RegExp[] = [
+/** Credentials and tokens. Anything matching these must never reach logs or end users. */
+const SECRET_VALUE_PATTERNS: RegExp[] = [
+  /\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis):\/\/[^\s'"]+/gi, // DB/connection URLs (may embed passwords)
   /eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}/g, // JWT
+  /\bsb_secret_[A-Za-z0-9_-]{8,}/g, // Supabase secret keys
+  /\bBearer\s+[A-Za-z0-9._~+/-]{8,}=*/gi, // Authorization header values
   /\b[0-9a-f]{64}\b/gi, // token hashes / hex secrets
   /\bsk-[A-Za-z0-9_-]{16,}\b/g, // OpenAI-style keys
+];
+
+/** Personal data that is redacted from logs but is legitimate in some user-facing messages. */
+const PII_VALUE_PATTERNS: RegExp[] = [
   /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, // email addresses
 ];
 
+const SENSITIVE_VALUE_PATTERNS: RegExp[] = [
+  ...SECRET_VALUE_PATTERNS,
+  ...PII_VALUE_PATTERNS,
+];
+
 export type LogLevel = "debug" | "info" | "warn" | "error";
+
+/** True when the text contains a credential/token (emails alone do not count). */
+export function containsSecretValue(value: string): boolean {
+  return SECRET_VALUE_PATTERNS.some((pattern) =>
+    new RegExp(pattern.source, pattern.flags.replace("g", "")).test(value)
+  );
+}
 
 export function redactString(value: string): string {
   let out = value;

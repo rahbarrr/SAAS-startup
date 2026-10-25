@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { type ChangeEvent, type FormEvent, type ReactNode, useState } from "react";
 import { ErrorState } from "@/components/ui/States";
 import {
+  captureDeviceLocationWithConsent,
+  classifyRequestFailure,
   createInFlightActionGuard,
   formatUtcTimestamp,
 } from "@/lib/ux/formatting-and-resilience";
@@ -110,6 +112,47 @@ export function VisitExecutionClient({
     });
   }
 
+  async function saveChecklistInternal(): Promise<void> {
+    const payloadItems: ChecklistAnswerItemInput[] = checklist.map((item) => ({
+      questionKey: item.questionKey,
+      label: item.label,
+      answerType: item.answerType,
+      answerValue:
+        typeof item.answerValue === "boolean" ||
+        typeof item.answerValue === "string" ||
+        typeof item.answerValue === "number"
+          ? item.answerValue
+          : (item.answerText ?? null),
+      answerText: item.answerText,
+      flagged: item.flagged,
+      required: item.required,
+      completed: item.completed,
+    }));
+
+    const res = await fetch(`/api/orgs/${activeOrgId}/visits/${visitId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        notes: notes.trim() || undefined,
+        checklistItems: payloadItems,
+      }),
+    });
+
+    const body = (await res.json()) as {
+      data?: { visit: { status: VisitStatus } };
+      error?: { message: string; code?: string };
+    };
+
+    if (!res.ok || body.error) {
+      const classified = classifyRequestFailure({
+        status: res.status,
+        errorCode: body.error?.code,
+        errorMessage: body.error?.message,
+      });
+      throw new Error(classified.userMessage);
+    }
+  }
+
   async function handleSaveChecklist(e?: FormEvent) {
     if (e) e.preventDefault();
     setError(null);
@@ -119,40 +162,7 @@ export function VisitExecutionClient({
     setIsSavingChecklist(true);
 
     try {
-      const payloadItems: ChecklistAnswerItemInput[] = checklist.map((item) => ({
-        questionKey: item.questionKey,
-        label: item.label,
-        answerType: item.answerType,
-        answerValue:
-          typeof item.answerValue === "boolean" ||
-          typeof item.answerValue === "string" ||
-          typeof item.answerValue === "number"
-            ? item.answerValue
-            : (item.answerText ?? null),
-        answerText: item.answerText,
-        flagged: item.flagged,
-        required: item.required,
-        completed: item.completed,
-      }));
-
-      const res = await fetch(`/api/orgs/${activeOrgId}/visits/${visitId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          notes: notes.trim() || undefined,
-          checklistItems: payloadItems,
-        }),
-      });
-
-      const body = (await res.json()) as {
-        data?: { visit: { status: VisitStatus } };
-        error?: { message: string };
-      };
-
-      if (!res.ok || body.error) {
-        throw new Error(body.error?.message || "Failed to update checklist.");
-      }
-
+      await saveChecklistInternal();
       setConfirmation("Checklist answers and notes successfully saved.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error saving checklist.");
@@ -166,6 +176,19 @@ export function VisitExecutionClient({
     e.preventDefault();
     if (!selectedFile) {
       setError("Please select an image or PDF file to upload.");
+      return;
+    }
+
+    if (selectedFile.size > 26_214_400) {
+      setError("File exceeds maximum allowed size of 25 MiB (26,214,400 bytes).");
+      return;
+    }
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    if (!allowedTypes.includes(selectedFile.type)) {
+      setError(
+        "Unsupported file format. Please upload a JPEG, PNG, WebP image or PDF document."
+      );
       return;
     }
 
@@ -195,13 +218,16 @@ export function VisitExecutionClient({
           signedUploadUrl: string;
           storagePath: string;
         };
-        error?: { message: string };
+        error?: { message: string; code?: string };
       };
 
       if (!ticketRes.ok || ticketBody.error || !ticketBody.data) {
-        throw new Error(
-          ticketBody.error?.message || "Failed to request evidence upload ticket."
-        );
+        const classified = classifyRequestFailure({
+          status: ticketRes.status,
+          errorCode: ticketBody.error?.code,
+          errorMessage: ticketBody.error?.message,
+        });
+        throw new Error(classified.userMessage);
       }
 
       const { signedUploadUrl, storagePath } = ticketBody.data;
@@ -221,7 +247,8 @@ export function VisitExecutionClient({
         );
       }
 
-      // 3. Confirm evidence upload on the backend
+      // 3. Confirm evidence upload on the backend with client idempotency key
+      const idempotencyKey = crypto.randomUUID();
       const confirmRes = await fetch(
         `/api/orgs/${activeOrgId}/visits/${visitId}/evidence?action=confirm`,
         {
@@ -232,19 +259,23 @@ export function VisitExecutionClient({
             fileType: selectedFile.type,
             fileSize: selectedFile.size,
             caption: evidenceCaption.trim() || selectedFile.name,
+            idempotencyKey,
           }),
         }
       );
 
       const confirmBody = (await confirmRes.json()) as {
         data?: InteractiveEvidenceItem;
-        error?: { message: string };
+        error?: { message: string; code?: string };
       };
 
       if (!confirmRes.ok || confirmBody.error || !confirmBody.data) {
-        throw new Error(
-          confirmBody.error?.message || "Failed to record confirmed evidence."
-        );
+        const classified = classifyRequestFailure({
+          status: confirmRes.status,
+          errorCode: confirmBody.error?.code,
+          errorMessage: confirmBody.error?.message,
+        });
+        throw new Error(classified.userMessage);
       }
 
       const confirmedEvidence = confirmBody.data;
@@ -281,29 +312,34 @@ export function VisitExecutionClient({
 
     try {
       // First save latest checklist state to be certain
-      await handleSaveChecklist();
+      await saveChecklistInternal();
+
+      // On-demand device location capture with user consent
+      const loc = await captureDeviceLocationWithConsent();
+      const idempotencyKey = crypto.randomUUID();
 
       const res = await fetch(`/api/orgs/${activeOrgId}/visits/${visitId}/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           notes: notes.trim() || undefined,
-          location: {
-            status: "captured_unverified",
-            latitude: 41.8839,
-            longitude: -87.6279,
-            accuracyMeters: 8.5,
-          },
+          idempotencyKey,
+          location: loc,
         }),
       });
 
       const body = (await res.json()) as {
         data?: { status: VisitStatus };
-        error?: { message: string };
+        error?: { message: string; code?: string };
       };
 
       if (!res.ok || body.error) {
-        throw new Error(body.error?.message || "Failed to complete checkout.");
+        const classified = classifyRequestFailure({
+          status: res.status,
+          errorCode: body.error?.code,
+          errorMessage: body.error?.message,
+        });
+        throw new Error(classified.userMessage);
       }
 
       setVisitStatus("submitted");
@@ -584,11 +620,11 @@ export function VisitExecutionClient({
                 {Math.round(ev.fileSize / 1024)} KiB) — Uploaded at{" "}
                 {formatUtcTimestamp(ev.createdAt)} •{" "}
                 <a
-                  href={`/api/orgs/${activeOrgId}/visits/${visitId}/evidence?evidenceId=${ev.id}`}
+                  href={`/api/orgs/${activeOrgId}/visits/${visitId}/evidence?evidenceId=${ev.id}&download=true`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Request Download URL
+                  View / Download Evidence
                 </a>
               </li>
             ))}

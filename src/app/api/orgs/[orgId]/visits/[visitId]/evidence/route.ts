@@ -1,4 +1,4 @@
-import type { NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { isUploadsEnabled } from "@/lib/env/startup";
 import { AppError, jsonError, jsonSuccess } from "@/lib/http/envelope";
@@ -36,6 +36,14 @@ export async function GET(
       tenancyRepository,
       visitsRepository,
     });
+
+    const shouldRedirect =
+      request.nextUrl.searchParams.get("download") === "true" ||
+      request.nextUrl.searchParams.get("redirect") === "true";
+
+    if (shouldRedirect) {
+      return NextResponse.redirect(signedUrl.signedDownloadUrl, 307);
+    }
 
     return jsonSuccess(signedUrl, 200);
   } catch (error) {

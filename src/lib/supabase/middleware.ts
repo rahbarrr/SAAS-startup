@@ -42,6 +42,12 @@ export async function updateSessionAndEnforceAuth(
   return response;
 }
 
+function isDeployedRuntime(): boolean {
+  const appEnv = process.env.APP_ENV;
+  if (appEnv === "staging" || appEnv === "production") return true;
+  return process.env.NODE_ENV === "production";
+}
+
 async function enforceSessionAndAuth(request: NextRequest): Promise<NextResponse> {
   let supabaseResponse = NextResponse.next({
     request,
@@ -50,8 +56,22 @@ async function enforceSessionAndAuth(request: NextRequest): Promise<NextResponse
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // If environment is not configured yet in local preview, pass through without crashing
   if (!supabaseUrl || !supabaseAnonKey) {
+    // Never serve a deployed environment without session enforcement. Local development keeps
+    // working without Supabase configured so the UI can still be previewed.
+    if (isDeployedRuntime()) {
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            code: "INTERNAL_ERROR",
+            message: "Service is temporarily unavailable",
+          },
+          meta: {},
+        },
+        { status: 503 }
+      );
+    }
     return supabaseResponse;
   }
 

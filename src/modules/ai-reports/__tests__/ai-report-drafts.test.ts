@@ -336,6 +336,7 @@ class InMemoryAiReportsRepository implements AiReportsRepository {
       modelVersion: record.modelVersion,
       promptTemplateVersion: record.promptTemplateVersion,
       reviewStatus: "pending_review",
+      requiresHumanReview: true,
       isFinalApproved: false,
       aiGeneratedLabel: "AI-Generated Draft — Requires Human Review",
       summary: record.summary,
@@ -373,6 +374,7 @@ class InMemoryAiReportsRepository implements AiReportsRepository {
     const updated: VisitAiReportDraft = {
       ...existing,
       reviewStatus: record.reviewStatus,
+      requiresHumanReview: record.reviewStatus === "pending_review",
       isFinalApproved: record.reviewStatus === "approved",
       aiGeneratedLabel:
         record.reviewStatus === "approved"
@@ -632,6 +634,7 @@ describe("AI Visit Report Drafts: authorization, prompt-injection defense, schem
     });
 
     expect(draft.reviewStatus).toBe("pending_review");
+    expect(draft.requiresHumanReview).toBe(true);
     expect(draft.isFinalApproved).toBe(false);
     expect(draft.aiGeneratedLabel).toBe("AI-Generated Draft — Requires Human Review");
     expect(draft.modelName).toBe("gpt-4o-mini");
@@ -672,10 +675,38 @@ describe("AI Visit Report Drafts: authorization, prompt-injection defense, schem
     });
 
     expect(approvedDraft.reviewStatus).toBe("approved");
+    expect(approvedDraft.requiresHumanReview).toBe(false);
     expect(approvedDraft.isFinalApproved).toBe(true);
     expect(approvedDraft.aiGeneratedLabel).toBe("Human-Reviewed & Approved Visit Report");
     expect(approvedDraft.reviewedBy).toBe(MANAGER_A.id);
     expect(approvedDraft.reviewedAt).toBeTruthy();
+
+    // 7. Verify human review with rejection leaves requiresHumanReview=false and isFinalApproved=false
+    const rejectedDraft = await reviewVisitAiReportDraftForOrg({
+      user: MANAGER_A,
+      candidateOrgId: ORG_A_ID,
+      candidateVisitId: VISIT_1_ID,
+      rawInput: {
+        draftId: draft.id,
+        reviewStatus: "rejected",
+        summary: draft.summary,
+        completedActions: draft.completedActions,
+        issues: draft.issues,
+        followUps: draft.followUps,
+        uncertaintyNotes: draft.uncertaintyNotes,
+        reviewNote: "Draft rejected: missing verification of cooler display.",
+      },
+      tenancyRepository,
+      visitsRepository,
+      aiReportsRepository,
+    });
+
+    expect(rejectedDraft.reviewStatus).toBe("rejected");
+    expect(rejectedDraft.requiresHumanReview).toBe(false);
+    expect(rejectedDraft.isFinalApproved).toBe(false);
+    expect(rejectedDraft.aiGeneratedLabel).toBe(
+      "AI-Generated Draft — Rejected by Reviewer"
+    );
   });
 
   it("defends against prompt injection in visit notes and rejects policy-violating outputs (secrets, auto-approval, employee scoring)", async () => {
@@ -890,5 +921,80 @@ describe("AI Visit Report Drafts: authorization, prompt-injection defense, schem
         aiProvider: timeoutHttpProvider,
       })
     ).rejects.toMatchObject({ code: "AI_PROVIDER_TIMEOUT", status: 504 });
+  });
+
+  it("enforces visit eligibility: rejects draft generation when visit is unstarted (not checked in or not_started status)", async () => {
+    const tenancyRepository = new FakeTenancyRepository();
+    const unstartedVisitDetail: VisitDetail = {
+      ...buildSeededVisitDetail(),
+      visit: {
+        ...buildSeededVisitDetail().visit,
+        checkedInAt: null,
+      },
+    };
+    const visitsRepository = new FakeVisitsRepository(
+      unstartedVisitDetail
+    ) as unknown as VisitsRepository;
+    const aiReportsRepository = new InMemoryAiReportsRepository();
+    const provider = new RecordingAiProvider(() => "{}");
+
+    await expect(
+      generateVisitAiReportDraftForOrg({
+        user: FIONA_EMPLOYEE_A,
+        candidateOrgId: ORG_A_ID,
+        candidateVisitId: VISIT_1_ID,
+        rawInput: {},
+        tenancyRepository,
+        visitsRepository,
+        aiReportsRepository,
+        aiProvider: provider,
+      })
+    ).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+      status: 400,
+    });
+  });
+
+  it("respects the global AI_REPORTS_ENABLED kill switch: hides availability and blocks draft generation", async () => {
+    const originalEnv = process.env.AI_REPORTS_ENABLED;
+    process.env.AI_REPORTS_ENABLED = "false";
+
+    try {
+      const tenancyRepository = new FakeTenancyRepository();
+      const visitsRepository = new FakeVisitsRepository() as unknown as VisitsRepository;
+      const aiReportsRepository = new InMemoryAiReportsRepository();
+      const provider = new RecordingAiProvider(() => "{}");
+
+      const state = await getVisitAiReportDraftsStateForOrg({
+        user: FIONA_EMPLOYEE_A,
+        candidateOrgId: ORG_A_ID,
+        candidateVisitId: VISIT_1_ID,
+        tenancyRepository,
+        visitsRepository,
+        aiReportsRepository,
+        aiProvider: provider,
+      });
+
+      expect(state.availability.enabled).toBe(false);
+      expect(state.availability.disabledReason).toContain("AI_REPORTS_ENABLED");
+
+      await expect(
+        generateVisitAiReportDraftForOrg({
+          user: FIONA_EMPLOYEE_A,
+          candidateOrgId: ORG_A_ID,
+          candidateVisitId: VISIT_1_ID,
+          rawInput: {},
+          tenancyRepository,
+          visitsRepository,
+          aiReportsRepository,
+          aiProvider: provider,
+        })
+      ).rejects.toMatchObject({
+        code: "AI_FEATURE_DISABLED_FOR_ORG",
+        status: 503,
+      });
+    } finally {
+      process.env.AI_REPORTS_ENABLED = originalEnv;
+    }
   });
 });

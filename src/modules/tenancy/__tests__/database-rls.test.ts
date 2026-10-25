@@ -57,97 +57,20 @@ describe("PostgreSQL Schema, Migrations, RLS Policies, and Workflow Triggers", (
       grant execute on function auth.uid() to public, authenticated;
     `);
 
-    // 2. Apply versioned migrations in exact chronological order
-    const migration1 = fs.readFileSync(
-      path.resolve(
-        process.cwd(),
-        "supabase/migrations/20261022000001_init_orgs_and_memberships.sql"
-      ),
-      "utf8"
-    );
-    const migration2 = fs.readFileSync(
-      path.resolve(
-        process.cwd(),
-        "supabase/migrations/20261022000002_field_operations_schema.sql"
-      ),
-      "utf8"
-    );
-    const migration3 = fs.readFileSync(
-      path.resolve(
-        process.cwd(),
-        "supabase/migrations/20261022000003_auth_invitations_and_onboarding.sql"
-      ),
-      "utf8"
-    );
-    const migration4 = fs.readFileSync(
-      path.resolve(
-        process.cwd(),
-        "supabase/migrations/20261022000004_transactional_trips_and_stores_rpcs.sql"
-      ),
-      "utf8"
-    );
-    const migration5 = fs.readFileSync(
-      path.resolve(
-        process.cwd(),
-        "supabase/migrations/20261022000005_approval_inbox_and_atomic_decisions.sql"
-      ),
-      "utf8"
-    );
-    const migration6 = fs.readFileSync(
-      path.resolve(
-        process.cwd(),
-        "supabase/migrations/20261022000006_visit_execution_and_evidence.sql"
-      ),
-      "utf8"
-    );
-    const migration7 = fs.readFileSync(
-      path.resolve(
-        process.cwd(),
-        "supabase/migrations/20261022000007_trip_completion_and_reporting_indexes.sql"
-      ),
-      "utf8"
-    );
-    const migration8 = fs.readFileSync(
-      path.resolve(
-        process.cwd(),
-        "supabase/migrations/20261022000008_ai_visit_report_drafts.sql"
-      ),
-      "utf8"
-    );
-    const migration9 = fs.readFileSync(
-      path.resolve(
-        process.cwd(),
-        "supabase/migrations/20261022000009_in_app_notifications_and_read_receipts.sql"
-      ),
-      "utf8"
-    );
-    const migration10 = fs.readFileSync(
-      path.resolve(
-        process.cwd(),
-        "supabase/migrations/20261022000010_security_hardening_rls_and_triggers.sql"
-      ),
-      "utf8"
-    );
-    const migration11 = fs.readFileSync(
-      path.resolve(process.cwd(), "supabase/migrations/20261022000011_rate_limits.sql"),
-      "utf8"
-    );
+    // 2. Apply all versioned migrations in chronological order
+    const migrationsDir = path.resolve(process.cwd(), "supabase/migrations");
+    const migrationFiles = fs
+      .readdirSync(migrationsDir)
+      .filter((f) => f.endsWith(".sql"))
+      .sort();
+    for (const file of migrationFiles) {
+      const sql = fs.readFileSync(path.join(migrationsDir, file), "utf8");
+      await db.exec(sql);
+    }
     const seedSql = fs.readFileSync(
       path.resolve(process.cwd(), "supabase/seed.sql"),
       "utf8"
     );
-
-    await db.exec(migration1);
-    await db.exec(migration2);
-    await db.exec(migration3);
-    await db.exec(migration4);
-    await db.exec(migration5);
-    await db.exec(migration6);
-    await db.exec(migration7);
-    await db.exec(migration8);
-    await db.exec(migration9);
-    await db.exec(migration10);
-    await db.exec(migration11);
 
     // Grant table-level privileges to `authenticated` so RLS policies govern row access
     await db.exec(`

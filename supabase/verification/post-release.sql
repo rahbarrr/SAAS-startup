@@ -38,6 +38,34 @@ begin
   ) then
     raise exception 'rate_limit_buckets must have no RLS policies';
   end if;
+
+  -- 5. Anon cannot EXECUTE any public function except consume_rate_limit.
+  select string_agg(p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')', ', ')
+    into v_missing
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public'
+     and p.prokind = 'f'
+     and p.proname <> 'consume_rate_limit'
+     and has_function_privilege('anon', p.oid, 'EXECUTE');
+  if v_missing is not null then
+    raise exception 'Public functions executable by anon: %', v_missing;
+  end if;
+
+  -- 6. Anon holds no SELECT/INSERT/UPDATE/DELETE privileges on public tables.
+  select string_agg(c.relname, ', ')
+    into v_missing
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public'
+     and c.relkind = 'r'
+     and (
+       has_table_privilege('anon', c.oid, 'SELECT,INSERT,UPDATE,DELETE')
+       or has_any_column_privilege('anon', c.oid, 'SELECT,INSERT,UPDATE')
+     );
+  if v_missing is not null then
+    raise exception 'Public tables accessible by anon: %', v_missing;
+  end if;
 end;
 $$;
 

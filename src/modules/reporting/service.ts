@@ -12,6 +12,7 @@ import {
 } from "@/modules/tenancy/authorization";
 import type { AuthenticatedUser } from "@/modules/tenancy/domain";
 import type { TenancyRepository } from "@/modules/tenancy/repository";
+import type { TripStatus } from "@/modules/trips/domain";
 import { tripIdParamSchema } from "@/modules/trips/schemas";
 import { visitIdParamSchema } from "@/modules/visits/schemas";
 import { buildManagerReportCsv } from "./csv";
@@ -289,6 +290,20 @@ function evaluateFilteredDashboardDataset(params: {
 
   const exceptionsRequiringAttention = exceptionStopCount + zeroStopExceptionTrips;
 
+  const tripsByStatus: Record<TripStatus, number> = {
+    draft: 0,
+    submitted: 0,
+    approved: 0,
+    in_progress: 0,
+    completed: 0,
+    changes_requested: 0,
+    rejected: 0,
+  };
+
+  for (const trip of tripsForMetrics) {
+    tripsByStatus[trip.status] = (tripsByStatus[trip.status] ?? 0) + 1;
+  }
+
   return {
     metrics: {
       tripsAwaitingApproval,
@@ -298,6 +313,7 @@ function evaluateFilteredDashboardDataset(params: {
         inProgress,
         completedAllStopsCheckedOut,
       },
+      tripsByStatus,
       completedVisits,
       pendingVisits,
       exceptionsRequiringAttention,

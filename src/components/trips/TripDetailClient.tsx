@@ -6,6 +6,8 @@ import { type FormEvent, type ReactNode, useState } from "react";
 import { ErrorState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
 import {
+  captureDeviceLocationWithConsent,
+  classifyRequestFailure,
   createInFlightActionGuard,
   formatUtcTimestamp,
 } from "@/lib/ux/formatting-and-resilience";
@@ -150,27 +152,31 @@ export function TripDetailClient({
     setIsCheckingIn(stopId);
 
     try {
+      const loc = await captureDeviceLocationWithConsent();
+      const idempotencyKey = crypto.randomUUID();
+
       const res = await fetch(`/api/orgs/${activeOrgId}/visits`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tripStopId: stopId,
-          location: {
-            status: "captured_unverified",
-            latitude: 41.8837,
-            longitude: -87.6278,
-            accuracyMeters: 10,
-          },
+          idempotencyKey,
+          location: loc,
         }),
       });
 
       const payload = (await res.json()) as {
         data?: { id: string; status: string };
-        error?: { message: string };
+        error?: { message: string; code?: string };
       };
 
       if (!res.ok || payload.error || !payload.data) {
-        throw new Error(payload.error?.message || "Failed to check in to stop.");
+        const classified = classifyRequestFailure({
+          status: res.status,
+          errorCode: payload.error?.code,
+          errorMessage: payload.error?.message,
+        });
+        throw new Error(classified.userMessage);
       }
 
       const visitData = payload.data;
@@ -274,13 +280,18 @@ export function TripDetailClient({
               <h2 id="trip-stops-heading" style={{ margin: 0, fontSize: "1.125rem" }}>
                 Planned Store Stops ({detail.stops.length})
               </h2>
-              {trip.status === "draft" || trip.status === "changes_requested" ? (
+              {isOwner &&
+              (trip.status === "draft" ||
+                trip.status === "changes_requested" ||
+                trip.status === "approved") ? (
                 <Link
                   href={`/trips/${trip.id}/edit`}
                   className="btn btn-secondary"
                   style={{ fontSize: "0.8125rem" }}
                 >
-                  Edit Stops
+                  {trip.status === "approved"
+                    ? "Edit Trip (Re-opens Draft)"
+                    : "Edit Stops"}
                 </Link>
               ) : null}
             </div>

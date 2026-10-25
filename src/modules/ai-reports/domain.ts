@@ -48,6 +48,7 @@ export interface VisitAiReportDraft {
   modelVersion: string | null;
   promptTemplateVersion: string;
   reviewStatus: AiDraftReviewStatus;
+  requiresHumanReview: boolean;
   isFinalApproved: boolean;
   aiGeneratedLabel:
     | "AI-Generated Draft — Requires Human Review"

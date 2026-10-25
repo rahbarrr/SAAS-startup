@@ -68,7 +68,6 @@ export default async function VisitDetailPage(
 
       if (workspace.activeOrganization) {
         const activeOrgId = workspace.activeOrganization.organization.id;
-        const role = workspace.activeOrganization.membership.role;
         const reportingRepository = new SupabaseReportingRepository(supabase);
         detail = await getVisitPlannedVsActualForOrg({
           user,
@@ -78,10 +77,7 @@ export default async function VisitDetailPage(
           reportingRepository,
         });
 
-        isOwnerOrCanWrite =
-          role === "admin" ||
-          role === "manager" ||
-          detail?.visit.employeeUserId === user.id;
+        isOwnerOrCanWrite = Boolean(detail && detail.visit.employeeUserId === user.id);
 
         const visitsRepository = new SupabaseVisitsRepository(supabase);
         const aiReportsRepository = new SupabaseAiReportsRepository(supabase);

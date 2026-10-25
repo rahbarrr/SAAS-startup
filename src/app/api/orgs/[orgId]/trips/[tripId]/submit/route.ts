@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/auth/session";
-import { jsonError, jsonSuccess } from "@/lib/http/envelope";
+import { AppError, jsonError, jsonSuccess } from "@/lib/http/envelope";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import { SupabaseStoresRepository } from "@/modules/stores/repository";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
@@ -26,7 +26,11 @@ export async function POST(
     let body: unknown = {};
     const text = await request.text();
     if (text.trim().length > 0) {
-      body = JSON.parse(text);
+      try {
+        body = JSON.parse(text);
+      } catch {
+        throw new AppError("VALIDATION_ERROR", "Request body must be valid JSON", 400);
+      }
     }
 
     const submitted = await submitTripForApproval({
