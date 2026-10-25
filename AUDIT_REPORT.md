@@ -488,6 +488,10 @@ The application enforces strict runtime environment validation via `src/lib/env/
 | `UPLOADS_ENABLED`               | Server-only      | `true` (Kill switch)                                       | Configured                      |
 | `OPENAI_API_KEY`                | Server-only      | Staging OpenAI API Key (Optional; spend capped)            | Optional                        |
 | `OPENAI_REPORT_MODEL`           | Server-only      | `gpt-4o-mini`                                              | Conditional on `OPENAI_API_KEY` |
+| `OPENAI_API_BASE_URL`           | Server-only      | `https://api.openai.com/v1`                                | Optional                        |
+| `OPENAI_REQUEST_TIMEOUT_MS`     | Server-only      | `15000` (15s HTTP timeout)                                 | Optional                        |
+| `OPENAI_MAX_OUTPUT_TOKENS`      | Server-only      | `1200` (Max draft token cap)                               | Optional                        |
+| `VERCEL_ENV`                    | Server-only      | Platform-assigned (`preview` / `production`)               | Automatic                       |
 | `SENTRY_DSN`                    | Server-only      | Sentry error monitoring DSN                                | Optional                        |
 
 ### 12.4 Migration Review & Application Status

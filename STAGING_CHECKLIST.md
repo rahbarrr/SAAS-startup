@@ -49,17 +49,20 @@ The following environment variables must be configured in the staging hosting pl
 
 ### Server-Only Environment Variables (Secrets & Backend Settings)
 
-| Variable Name                   | Required    | Staging Value / Specification          | Security / Behavior Details                                                     |
-| :------------------------------ | :---------- | :------------------------------------- | :------------------------------------------------------------------------------ |
-| `APP_ENV`                       | **Yes**     | `staging`                              | Dictates strict security policies (HTTPS required, cross-project protection).   |
-| `EXPECTED_SUPABASE_PROJECT_REF` | **Yes**     | `lrolhonkrjhuwgnmcdsj`                 | Must match project ref in `NEXT_PUBLIC_SUPABASE_URL`. Prevents cross-env leaks. |
-| `SUPABASE_SERVICE_ROLE_KEY`     | **Yes**     | Staging Service Role secret (`eyJ...`) | Server-only. Used for migrations, health checks, and test fixtures.             |
-| `AI_REPORTS_ENABLED`            | **Yes**     | `true`                                 | Incident kill switch for AI report drafting. Defaults to `true`.                |
-| `UPLOADS_ENABLED`               | **Yes**     | `true`                                 | Incident kill switch for photo uploads. Defaults to `true`.                     |
-| `OPENAI_API_KEY`                | Optional    | Staging OpenAI API key (`sk-...`)      | Required only for live AI visit report drafting. Scoped with spend cap.         |
-| `OPENAI_REPORT_MODEL`           | Conditional | `gpt-4o-mini`                          | Required if `OPENAI_API_KEY` is set.                                            |
-| `OPENAI_API_BASE_URL`           | Optional    | `https://api.openai.com/v1`            | Custom endpoint or mock endpoint if desired.                                    |
-| `SENTRY_DSN`                    | Optional    | Sentry Project DSN                     | Error telemetry for server and client crashes.                                  |
+| Variable Name                   | Required    | Staging Value / Specification            | Security / Behavior Details                                                     |
+| :------------------------------ | :---------- | :--------------------------------------- | :------------------------------------------------------------------------------ |
+| `APP_ENV`                       | **Yes**     | `staging`                                | Dictates strict security policies (HTTPS required, cross-project protection).   |
+| `EXPECTED_SUPABASE_PROJECT_REF` | **Yes**     | `lrolhonkrjhuwgnmcdsj`                   | Must match project ref in `NEXT_PUBLIC_SUPABASE_URL`. Prevents cross-env leaks. |
+| `SUPABASE_SERVICE_ROLE_KEY`     | **Yes**     | Staging Service Role secret (`eyJ...`)   | Server-only. Used for migrations, health checks, and test fixtures.             |
+| `AI_REPORTS_ENABLED`            | **Yes**     | `true`                                   | Incident kill switch for AI report drafting. Defaults to `true`.                |
+| `UPLOADS_ENABLED`               | **Yes**     | `true`                                   | Incident kill switch for photo uploads. Defaults to `true`.                     |
+| `OPENAI_API_KEY`                | Optional    | Staging OpenAI API key (`sk-...`)        | Required only for live AI visit report drafting. Scoped with spend cap.         |
+| `OPENAI_REPORT_MODEL`           | Conditional | `gpt-4o-mini`                            | Required if `OPENAI_API_KEY` is set.                                            |
+| `OPENAI_API_BASE_URL`           | Optional    | `https://api.openai.com/v1`              | Custom endpoint or mock endpoint if desired (defaults to standard endpoint).    |
+| `OPENAI_REQUEST_TIMEOUT_MS`     | Optional    | `15000` (15s)                            | Upstream HTTP request timeout in milliseconds (1000 - 60000ms).                 |
+| `OPENAI_MAX_OUTPUT_TOKENS`      | Optional    | `1200`                                   | Max output token cap for visit report drafting (128 - 4096 tokens).             |
+| `VERCEL_ENV`                    | Automatic   | Set by Vercel (`preview` / `production`) | Validated to prevent production credentials running in preview deployments.     |
+| `SENTRY_DSN`                    | Optional    | Sentry Project DSN                       | Error telemetry for server and client crashes.                                  |
 
 ---
 
