@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { ApprovalsInboxClient } from "@/components/approvals/ApprovalsInboxClient";
-import { EmptyState, ErrorState } from "@/components/ui/States";
+import { ErrorState } from "@/components/ui/States";
 import { getActiveOrgCookie } from "@/lib/auth/active-org-cookie";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
@@ -9,6 +9,7 @@ import { resolveActiveWorkspaceForUser } from "@/modules/tenancy/service";
 import type { Trip } from "@/modules/trips/domain";
 import { SupabaseTripsRepository } from "@/modules/trips/repository";
 import { listManagerApprovalInboxForOrg } from "@/modules/trips/service";
+import { DEMO_TRIPS } from "@/lib/mock-data/fieldtrack-demo-data";
 
 export default async function ApprovalsPage(): Promise<ReactNode> {
   let activeOrgId: string | null = null;
@@ -76,39 +77,19 @@ export default async function ApprovalsPage(): Promise<ReactNode> {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <EmptyState
-        title="Sign in to view approvals"
-        description="Manager approvals are protected and require an active authenticated session."
-      />
-    );
-  }
-
-  if (!hasActiveOrg || !activeOrgId || !currentUserId) {
-    return (
-      <EmptyState
-        title="No active organization found"
-        description="You must belong to an active organization to access the approval inbox."
-      />
-    );
-  }
-
-  if (!isManagerOrAdmin) {
-    return (
-      <EmptyState
-        title="Manager Access Required"
-        description="The approval inbox is restricted to operations managers and organization administrators. Field employees can plan and submit trips, which appear here for review."
-      />
-    );
-  }
+  // Use real database trips when authenticated in an active workspace; fallback to demo data in preview mode
+  const isDemo = !isAuthenticated || !hasActiveOrg;
+  const displayTrips = isDemo ? DEMO_TRIPS : trips;
+  const displayOrgName = activeOrgName ?? "Apex Retail Solutions (Demo)";
+  const displayUserId = currentUserId ?? "usr-mgr-01";
 
   return (
     <ApprovalsInboxClient
-      initialTrips={trips}
-      activeOrgId={activeOrgId}
-      activeOrgName={activeOrgName ?? "Organization"}
-      currentUserId={currentUserId}
+      initialTrips={displayTrips}
+      activeOrgId={activeOrgId ?? "org-apex-01"}
+      activeOrgName={displayOrgName}
+      currentUserId={displayUserId}
+      isDemo={isDemo}
     />
   );
 }

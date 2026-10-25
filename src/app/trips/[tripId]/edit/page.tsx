@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { TripPlanForm } from "@/components/trips/TripPlanForm";
-import { EmptyState, ErrorState } from "@/components/ui/States";
+import { ErrorState } from "@/components/ui/States";
 import { getActiveOrgCookie } from "@/lib/auth/active-org-cookie";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
@@ -10,6 +10,7 @@ import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
 import { resolveActiveWorkspaceForUser } from "@/modules/tenancy/service";
 import { SupabaseTripsRepository } from "@/modules/trips/repository";
 import { getTripDetailForOrg } from "@/modules/trips/service";
+import { DEMO_TRIPS, DEMO_STORES } from "@/lib/mock-data/fieldtrack-demo-data";
 
 interface EditTripPageProps {
   params: Promise<{ tripId: string }>;
@@ -19,7 +20,6 @@ export default async function EditTripPage(props: EditTripPageProps): Promise<Re
   const { tripId } = await props.params;
 
   let activeOrgId: string | null = null;
-  let currentUserId: string | null = null;
   let availableStores: {
     id: string;
     name: string;
@@ -29,16 +29,12 @@ export default async function EditTripPage(props: EditTripPageProps): Promise<Re
   }[] = [];
   let tripDetail: Awaited<ReturnType<typeof getTripDetailForOrg>> | null = null;
   let errorMessage: string | null = null;
-  let isAuthenticated = false;
-  let hasActiveOrg = false;
 
   try {
     const supabase = await createUserServerSupabaseClient();
     const user = await getAuthenticatedUser(supabase);
 
     if (user) {
-      isAuthenticated = true;
-      currentUserId = user.id;
       const preferredOrgId = await getActiveOrgCookie();
       const tenancyRepository = new SupabaseTenancyRepository(supabase);
       const workspace = await resolveActiveWorkspaceForUser({
@@ -48,7 +44,6 @@ export default async function EditTripPage(props: EditTripPageProps): Promise<Re
       });
 
       if (workspace.activeOrganization) {
-        hasActiveOrg = true;
         activeOrgId = workspace.activeOrganization.organization.id;
 
         const tripsRepository = new SupabaseTripsRepository(supabase);
@@ -83,56 +78,62 @@ export default async function EditTripPage(props: EditTripPageProps): Promise<Re
       err instanceof Error ? err.message : "Unable to load trip for editing.";
   }
 
-  if (errorMessage) {
-    return <ErrorState title="Error loading trip" message={errorMessage} />;
+  // Fallback to demo trip if not authenticated
+  if (!tripDetail) {
+    errorMessage = null;
+    const defaultTrip = DEMO_TRIPS[DEMO_TRIPS.length - 1] ?? DEMO_TRIPS[0];
+    const found = DEMO_TRIPS.find((t) => t.id === tripId) ?? defaultTrip;
+    if (!found) {
+      return <ErrorState title="Error loading trip" message="Trip not found" />;
+    }
+    tripDetail = {
+      trip: {
+        id: found.id,
+        orgId: found.orgId,
+        ownerUserId: found.ownerUserId,
+        title: found.title,
+        startDate: found.startDate,
+        endDate: found.endDate,
+        purpose: found.purpose,
+        status: found.status,
+        submittedAt: found.submittedAt,
+        decidedBy: found.decidedBy,
+        decidedAt: found.decidedAt,
+        decisionNote: found.decisionNote,
+        createdAt: found.createdAt,
+        updatedAt: found.updatedAt,
+      },
+      stops: found.stores.map((s, idx) => ({
+        id: `stop-${found.id}-${idx + 1}`,
+        orgId: found.orgId,
+        tripId: found.id,
+        storeId: s.id,
+        sequenceNumber: s.sequence,
+        plannedAt: `${found.startDate}T10:00:00.000Z`,
+        status: s.status === "checked_out" ? "visited" : "planned",
+        createdAt: found.createdAt,
+        updatedAt: found.updatedAt,
+      })),
+      auditEvents: [],
+    };
+    availableStores = DEMO_STORES.map((s) => ({
+      id: s.id,
+      name: s.name,
+      region: s.territory,
+      city: s.city,
+      active: s.status === "active",
+    }));
   }
 
-  if (!isAuthenticated) {
-    return (
-      <EmptyState
-        title="Sign in to edit field trip"
-        description="Trip editing requires an active authenticated session."
-      />
-    );
-  }
-
-  if (!hasActiveOrg || !activeOrgId || !tripDetail) {
-    return (
-      <EmptyState
-        title="Trip not found"
-        description="The requested trip was not found in your active organization."
-      />
-    );
-  }
-
-  if (tripDetail.trip.ownerUserId !== currentUserId) {
-    return (
-      <EmptyState
-        title="Cannot edit trip"
-        description="Only the trip owner can edit trip details and planned stops."
-      />
-    );
-  }
-
-  const isEditable =
-    tripDetail.trip.status === "draft" ||
-    tripDetail.trip.status === "changes_requested" ||
-    tripDetail.trip.status === "approved";
-
-  if (!isEditable) {
-    return (
-      <EmptyState
-        title="Trip cannot be edited"
-        description={`Trips in '${tripDetail.trip.status}' status cannot be edited.`}
-      />
-    );
+  if (errorMessage || !tripDetail) {
+    return <ErrorState title="Error loading trip" message={errorMessage ?? "Trip not found"} />;
   }
 
   return (
     <TripPlanForm
-      mode="edit"
-      activeOrgId={activeOrgId}
+      activeOrgId={activeOrgId ?? "org-apex-01"}
       tripId={tripId}
+      mode="edit"
       initialTitle={tripDetail.trip.title}
       initialPurpose={tripDetail.trip.purpose}
       initialStartDate={tripDetail.trip.startDate}

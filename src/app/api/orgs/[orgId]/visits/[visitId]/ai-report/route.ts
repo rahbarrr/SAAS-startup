@@ -11,6 +11,7 @@ import {
   getVisitAiReportDraftsStateForOrg,
   reviewVisitAiReportDraftForOrg,
 } from "@/modules/ai-reports/service";
+import { SupabaseAuditRepository } from "@/modules/audit/repository";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
 import { SupabaseVisitsRepository } from "@/modules/visits/repository";
 
@@ -75,6 +76,7 @@ export async function POST(
     const tenancyRepository = new SupabaseTenancyRepository(supabase);
     const visitsRepository = new SupabaseVisitsRepository(supabase);
     const aiReportsRepository = new SupabaseAiReportsRepository(supabase);
+    const auditRepository = new SupabaseAuditRepository(supabase);
     const aiProvider = new OpenAiResponsesReportProvider();
 
     if (!isAiReportsEnabled()) {
@@ -98,6 +100,7 @@ export async function POST(
       tenancyRepository,
       visitsRepository,
       aiReportsRepository,
+      auditRepository,
       aiProvider,
     });
 
@@ -130,6 +133,7 @@ export async function PATCH(
     const tenancyRepository = new SupabaseTenancyRepository(supabase);
     const visitsRepository = new SupabaseVisitsRepository(supabase);
     const aiReportsRepository = new SupabaseAiReportsRepository(supabase);
+    const auditRepository = new SupabaseAuditRepository(supabase);
 
     const updatedDraft = await reviewVisitAiReportDraftForOrg({
       user,
@@ -139,6 +143,7 @@ export async function PATCH(
       tenancyRepository,
       visitsRepository,
       aiReportsRepository,
+      auditRepository,
     });
 
     return jsonSuccess(updatedDraft, 200);

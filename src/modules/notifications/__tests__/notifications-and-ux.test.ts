@@ -329,6 +329,24 @@ class InMemoryNotificationsRepository implements NotificationsRepository {
     this.readReceipts.push(receipt);
     return receipt;
   }
+
+  async markAllNotificationsReadForOrg(params: {
+    orgId: string;
+    userId: string;
+    auditEventIds: string[];
+  }): Promise<NotificationReadReceipt[]> {
+    const receipts: NotificationReadReceipt[] = [];
+    for (const auditEventId of params.auditEventIds) {
+      receipts.push(
+        await this.markNotificationReadIdempotent({
+          orgId: params.orgId,
+          userId: params.userId,
+          auditEventId,
+        })
+      );
+    }
+    return receipts;
+  }
 }
 
 describe("Event-derived idempotent in-app notifications, UTC date/timestamp formatting, resilience guards, and WCAG accessibility", () => {

@@ -7,6 +7,10 @@ const serverEnvSchema = z.object({
     .string()
     .min(1, "SUPABASE_SERVICE_ROLE_KEY must be a non-empty string")
     .optional(),
+  CRON_SECRET: z
+    .string()
+    .min(1, "CRON_SECRET must be a non-empty string")
+    .optional(),
   OPENAI_API_KEY: z
     .string()
     .min(1, "OPENAI_API_KEY must be a non-empty string")
@@ -46,6 +50,7 @@ export function getServerEnv(
   const publicEnv = getPublicEnv(envSource);
   const serverOnly = serverEnvSchema.parse({
     SUPABASE_SERVICE_ROLE_KEY: envSource.SUPABASE_SERVICE_ROLE_KEY || undefined,
+    CRON_SECRET: envSource.CRON_SECRET || undefined,
     OPENAI_API_KEY: envSource.OPENAI_API_KEY || undefined,
     OPENAI_REPORT_MODEL: envSource.OPENAI_REPORT_MODEL || undefined,
     OPENAI_API_BASE_URL: envSource.OPENAI_API_BASE_URL || undefined,

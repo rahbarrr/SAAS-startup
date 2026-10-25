@@ -10,8 +10,15 @@ export const listNotificationsQuerySchema = z.object({
 
 export type ListNotificationsQuery = z.infer<typeof listNotificationsQuerySchema>;
 
-export const markNotificationReadInputSchema = z.object({
-  auditEventId: z.string().uuid("Audit event ID must be a valid UUID"),
-});
+export const markNotificationReadInputSchema = z.union([
+  z.object({
+    action: z.literal("mark_all_read"),
+  }),
+  z.object({
+    action: z.literal("mark_read").optional(),
+    auditEventId: z.string().uuid("Audit event ID must be a valid UUID"),
+  }),
+]);
 
 export type MarkNotificationReadInput = z.infer<typeof markNotificationReadInputSchema>;
+

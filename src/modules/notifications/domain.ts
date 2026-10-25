@@ -12,12 +12,16 @@ export const NOTIFICATION_EVENT_TYPES = [
   "trip_approved",
   "trip_changes_requested",
   "trip_rejected",
+  "trip_started",
+  "trip_completed",
 ] as const;
 
 export type NotificationAuditEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 
 export type InAppNotificationCategory =
-  "submission_awaiting_approval" | "approval_decision";
+  | "submission_awaiting_approval"
+  | "approval_decision"
+  | "workflow_event";
 
 export interface ExternalProviderStatus {
   email: false;
@@ -136,6 +140,8 @@ export function deriveInAppNotificationsFromCommittedEvents(params: {
       event.eventType === "trip_approved" ||
       event.eventType === "trip_changes_requested" ||
       event.eventType === "trip_rejected";
+    const isWorkflowLifecycleEvent =
+      event.eventType === "trip_started" || event.eventType === "trip_completed";
 
     // Route submission events to managers/admins who are NOT the trip owner
     const shouldDeliverSubmissionToManager =
@@ -147,7 +153,16 @@ export function deriveInAppNotificationsFromCommittedEvents(params: {
     const shouldDeliverDecisionToOwner =
       isDecisionEvent && trip.ownerUserId === params.recipientUserId;
 
-    if (!shouldDeliverSubmissionToManager && !shouldDeliverDecisionToOwner) {
+    // Route workflow lifecycle events (started, completed) to managers/admins or the trip owner
+    const shouldDeliverWorkflowEvent =
+      isWorkflowLifecycleEvent &&
+      (canReviewSubmissions || trip.ownerUserId === params.recipientUserId);
+
+    if (
+      !shouldDeliverSubmissionToManager &&
+      !shouldDeliverDecisionToOwner &&
+      !shouldDeliverWorkflowEvent
+    ) {
       continue;
     }
 
@@ -179,6 +194,16 @@ export function deriveInAppNotificationsFromCommittedEvents(params: {
       category = "approval_decision";
       title = `Changes Requested on Trip: ${truncatedTitle.displayText}`;
       message = `A manager requested changes for ${dateRangeLabel}.${event.note ? ` Explanation: "${truncateDisplayLabel(event.note, 120).displayText}"` : ""}`;
+      actionHref = `/trips/${trip.id}`;
+    } else if (event.eventType === "trip_started") {
+      category = "workflow_event";
+      title = `Trip Execution Started: ${truncatedTitle.displayText}`;
+      message = `Field activity has begun for ${dateRangeLabel}. First stop has been checked in.`;
+      actionHref = `/trips/${trip.id}`;
+    } else if (event.eventType === "trip_completed") {
+      category = "workflow_event";
+      title = `Trip Completed: ${truncatedTitle.displayText}`;
+      message = `All planned store visits for ${dateRangeLabel} have been completed and checked out.`;
       actionHref = `/trips/${trip.id}`;
     } else {
       category = "approval_decision";

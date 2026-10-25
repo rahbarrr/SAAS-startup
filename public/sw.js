@@ -114,3 +114,64 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+// ============================================================================
+// Phase 5: Web Push Notification Delivery & Action Click Routing
+// ============================================================================
+
+self.addEventListener("push", (event) => {
+  if (!event.data) {
+    return;
+  }
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    payload = {
+      title: "FieldTrack Notification",
+      body: event.data.text(),
+      targetUrl: "/",
+    };
+  }
+
+  const title = payload.title || "FieldTrack Alert";
+  const options = {
+    body: payload.body || "New field operations update.",
+    icon: payload.icon || "/icons/icon-192.svg",
+    badge: payload.badge || "/icons/icon-maskable.svg",
+    tag: payload.tag || "fieldtrack-notification",
+    data: {
+      targetUrl: payload.targetUrl || "/",
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const targetUrl = event.notification.data?.targetUrl || "/";
+
+  event.waitUntil(
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientList) => {
+        // If a window is already open at the target origin, focus it and navigate
+        for (const client of clientList) {
+          if (client.url.includes(self.location.origin) && "focus" in client) {
+            client.focus();
+            if ("navigate" in client) {
+              return client.navigate(targetUrl);
+            }
+            return;
+          }
+        }
+        // Otherwise open a new window
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl);
+        }
+      })
+  );
+});

@@ -30,3 +30,22 @@ export const managerDashboardFilterSchema = cursorPaginationQuerySchema
   });
 
 export type ManagerDashboardFilter = z.infer<typeof managerDashboardFilterSchema>;
+
+export const operationsReportFilterSchema = z
+  .object({
+    range: z.enum(["7d", "30d", "quarter", "ytd", "custom"]).optional().default("30d"),
+    startDateFrom: isoDateStringSchema.optional(),
+    startDateTo: isoDateStringSchema.optional(),
+    territory: z.string().trim().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.startDateFrom && data.startDateTo && data.startDateTo < data.startDateFrom) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "startDateTo must be on or after startDateFrom",
+        path: ["startDateTo"],
+      });
+    }
+  });
+
+export type OperationsReportFilter = z.infer<typeof operationsReportFilterSchema>;

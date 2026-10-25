@@ -17,6 +17,7 @@ import {
   sanitizeUntrustedFieldText,
   type VisitAiReportDraft,
 } from "./domain";
+import type { AuditRepository } from "@/modules/audit/repository";
 import type { AiReportDraftProvider } from "./openai-provider";
 import type { AiReportsRepository } from "./repository";
 import {
@@ -137,6 +138,7 @@ export async function generateVisitAiReportDraftForOrg(params: {
   visitsRepository: VisitsRepository;
   aiReportsRepository: AiReportsRepository;
   aiProvider: AiReportDraftProvider;
+  auditRepository?: AuditRepository;
   now?: Date;
 }): Promise<VisitAiReportDraft> {
   const context = await resolveTenantContext({
@@ -432,7 +434,7 @@ export async function generateVisitAiReportDraftForOrg(params: {
   }
 
   // 9. Persist draft with `pending_review` human review status
-  return params.aiReportsRepository.insertVisitAiReportDraft({
+  const draft = await params.aiReportsRepository.insertVisitAiReportDraft({
     orgId: context.orgId,
     visitId,
     modelName: providerResponse.modelName,
@@ -452,6 +454,27 @@ export async function generateVisitAiReportDraftForOrg(params: {
     outputTokens: providerResponse.outputTokens,
     createdBy: context.user.id,
   });
+
+  if (params.auditRepository) {
+    await params.auditRepository.insertAuditEvent({
+      orgId: context.orgId,
+      actorUserId: context.user.id,
+      actorRole: context.role,
+      actionType: "ai.visit_report_drafted",
+      entityType: "ai_visit_report",
+      entityId: draft.id,
+      reason: "User generated AI-assisted visit report draft",
+      metadata: {
+        visitId,
+        modelName: providerResponse.modelName,
+        completedActionsCount: structuredDraft.completedActions.length,
+        issuesCount: structuredDraft.issues.length,
+        followUpsCount: structuredDraft.followUps.length,
+      },
+    });
+  }
+
+  return draft;
 }
 
 export async function reviewVisitAiReportDraftForOrg(params: {
@@ -462,6 +485,7 @@ export async function reviewVisitAiReportDraftForOrg(params: {
   tenancyRepository: TenancyRepository;
   visitsRepository: VisitsRepository;
   aiReportsRepository: AiReportsRepository;
+  auditRepository?: AuditRepository;
   now?: Date;
 }): Promise<VisitAiReportDraft> {
   const context = await resolveTenantContext({
@@ -545,7 +569,7 @@ export async function reviewVisitAiReportDraftForOrg(params: {
   const isDecision =
     input.reviewStatus === "approved" || input.reviewStatus === "rejected";
 
-  return params.aiReportsRepository.updateVisitAiReportDraftReview({
+  const updatedDraft = await params.aiReportsRepository.updateVisitAiReportDraftReview({
     orgId: context.orgId,
     visitId,
     draftId: input.draftId,
@@ -559,4 +583,31 @@ export async function reviewVisitAiReportDraftForOrg(params: {
     reviewedAt: isDecision ? nowIso : existingDraft.reviewedAt,
     reviewNote: input.reviewNote ?? null,
   });
+
+  if (params.auditRepository) {
+    const actionType =
+      input.reviewStatus === "approved"
+        ? "ai.visit_report_approved"
+        : input.reviewStatus === "rejected"
+        ? "ai.visit_report_rejected"
+        : "trip.updated";
+
+    await params.auditRepository.insertAuditEvent({
+      orgId: context.orgId,
+      actorUserId: context.user.id,
+      actorRole: context.role,
+      actionType,
+      entityType: "ai_visit_report",
+      entityId: updatedDraft.id,
+      reason: input.reviewNote ?? `Visit report draft marked as ${input.reviewStatus}`,
+      changes: {
+        reviewStatus: { before: existingDraft.reviewStatus, after: input.reviewStatus },
+      },
+      metadata: {
+        visitId,
+      },
+    });
+  }
+
+  return updatedDraft;
 }

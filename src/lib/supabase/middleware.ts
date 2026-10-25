@@ -11,6 +11,9 @@ const PROTECTED_PREFIXES = [
   "/team",
   "/onboarding",
   "/notifications",
+  "/reports",
+  "/ai-insights",
+  "/settings",
   "/reset-password",
 ] as const;
 

@@ -1,8 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type ChangeEvent, type FormEvent, type ReactNode, useState } from "react";
+import { type ChangeEvent, type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { ErrorState } from "@/components/ui/States";
+import {
+  loadLocalVisitDraft,
+  saveLocalVisitDraft,
+} from "@/lib/offline/visit-draft-storage";
+import { enqueueOfflineOperation } from "@/lib/offline/sync-queue";
 import {
   captureDeviceLocationWithConsent,
   classifyRequestFailure,
@@ -112,7 +117,29 @@ export function VisitExecutionClient({
     });
   }
 
-  async function saveChecklistInternal(): Promise<void> {
+  // Load existing offline draft if available on device
+  useEffect(() => {
+    const draft = loadLocalVisitDraft(activeOrgId, visitId);
+    if (draft && draft.checklist.length > 0) {
+      setNotes((prev) => (prev ? prev : draft.notes));
+      setChecklist((prev) =>
+        prev.map((item) => {
+          const draftItem = draft.checklist.find((d) => d.questionKey === item.questionKey);
+          if (draftItem) {
+            return {
+              ...item,
+              completed: draftItem.completed,
+              flagged: draftItem.flagged,
+              answerText: draftItem.answerText || item.answerText,
+            };
+          }
+          return item;
+        })
+      );
+    }
+  }, [activeOrgId, visitId]);
+
+  async function saveChecklistInternal(): Promise<{ offline: boolean }> {
     const payloadItems: ChecklistAnswerItemInput[] = checklist.map((item) => ({
       questionKey: item.questionKey,
       label: item.label,
@@ -129,27 +156,104 @@ export function VisitExecutionClient({
       completed: item.completed,
     }));
 
-    const res = await fetch(`/api/orgs/${activeOrgId}/visits/${visitId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        notes: notes.trim() || undefined,
-        checklistItems: payloadItems,
-      }),
-    });
+    const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
 
-    const body = (await res.json()) as {
-      data?: { visit: { status: VisitStatus } };
-      error?: { message: string; code?: string };
-    };
-
-    if (!res.ok || body.error) {
-      const classified = classifyRequestFailure({
-        status: res.status,
-        errorCode: body.error?.code,
-        errorMessage: body.error?.message,
+    if (isOffline) {
+      saveLocalVisitDraft({
+        orgId: activeOrgId,
+        tripStopId: visitId,
+        visitId,
+        visitStatus,
+        checkedInAt: null,
+        notes,
+        checklist: checklist.map((item) => ({
+          questionKey: item.questionKey,
+          completed: item.completed,
+          flagged: item.flagged,
+          answerText: item.answerText ?? "",
+        })),
+        updatedAt: new Date().toISOString(),
       });
-      throw new Error(classified.userMessage);
+
+      enqueueOfflineOperation({
+        input: {
+          orgId: activeOrgId,
+          userId: "current-user",
+          targetId: visitId,
+          operationType: "save_checklist",
+          payload: {
+            notes: notes.trim() || undefined,
+            checklistItems: payloadItems,
+          },
+        },
+      });
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("ft_offline_queue_changed"));
+      }
+      return { offline: true };
+    }
+
+    try {
+      const res = await fetch(`/api/orgs/${activeOrgId}/visits/${visitId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          notes: notes.trim() || undefined,
+          checklistItems: payloadItems,
+        }),
+      });
+
+      const body = (await res.json()) as {
+        data?: { visit: { status: VisitStatus } };
+        error?: { message: string; code?: string };
+      };
+
+      if (!res.ok || body.error) {
+        const classified = classifyRequestFailure({
+          status: res.status,
+          errorCode: body.error?.code,
+          errorMessage: body.error?.message,
+        });
+        throw new Error(classified.userMessage);
+      }
+
+      return { offline: false };
+    } catch {
+      // If network fetch fails due to sudden connection dropout, save to local offline queue
+      saveLocalVisitDraft({
+        orgId: activeOrgId,
+        tripStopId: visitId,
+        visitId,
+        visitStatus,
+        checkedInAt: null,
+        notes,
+        checklist: checklist.map((item) => ({
+          questionKey: item.questionKey,
+          completed: item.completed,
+          flagged: item.flagged,
+          answerText: item.answerText ?? "",
+        })),
+        updatedAt: new Date().toISOString(),
+      });
+
+      enqueueOfflineOperation({
+        input: {
+          orgId: activeOrgId,
+          userId: "current-user",
+          targetId: visitId,
+          operationType: "save_checklist",
+          payload: {
+            notes: notes.trim() || undefined,
+            checklistItems: payloadItems,
+          },
+        },
+      });
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("ft_offline_queue_changed"));
+      }
+      return { offline: true };
     }
   }
 
@@ -162,8 +266,12 @@ export function VisitExecutionClient({
     setIsSavingChecklist(true);
 
     try {
-      await saveChecklistInternal();
-      setConfirmation("Checklist answers and notes successfully saved.");
+      const result = await saveChecklistInternal();
+      setConfirmation(
+        result.offline
+          ? "Checklist answers saved locally on device (Offline). Queued for sync when online."
+          : "Checklist answers and notes successfully saved to server."
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error saving checklist.");
     } finally {
@@ -197,6 +305,52 @@ export function VisitExecutionClient({
 
     if (!actionGuard.tryAcquire()) return;
     setIsUploading(true);
+
+    const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+    if (isOffline) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        enqueueOfflineOperation({
+          input: {
+            orgId: activeOrgId,
+            userId: "current-user",
+            targetId: visitId,
+            operationType: "record_evidence",
+            payload: {
+              dataUrl: reader.result as string,
+              fileType: selectedFile.type,
+              fileSize: selectedFile.size,
+              fileName: selectedFile.name,
+              caption: evidenceCaption.trim() || selectedFile.name,
+            },
+          },
+        });
+        setEvidenceList((prev) => [
+          ...prev,
+          {
+            id: `offline-${Date.now()}`,
+            storagePath: "(pending-offline-sync)",
+            fileType: selectedFile.type,
+            fileSize: selectedFile.size,
+            caption: `${evidenceCaption.trim() || selectedFile.name} (Queued offline)`,
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+        setSelectedFile(null);
+        setEvidenceCaption("");
+        setConfirmation(
+          "Photo evidence queued locally on your device. Upload will commence automatically upon reconnection."
+        );
+        setIsUploading(false);
+        actionGuard.release();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("ft_offline_queue_changed"));
+        }
+      };
+      reader.readAsDataURL(selectedFile);
+      return;
+    }
 
     try {
       // 1. Request signed upload ticket
@@ -317,6 +471,31 @@ export function VisitExecutionClient({
       // On-demand device location capture with user consent
       const loc = await captureDeviceLocationWithConsent();
       const idempotencyKey = crypto.randomUUID();
+
+      const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+      if (isOffline) {
+        enqueueOfflineOperation({
+          input: {
+            orgId: activeOrgId,
+            userId: "current-user",
+            targetId: visitId,
+            operationType: "checkout_visit",
+            payload: {
+              notes: notes.trim() || undefined,
+              idempotencyKey,
+              location: loc,
+            },
+          },
+        });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("ft_offline_queue_changed"));
+        }
+        setConfirmation(
+          "Check-out request recorded offline with GPS telemetry consent. Note: visit completion requires server confirmation and remains pending sync."
+        );
+        return;
+      }
 
       const res = await fetch(`/api/orgs/${activeOrgId}/visits/${visitId}/checkout`, {
         method: "POST",
@@ -567,15 +746,69 @@ export function VisitExecutionClient({
                 alignItems: "center",
               }}
             >
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,application/pdf"
-                onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                  const f = e.target.files?.[0] ?? null;
-                  setSelectedFile(f);
-                }}
-                style={{ fontSize: "0.875rem" }}
-              />
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+                <label
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
+                    padding: "0.5rem 0.875rem",
+                    backgroundColor: "#f1f5f9",
+                    border: "1px solid var(--border-default)",
+                    borderRadius: "var(--radius-sm)",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                    minHeight: "44px",
+                    fontWeight: 500,
+                  }}
+                >
+                  📸 Take Photo
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    style={{ display: "none" }}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setSelectedFile(f);
+                    }}
+                  />
+                </label>
+
+                <label
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
+                    padding: "0.5rem 0.875rem",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid var(--border-default)",
+                    borderRadius: "var(--radius-sm)",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                    minHeight: "44px",
+                    fontWeight: 500,
+                  }}
+                >
+                  📁 Choose File
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    style={{ display: "none" }}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setSelectedFile(f);
+                    }}
+                  />
+                </label>
+              </div>
+
+              {selectedFile ? (
+                <div style={{ fontSize: "0.8125rem", color: "#0f766e", fontWeight: 600, width: "100%" }}>
+                  Ready to upload: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KiB)
+                </div>
+              ) : null}
+
               <input
                 type="text"
                 placeholder="Caption (e.g., Endcap cooler display, aisle 3)"
@@ -584,17 +817,18 @@ export function VisitExecutionClient({
                 style={{
                   flex: 1,
                   minWidth: "200px",
-                  padding: "0.375rem 0.625rem",
+                  padding: "0.5rem 0.625rem",
                   borderRadius: "var(--radius-sm)",
                   border: "1px solid var(--border-default)",
                   fontSize: "0.875rem",
+                  minHeight: "44px",
                 }}
               />
               <button
                 type="submit"
                 disabled={isUploading || !selectedFile}
                 className="btn btn-primary"
-                style={{ fontSize: "0.875rem" }}
+                style={{ fontSize: "0.875rem", minHeight: "44px", padding: "0 1.25rem" }}
               >
                 {isUploading ? "Uploading…" : "Upload Evidence"}
               </button>

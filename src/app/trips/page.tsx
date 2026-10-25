@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { TripsListClient } from "@/components/trips/TripsListClient";
-import { EmptyState, ErrorState } from "@/components/ui/States";
+import { ErrorState } from "@/components/ui/States";
 import { getActiveOrgCookie } from "@/lib/auth/active-org-cookie";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
@@ -9,6 +9,7 @@ import { SupabaseTripsRepository } from "@/modules/trips/repository";
 import { listTripsForOrg } from "@/modules/trips/service";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
 import { resolveActiveWorkspaceForUser } from "@/modules/tenancy/service";
+import { DEMO_TRIPS } from "@/lib/mock-data/fieldtrack-demo-data";
 
 export default async function TripsPage(): Promise<ReactNode> {
   let activeOrgId: string | null = null;
@@ -69,45 +70,17 @@ export default async function TripsPage(): Promise<ReactNode> {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-        <section aria-labelledby="trips-heading">
-          <h1 id="trips-heading" style={{ margin: "0 0 0.5rem", fontSize: "1.5rem" }}>
-            Field Trips
-          </h1>
-          <p className="card-meta">
-            Plan multi-store routes, submit for manager approval, and review outcomes.
-          </p>
-        </section>
-        <EmptyState
-          title="Sign in to view field trips"
-          description="Field trips are strictly isolated per tenant organization."
-        />
-      </div>
-    );
-  }
-
-  if (!hasActiveOrg || !activeOrgId) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-        <section aria-labelledby="trips-heading">
-          <h1 id="trips-heading" style={{ margin: "0 0 0.5rem", fontSize: "1.5rem" }}>
-            Field Trips
-          </h1>
-        </section>
-        <EmptyState
-          title="No active organization found"
-          description="You must belong to an active organization to manage field trips."
-        />
-      </div>
-    );
-  }
+  // Use real database trips when authenticated in an active workspace; fallback to demo data in preview mode
+  const isDemo = !isAuthenticated || !hasActiveOrg;
+  const displayTrips = isDemo ? DEMO_TRIPS : trips;
+  const displayOrgName = activeOrgName ?? "Apex Retail Solutions (Demo)";
 
   return (
     <TripsListClient
-      initialTrips={trips}
-      activeOrgName={activeOrgName ?? "Organization"}
+      initialTrips={displayTrips}
+      activeOrgId={activeOrgId ?? undefined}
+      activeOrgName={displayOrgName}
+      isDemo={isDemo}
     />
   );
 }

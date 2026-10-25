@@ -25,6 +25,11 @@ export interface NotificationsRepository {
     userId: string;
     auditEventId: string;
   }): Promise<NotificationReadReceipt>;
+  markAllNotificationsReadForOrg(params: {
+    orgId: string;
+    userId: string;
+    auditEventIds: string[];
+  }): Promise<NotificationReadReceipt[]>;
 }
 
 function mapTripRow(row: DbTripRow): Trip {
@@ -135,5 +140,38 @@ export class SupabaseNotificationsRepository implements NotificationsRepository 
     }
 
     return mapReceiptRow(data);
+  }
+
+  async markAllNotificationsReadForOrg(params: {
+    orgId: string;
+    userId: string;
+    auditEventIds: string[];
+  }): Promise<NotificationReadReceipt[]> {
+    if (params.auditEventIds.length === 0) return [];
+    const rows = params.auditEventIds.map((auditEventId) => ({
+      organization_id: params.orgId,
+      audit_event_id: auditEventId,
+      user_id: params.userId,
+      read_at: new Date().toISOString(),
+    }));
+
+    const { data, error } = await this.client
+      .from("in_app_notification_reads")
+      .upsert(rows, {
+        onConflict: "organization_id,audit_event_id,user_id",
+        ignoreDuplicates: true,
+      })
+      .select("*")
+      .returns<DbInAppNotificationReadRow[]>();
+
+    if (error) {
+      throw new AppError(
+        "INTERNAL_ERROR",
+        "Failed to record bulk notification read receipts",
+        500
+      );
+    }
+
+    return (data ?? []).map(mapReceiptRow);
   }
 }

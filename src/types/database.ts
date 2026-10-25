@@ -229,6 +229,33 @@ export interface DbInAppNotificationReadRow {
   read_at: string;
 }
 
+export interface DbOrganizationAuditEventRow {
+  id: string;
+  organization_id: string;
+  actor_user_id: string | null;
+  actor_role: DbOrgRole | null;
+  action_type: string;
+  entity_type: string;
+  entity_id: string;
+  correlation_id: string | null;
+  reason: string | null;
+  changes: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface DbTripLocationBreadcrumbRow {
+  id: string;
+  organization_id: string;
+  trip_id: string;
+  user_id: string;
+  latitude: number;
+  longitude: number;
+  accuracy_meters: number | null;
+  recorded_at: string;
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -270,6 +297,12 @@ export interface Database {
       };
       in_app_notification_reads: {
         Row: DbInAppNotificationReadRow;
+      };
+      organization_audit_events: {
+        Row: DbOrganizationAuditEventRow;
+      };
+      trip_location_breadcrumbs: {
+        Row: DbTripLocationBreadcrumbRow;
       };
     };
     Enums: {

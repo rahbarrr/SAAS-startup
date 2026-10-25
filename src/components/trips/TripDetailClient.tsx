@@ -11,8 +11,11 @@ import {
   createInFlightActionGuard,
   formatUtcTimestamp,
 } from "@/lib/ux/formatting-and-resilience";
+import type { RouteOptimizationProposal } from "@/modules/routing/domain";
 import type { OrgRole } from "@/modules/tenancy/domain";
 import type { TripDecisionStatus, TripDetail } from "@/modules/trips/domain";
+import { AiTripPlanningModal } from "./AiTripPlanningModal";
+import { RouteOptimizationModal } from "./RouteOptimizationModal";
 
 export interface TripDetailClientProps {
   initialDetail: TripDetail;
@@ -21,6 +24,7 @@ export interface TripDetailClientProps {
   userRole: OrgRole;
   storesMap: Record<string, { name: string; city: string; region: string }>;
   visitsMap?: Record<string, { id: string; status: string }>;
+  isDemo?: boolean;
 }
 
 export function TripDetailClient({
@@ -30,6 +34,7 @@ export function TripDetailClient({
   userRole,
   storesMap,
   visitsMap,
+  isDemo = false,
 }: TripDetailClientProps): ReactNode {
   const router = useRouter();
   const [detail, setDetail] = useState<TripDetail>(initialDetail);
@@ -48,11 +53,151 @@ export function TripDetailClient({
   const [error, setError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<string | null>(null);
 
+  // Route optimization and AI Planning state
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [routeProposal, setRouteProposal] = useState<RouteOptimizationProposal | null>(null);
+  const [isApplyingRoute, setIsApplyingRoute] = useState(false);
+  const [isAiPlanningOpen, setIsAiPlanningOpen] = useState(false);
+
+  // Active-trip location tracking state
+  const [isTrackingActive, setIsTrackingActive] = useState(false);
+  const [isRecordingLocation, setIsRecordingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [lastCapturedPoint, setLastCapturedPoint] = useState<{
+    lat: number;
+    lng: number;
+    accuracy: number;
+    timestamp: string;
+  } | null>(null);
+
   const actionGuard = createInFlightActionGuard();
 
   const isOwner = trip.ownerUserId === currentUserId;
   const isManagerOrAdmin = userRole === "manager" || userRole === "admin";
   const isSelfSubmitted = isOwner && isManagerOrAdmin;
+
+  async function handleRecordBreadcrumb() {
+    setLocationError(null);
+    setIsRecordingLocation(true);
+    try {
+      const loc = await captureDeviceLocationWithConsent();
+      if (loc.status === "permission_denied") {
+        throw new Error(
+          "Location permission denied. Please enable geolocation in your browser to record checkpoints."
+        );
+      }
+      if (loc.status === "unavailable" || loc.latitude == null || loc.longitude == null) {
+        throw new Error("Device GPS coordinates are currently unavailable.");
+      }
+
+      const res = await fetch(`/api/orgs/${activeOrgId}/trips/${trip.id}/location`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          accuracyMeters: loc.accuracyMeters ?? 25,
+          batteryLevel: 0.85,
+          isMoving: true,
+        }),
+      });
+
+      const payload = await res.json();
+      if (!res.ok || payload.error) {
+        throw new Error(payload.error?.message || "Failed to record location breadcrumb.");
+      }
+
+      setLastCapturedPoint({
+        lat: loc.latitude,
+        lng: loc.longitude,
+        accuracy: loc.accuracyMeters ?? 25,
+        timestamp: new Date().toLocaleTimeString(),
+      });
+      setConfirmation("Trip location checkpoint recorded.");
+    } catch (err) {
+      setLocationError(err instanceof Error ? err.message : "Error capturing location.");
+    } finally {
+      setIsRecordingLocation(false);
+    }
+  }
+
+  function handleStartTracking() {
+    setIsTrackingActive(true);
+    void handleRecordBreadcrumb();
+  }
+
+  function handleStopTracking() {
+    setIsTrackingActive(false);
+    setConfirmation("Active trip tracking stopped.");
+  }
+
+
+  async function handleOpenRouteOptimizer() {
+    setError(null);
+    setIsOptimizing(true);
+    try {
+      const res = await fetch(
+        `/api/orgs/${activeOrgId}/trips/${trip.id}/optimize-route`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "propose" }),
+        }
+      );
+      const payload = (await res.json()) as {
+        data?: RouteOptimizationProposal;
+        error?: { message: string };
+      };
+      if (!res.ok || payload.error || !payload.data) {
+        throw new Error(payload.error?.message || "Failed to generate route optimization proposal.");
+      }
+      setRouteProposal(payload.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error generating route proposal.");
+    } finally {
+      setIsOptimizing(false);
+    }
+  }
+
+  async function handleApplyOptimizedRoute(proposal: RouteOptimizationProposal) {
+    setIsApplyingRoute(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/orgs/${activeOrgId}/trips/${trip.id}/optimize-route`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "apply",
+            confirmApprovedTripModification: trip.status === "approved",
+            proposedStopOrder: proposal.proposedOrder.map((s) => ({
+              storeId: s.storeId,
+              plannedAt: s.plannedWindow?.start ?? null,
+            })),
+          }),
+        }
+      );
+      const payload = (await res.json()) as {
+        data?: TripDetail;
+        error?: { message: string };
+      };
+      if (!res.ok || payload.error || !payload.data) {
+        throw new Error(payload.error?.message || "Failed to apply optimized route.");
+      }
+      setDetail(payload.data);
+      setRouteProposal(null);
+      setConfirmation(
+        trip.status === "approved"
+          ? "Route sequence updated. Notice: trip status reset to draft for manager re-approval."
+          : "Route sequence successfully updated to optimized order."
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to apply optimized route.");
+    } finally {
+      setIsApplyingRoute(false);
+    }
+  }
 
   async function handleSubmitTrip(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -196,6 +341,34 @@ export function TripDetailClient({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      {isDemo && (
+        <div
+          role="status"
+          style={{
+            padding: "0.75rem 1rem",
+            backgroundColor: "rgba(27, 53, 128, 0.06)",
+            border: "1px solid rgba(27, 53, 128, 0.18)",
+            borderRadius: "var(--radius-md)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            fontSize: "0.875rem",
+            color: "var(--brand-primary)",
+          }}
+        >
+          <span>
+            <strong>Interactive Demo Preview:</strong> Showing synthetic trip and itinerary data. Sign in with a registered workspace for live multi-tenant persistence.
+          </span>
+          <Link
+            href="/login"
+            className="btn btn-secondary"
+            style={{ fontSize: "0.75rem", padding: "0.25rem 0.625rem" }}
+          >
+            Sign In
+          </Link>
+        </div>
+      )}
+
       <section aria-labelledby="trip-detail-heading">
         <div className="card-header">
           <div>
@@ -280,20 +453,49 @@ export function TripDetailClient({
               <h2 id="trip-stops-heading" style={{ margin: 0, fontSize: "1.125rem" }}>
                 Planned Store Stops ({detail.stops.length})
               </h2>
-              {isOwner &&
-              (trip.status === "draft" ||
-                trip.status === "changes_requested" ||
-                trip.status === "approved") ? (
-                <Link
-                  href={`/trips/${trip.id}/edit`}
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => setIsAiPlanningOpen(true)}
                   className="btn btn-secondary"
-                  style={{ fontSize: "0.8125rem" }}
+                  style={{
+                    fontSize: "0.8125rem",
+                    background: "linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)",
+                    borderColor: "#C7D2FE",
+                    color: "var(--brand-primary)",
+                    fontWeight: 600,
+                  }}
                 >
-                  {trip.status === "approved"
-                    ? "Edit Trip (Re-opens Draft)"
-                    : "Edit Stops"}
-                </Link>
-              ) : null}
+                  ✨ AI Planning Assistant
+                </button>
+                {isOwner &&
+                (trip.status === "draft" ||
+                  trip.status === "changes_requested" ||
+                  trip.status === "approved") ? (
+                  <>
+                    {detail.stops.length >= 2 ? (
+                      <button
+                        type="button"
+                        onClick={handleOpenRouteOptimizer}
+                        disabled={isOptimizing}
+                        className="btn btn-secondary"
+                        style={{ fontSize: "0.8125rem" }}
+                      >
+                        {isOptimizing ? "Optimizing…" : "⚡ Optimize Route"}
+                      </button>
+                    ) : null}
+                    <Link
+                      href={`/trips/${trip.id}/edit`}
+                      className="btn btn-secondary"
+                      style={{ fontSize: "0.8125rem" }}
+                    >
+                      {trip.status === "approved"
+                        ? "Edit Trip (Re-opens Draft)"
+                        : "Edit Stops"}
+                    </Link>
+                  </>
+                ) : null}
+              </div>
             </div>
 
             {detail.stops.length === 0 ? (
@@ -572,6 +774,150 @@ export function TripDetailClient({
             </section>
           ) : null}
 
+          {isOwner && trip.status === "in_progress" ? (
+            <section className="card" aria-labelledby="location-tracking-heading">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <h2 id="location-tracking-heading" style={{ margin: 0, fontSize: "1.125rem" }}>
+                  📍 Active Trip Tracking
+                </h2>
+                {isTrackingActive ? (
+                  <span
+                    className="status-badge"
+                    style={{
+                      background: "rgba(5, 150, 105, 0.12)",
+                      color: "var(--success-green, #059669)",
+                      border: "1px solid rgba(5, 150, 105, 0.25)",
+                      fontSize: "0.75rem",
+                    }}
+                  >
+                    🟢 Tracking Active
+                  </span>
+                ) : (
+                  <span
+                    className="status-badge"
+                    style={{
+                      background: "rgba(107, 114, 128, 0.12)",
+                      color: "var(--text-muted)",
+                      fontSize: "0.75rem",
+                    }}
+                  >
+                    Inactive
+                  </span>
+                )}
+              </div>
+
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--text-secondary)",
+                  marginBottom: "0.75rem",
+                }}
+              >
+                Privacy-aware location telemetry: Breadcrumbs are recorded strictly while this
+                work trip is in-progress and this browser tab is active.
+              </p>
+
+              {locationError ? (
+                <div
+                  role="alert"
+                  style={{
+                    padding: "0.5rem 0.75rem",
+                    marginBottom: "0.75rem",
+                    borderRadius: "var(--radius-sm)",
+                    background: "rgba(239, 68, 68, 0.1)",
+                    color: "var(--danger-red, #ef4444)",
+                    fontSize: "0.75rem",
+                  }}
+                >
+                  {locationError}
+                </div>
+              ) : null}
+
+              {lastCapturedPoint ? (
+                <div
+                  style={{
+                    padding: "0.5rem 0.75rem",
+                    marginBottom: "0.75rem",
+                    borderRadius: "var(--radius-sm)",
+                    background: "var(--bg-canvas)",
+                    border: "1px solid var(--border-subtle)",
+                    fontSize: "0.75rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.25rem",
+                  }}
+                >
+                  <div>
+                    <strong>Last Checkpoint:</strong>{" "}
+                    {lastCapturedPoint.lat.toFixed(4)}, {lastCapturedPoint.lng.toFixed(4)}
+                  </div>
+                  <div style={{ color: "var(--text-muted)" }}>
+                    Accuracy: ±{Math.round(lastCapturedPoint.accuracy)}m • Recorded:{" "}
+                    {lastCapturedPoint.timestamp}
+                  </div>
+                </div>
+              ) : null}
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {!isTrackingActive ? (
+                  <button
+                    type="button"
+                    onClick={handleStartTracking}
+                    disabled={isRecordingLocation}
+                    className="btn btn-primary"
+                    style={{ width: "100%", fontSize: "0.8125rem" }}
+                  >
+                    {isRecordingLocation ? "Requesting GPS Fix…" : "Enable Active Trip Tracking"}
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => void handleRecordBreadcrumb()}
+                      disabled={isRecordingLocation}
+                      className="btn btn-secondary"
+                      style={{ width: "100%", fontSize: "0.8125rem" }}
+                    >
+                      {isRecordingLocation ? "Recording…" : "📍 Record Checkpoint Now"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleStopTracking}
+                      className="btn btn-secondary"
+                      style={{
+                        width: "100%",
+                        fontSize: "0.8125rem",
+                        color: "var(--danger-red, #ef4444)",
+                      }}
+                    >
+                      Stop Tracking
+                    </button>
+                  </>
+                )}
+              </div>
+
+              <div
+                style={{
+                  marginTop: "0.75rem",
+                  fontSize: "0.6875rem",
+                  color: "var(--text-muted)",
+                  lineHeight: 1.4,
+                }}
+              >
+                ⚠️ <strong>Web Browser Limitation:</strong> Background GPS tracking when the
+                browser is closed or suspended is not supported on iOS Safari / Android
+                browsers without a future native application.
+              </div>
+            </section>
+          ) : null}
+
           <section className="card" aria-labelledby="trip-metadata-heading">
             <h2
               id="trip-metadata-heading"
@@ -606,6 +952,25 @@ export function TripDetailClient({
           </section>
         </div>
       </div>
+
+      <RouteOptimizationModal
+        isOpen={Boolean(routeProposal)}
+        onClose={() => setRouteProposal(null)}
+        proposal={routeProposal}
+        isApplying={isApplyingRoute}
+        isApprovedTrip={trip.status === "approved"}
+        onApply={handleApplyOptimizedRoute}
+      />
+
+      <AiTripPlanningModal
+        isOpen={isAiPlanningOpen}
+        onClose={() => setIsAiPlanningOpen(false)}
+        orgId={activeOrgId}
+        tripId={trip.id}
+        tripTitle={trip.title}
+        tripStatus={trip.status}
+        onTripUpdated={() => window.location.reload()}
+      />
     </div>
   );
 }

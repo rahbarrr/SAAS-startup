@@ -76,6 +76,28 @@ export async function markInAppNotificationReadForOrg(params: {
     readReceipts: dataset.readReceipts,
   });
 
+  if (input.action === "mark_all_read") {
+    const unreadEventIds = overview.items
+      .filter((item) => !item.isRead)
+      .map((item) => item.auditEventId);
+
+    const nowIso = new Date().toISOString();
+    if (unreadEventIds.length > 0) {
+      await params.notificationsRepository.markAllNotificationsReadForOrg({
+        orgId: context.orgId,
+        userId: context.user.id,
+        auditEventIds: unreadEventIds,
+      });
+    }
+
+    return {
+      orgId: context.orgId,
+      auditEventId: "00000000-0000-0000-0000-000000000000",
+      userId: context.user.id,
+      readAt: nowIso,
+    };
+  }
+
   const targetNotification = overview.items.find(
     (item) => item.auditEventId === input.auditEventId
   );

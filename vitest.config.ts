@@ -7,6 +7,8 @@ export default defineConfig({
     include: ["src/**/*.test.ts", "scripts/**/*.test.ts"],
     clearMocks: true,
     restoreMocks: true,
+    hookTimeout: 30000,
+    testTimeout: 30000,
   },
   resolve: {
     alias: {

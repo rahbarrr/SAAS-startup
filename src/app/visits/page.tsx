@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { VisitsListClient } from "@/components/visits/VisitsListClient";
-import { EmptyState, ErrorState } from "@/components/ui/States";
+import { ErrorState } from "@/components/ui/States";
 import { getActiveOrgCookie } from "@/lib/auth/active-org-cookie";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
@@ -9,6 +9,7 @@ import { resolveActiveWorkspaceForUser } from "@/modules/tenancy/service";
 import type { Visit } from "@/modules/visits/domain";
 import { SupabaseVisitsRepository } from "@/modules/visits/repository";
 import { listVisitsForOrg } from "@/modules/visits/service";
+import { DEMO_VISITS } from "@/lib/mock-data/fieldtrack-demo-data";
 
 export default async function VisitsPage(): Promise<ReactNode> {
   let activeOrgId: string | null = null;
@@ -69,46 +70,17 @@ export default async function VisitsPage(): Promise<ReactNode> {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-        <section aria-labelledby="visits-heading">
-          <h1 id="visits-heading" style={{ margin: "0 0 0.5rem", fontSize: "1.5rem" }}>
-            Store Visits &amp; Execution
-          </h1>
-          <p className="card-meta">
-            On-site check-ins, audit checklists, photo evidence capture, and checkout
-            telemetry.
-          </p>
-        </section>
-        <EmptyState
-          title="Sign in to view visits"
-          description="Visit records are isolated per organization and require an active authenticated session."
-        />
-      </div>
-    );
-  }
-
-  if (!hasActiveOrg || !activeOrgId) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-        <section aria-labelledby="visits-heading">
-          <h1 id="visits-heading" style={{ margin: "0 0 0.5rem", fontSize: "1.5rem" }}>
-            Store Visits &amp; Execution
-          </h1>
-        </section>
-        <EmptyState
-          title="No active organization found"
-          description="You must belong to an active organization to record or review store visits."
-        />
-      </div>
-    );
-  }
+  // Use real database visits when authenticated in an active workspace; fallback to demo data in preview mode
+  const isDemo = !isAuthenticated || !hasActiveOrg;
+  const displayVisits = isDemo ? (DEMO_VISITS as unknown as readonly Visit[]) : visits;
+  const displayOrgName = activeOrgName ?? "Apex Retail Solutions (Demo)";
 
   return (
     <VisitsListClient
-      initialVisits={visits}
-      activeOrgName={activeOrgName ?? "Organization"}
+      initialVisits={displayVisits}
+      activeOrgId={activeOrgId ?? undefined}
+      activeOrgName={displayOrgName}
+      isDemo={isDemo}
     />
   );
 }

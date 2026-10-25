@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { TripPlanForm } from "@/components/trips/TripPlanForm";
-import { EmptyState, ErrorState } from "@/components/ui/States";
+import { ErrorState } from "@/components/ui/States";
 import { getActiveOrgCookie } from "@/lib/auth/active-org-cookie";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
@@ -8,6 +8,7 @@ import { SupabaseStoresRepository } from "@/modules/stores/repository";
 import { listStoresForOrg } from "@/modules/stores/service";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
 import { resolveActiveWorkspaceForUser } from "@/modules/tenancy/service";
+import { DEMO_STORES } from "@/lib/mock-data/fieldtrack-demo-data";
 
 export default async function NewTripPage(): Promise<ReactNode> {
   let activeOrgId: string | null = null;
@@ -19,15 +20,12 @@ export default async function NewTripPage(): Promise<ReactNode> {
     active: boolean;
   }[] = [];
   let errorMessage: string | null = null;
-  let isAuthenticated = false;
-  let hasActiveOrg = false;
 
   try {
     const supabase = await createUserServerSupabaseClient();
     const user = await getAuthenticatedUser(supabase);
 
     if (user) {
-      isAuthenticated = true;
       const preferredOrgId = await getActiveOrgCookie();
       const tenancyRepository = new SupabaseTenancyRepository(supabase);
       const workspace = await resolveActiveWorkspaceForUser({
@@ -37,7 +35,6 @@ export default async function NewTripPage(): Promise<ReactNode> {
       });
 
       if (workspace.activeOrganization) {
-        hasActiveOrg = true;
         activeOrgId = workspace.activeOrganization.organization.id;
 
         const storesRepository = new SupabaseStoresRepository(supabase);
@@ -67,29 +64,23 @@ export default async function NewTripPage(): Promise<ReactNode> {
     return <ErrorState title="Error initializing trip" message={errorMessage} />;
   }
 
-  if (!isAuthenticated) {
-    return (
-      <EmptyState
-        title="Sign in to create a field trip"
-        description="Trip plans are scoped to your authenticated organization."
-      />
-    );
-  }
-
-  if (!hasActiveOrg || !activeOrgId) {
-    return (
-      <EmptyState
-        title="No active organization found"
-        description="You must be an active member of an organization to plan trips."
-      />
-    );
-  }
+  // Gracefully fallback to demo store catalog when unauthenticated or in preview mode
+  const storesToUse =
+    availableStores.length > 0
+      ? availableStores
+      : DEMO_STORES.map((s) => ({
+          id: s.id,
+          name: s.name,
+          region: s.territory,
+          city: s.city,
+          active: s.status === "active",
+        }));
 
   return (
     <TripPlanForm
       mode="create"
-      activeOrgId={activeOrgId}
-      availableStores={availableStores}
+      activeOrgId={activeOrgId ?? "org-apex-01"}
+      availableStores={storesToUse}
     />
   );
 }

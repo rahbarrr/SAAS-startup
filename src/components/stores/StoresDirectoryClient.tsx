@@ -10,12 +10,14 @@ export interface StoresDirectoryClientProps {
   activeOrgId: string;
   canWrite: boolean;
   initialStores: readonly Store[];
+  isDemo?: boolean;
 }
 
 export function StoresDirectoryClient({
   activeOrgId,
   canWrite,
   initialStores,
+  isDemo = false,
 }: StoresDirectoryClientProps): ReactNode {
   const [stores, setStores] = useState<Store[]>([...initialStores]);
   const [search, setSearch] = useState("");
@@ -157,6 +159,34 @@ export function StoresDirectoryClient({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      {isDemo && (
+        <div
+          role="status"
+          style={{
+            padding: "0.75rem 1rem",
+            backgroundColor: "rgba(27, 53, 128, 0.06)",
+            border: "1px solid rgba(27, 53, 128, 0.18)",
+            borderRadius: "var(--radius-md)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            fontSize: "0.875rem",
+            color: "var(--brand-primary)",
+          }}
+        >
+          <span>
+            <strong>Interactive Demo Preview:</strong> Showing synthetic stores and territory data. Sign in with a registered workspace for live multi-tenant persistence.
+          </span>
+          <Link
+            href="/login"
+            className="btn btn-secondary"
+            style={{ fontSize: "0.75rem", padding: "0.25rem 0.625rem" }}
+          >
+            Sign In
+          </Link>
+        </div>
+      )}
+
       <section aria-labelledby="stores-heading">
         <div className="card-header">
           <div>
@@ -503,6 +533,106 @@ export function StoresDirectoryClient({
         </div>
       </section>
 
+      {/* Interactive Territory Clusters Schematic */}
+      <section
+        className="card"
+        style={{
+          padding: "1rem 1.25rem",
+          background: "linear-gradient(180deg, #FFFFFF 0%, #F9FAFF 100%)",
+        }}
+        aria-label="Territory Clusters Overview"
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+          <div>
+            <h3 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--brand-dark)", margin: "0 0 0.2rem" }}>
+              Regional Territory Clusters
+            </h3>
+            <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", margin: 0 }}>
+              Select a cluster to filter retail doors or view coverage health
+            </p>
+          </div>
+          {regionFilter ? (
+            <button
+              type="button"
+              onClick={() => setRegionFilter("")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--brand-primary)",
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Clear Filter ({regionFilter})
+            </button>
+          ) : null}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.75rem" }}>
+          {[
+            { name: "Sector 4 / Downtown", rep: "Elena Rostova", doors: 2, color: "var(--brand-primary)" },
+            { name: "Downtown Central", rep: "Elena Rostova", doors: 1, color: "var(--brand-dark)" },
+            { name: "North Bay Plaza", rep: "David Chen", doors: 1, color: "var(--brand-accent)" },
+            { name: "West End Corridor", rep: "Carlos Gomez", doors: 1, color: "var(--success-green)" },
+            { name: "Eastside Commercial", rep: "Aisha Patel", doors: 1, color: "#8B5CF6" },
+          ].map((cluster) => {
+            const isSelected = regionFilter === cluster.name;
+            return (
+              <button
+                key={cluster.name}
+                type="button"
+                onClick={() => setRegionFilter(isSelected ? "" : cluster.name)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0.625rem 0.875rem",
+                  borderRadius: "var(--radius-md)",
+                  border: isSelected ? "2px solid var(--brand-primary)" : "1px solid var(--border-subtle)",
+                  background: isSelected ? "rgba(27, 53, 128, 0.06)" : "var(--surface)",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <span
+                    style={{
+                      width: "10px",
+                      height: "10px",
+                      borderRadius: "50%",
+                      backgroundColor: cluster.color,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div>
+                    <div style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--brand-dark)" }}>
+                      {cluster.name}
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                      Lead: {cluster.rep}
+                    </div>
+                  </div>
+                </div>
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                    padding: "0.15rem 0.4rem",
+                    borderRadius: "9999px",
+                    background: "var(--bg-canvas)",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  {cluster.doors} doors
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       {visibleStores.length === 0 ? (
         <EmptyState
           title="No stores found"
@@ -514,62 +644,100 @@ export function StoresDirectoryClient({
         />
       ) : (
         <div className="card-grid">
-          {visibleStores.map((store) => (
-            <article
-              key={store.id}
-              className="card"
-              style={{ opacity: store.active ? 1 : 0.65 }}
-            >
-              <div className="card-header">
-                <div>
-                  <h2 className="card-title" style={{ fontSize: "1.125rem" }}>
-                    <Link
-                      href={`/stores/${store.id}`}
-                      style={{ textDecoration: "none", color: "inherit" }}
-                    >
-                      {store.name}
-                    </Link>
-                  </h2>
-                  <p className="card-meta">
-                    {store.city}
-                    {store.stateProvince ? `, ${store.stateProvince}` : ""} •{" "}
-                    <strong>{store.region}</strong>
-                  </p>
+          {visibleStores.map((store) => {
+            const assignedRep =
+              store.region.includes("Downtown") || store.region.includes("Sector 4")
+                ? "Elena Rostova"
+                : store.region.includes("North")
+                ? "David Chen"
+                : store.region.includes("West")
+                ? "Carlos Gomez"
+                : store.region.includes("Eastside")
+                ? "Aisha Patel"
+                : "Elena Rostova";
+
+            return (
+              <article
+                key={store.id}
+                className="card"
+                style={{ opacity: store.active ? 1 : 0.65 }}
+              >
+                <div className="card-header">
+                  <div>
+                    <h2 className="card-title" style={{ fontSize: "1.125rem" }}>
+                      <Link
+                        href={`/stores/${store.id}`}
+                        style={{ textDecoration: "none", color: "inherit" }}
+                      >
+                        {store.name}
+                      </Link>
+                    </h2>
+                    <p className="card-meta">
+                      {store.city}
+                      {store.stateProvince ? `, ${store.stateProvince}` : ""} •{" "}
+                      <strong>{store.region}</strong>
+                    </p>
+                  </div>
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      padding: "0.2rem 0.5rem",
+                      borderRadius: "9999px",
+                      backgroundColor: store.active
+                        ? "var(--color-success-subtle, #ecfdf5)"
+                        : "var(--color-danger-subtle, #fef2f2)",
+                      color: store.active
+                        ? "var(--color-success-text, #065f46)"
+                        : "var(--color-danger-text, #991b1b)",
+                    }}
+                  >
+                    {store.active ? "Active" : "Archived"}
+                  </span>
                 </div>
-                <span
-                  style={{
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                    padding: "0.2rem 0.5rem",
-                    borderRadius: "9999px",
-                    backgroundColor: store.active
-                      ? "var(--color-success-subtle, #ecfdf5)"
-                      : "var(--color-danger-subtle, #fef2f2)",
-                    color: store.active
-                      ? "var(--color-success-text, #065f46)"
-                      : "var(--color-danger-text, #991b1b)",
-                  }}
-                >
-                  {store.active ? "Active" : "Archived"}
-                </span>
-              </div>
-              <p className="card-meta">{store.addressLine1}</p>
-              {store.latitude !== null && store.longitude !== null ? (
-                <p className="card-meta" style={{ fontSize: "0.75rem" }}>
-                  📍 {store.latitude.toFixed(4)}, {store.longitude.toFixed(4)}
-                </p>
-              ) : null}
-              <div style={{ marginTop: "auto", paddingTop: "0.5rem" }}>
-                <Link
-                  href={`/stores/${store.id}`}
-                  className="btn btn-secondary"
-                  style={{ fontSize: "0.8125rem", padding: "0.375rem 0.75rem" }}
-                >
-                  View Store Details →
-                </Link>
-              </div>
-            </article>
-          ))}
+
+                <p className="card-meta">{store.addressLine1}</p>
+
+                {/* Assigned Representative Badge */}
+                <div style={{ margin: "0.375rem 0" }}>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.35rem",
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      padding: "0.2rem 0.5rem",
+                      borderRadius: "var(--radius-sm)",
+                      background: "rgba(27, 53, 128, 0.08)",
+                      color: "var(--brand-primary)",
+                    }}
+                  >
+                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Rep: {assignedRep}
+                  </span>
+                </div>
+
+                {store.latitude !== null && store.longitude !== null ? (
+                  <p className="card-meta" style={{ fontSize: "0.75rem" }}>
+                    📍 {store.latitude.toFixed(4)}, {store.longitude.toFixed(4)}
+                  </p>
+                ) : null}
+
+                <div style={{ marginTop: "auto", paddingTop: "0.5rem" }}>
+                  <Link
+                    href={`/stores/${store.id}`}
+                    className="btn btn-secondary"
+                    style={{ fontSize: "0.8125rem", padding: "0.375rem 0.75rem" }}
+                  >
+                    View Store Details →
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </div>

@@ -97,6 +97,13 @@ export function log(
   else console.log(line);
 }
 
+export const logger = {
+  debug: (event: string, fields?: Record<string, unknown>) => log("debug", event, fields),
+  info: (event: string, fields?: Record<string, unknown>) => log("info", event, fields),
+  warn: (event: string, fields?: Record<string, unknown>) => log("warn", event, fields),
+  error: (event: string, fields?: Record<string, unknown>) => log("error", event, fields),
+};
+
 export const REQUEST_ID_HEADER = "x-request-id";
 
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9._-]{8,64}$/;

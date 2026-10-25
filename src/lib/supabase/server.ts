@@ -35,3 +35,35 @@ export async function createUserServerSupabaseClient(): Promise<SupabaseClient> 
     }
   );
 }
+
+/**
+ * Creates an admin / service-role Supabase client for backend cron schedulers
+ * and unattended tasks where no interactive user session or cookies exist.
+ */
+export function createAdminServerSupabaseClient(): SupabaseClient {
+  const env = getPublicEnv();
+  const serviceRoleKey =
+    typeof process !== "undefined"
+      ? process.env.SUPABASE_SERVICE_ROLE_KEY
+      : undefined;
+
+  if (!serviceRoleKey) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY is required to create an admin server client."
+    );
+  }
+
+  // Use createServerClient without cookies for unauthenticated service operations
+  return createServerClient(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    serviceRoleKey,
+    {
+      cookies: {
+        getAll() {
+          return [];
+        },
+        setAll() {},
+      },
+    }
+  );
+}

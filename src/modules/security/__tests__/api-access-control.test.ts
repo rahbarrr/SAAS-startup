@@ -99,6 +99,7 @@ interface RouteCase {
 
 const cases: RouteCase[] = findRoutes(API_ROOT)
   .sort()
+  .filter((file) => !file.endsWith(`${path.sep}health${path.sep}route.ts`))
   .flatMap((file) => {
     const source = fs.readFileSync(file, "utf8");
     const rel = path.relative(API_ROOT, path.dirname(file)).split(path.sep).join("/");

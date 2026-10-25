@@ -144,3 +144,111 @@ export interface VisitPlannedVsActualDetail {
   attentionReasons: string[];
   locationDisclosure: string;
 }
+
+export interface StoreVisitMetric {
+  storeId: string;
+  storeName: string;
+  storeRegion: string;
+  plannedVisitsCount: number;
+  completedVisitsCount: number;
+  missedVisitsCount: number;
+  completionRate: number;
+  lastVisitedAt: string | null;
+}
+
+export interface TerritoryAnalyticsSummary {
+  timeWindow: {
+    range: string;
+    startDateFrom: string;
+    startDateTo: string;
+    label: string;
+  };
+  territoryMetrics: {
+    territory: string;
+    storeCount: number;
+    visitedStores: number;
+    plannedVisits: number;
+    completedVisits: number;
+    missedVisits: number;
+    visitCompletionRate: number;
+    coveragePercentage: number;
+    evidenceCompletionRate: number;
+    checkInOutComplianceRate: number;
+    activeRepsCount: number;
+  }[];
+  repWorkloads: {
+    userId: string;
+    name: string;
+    territory: string;
+    assignedTrips: number;
+    plannedStops: number;
+    completedVisits: number;
+    completionRate: number;
+    outstandingAssignments: number;
+    overdueStops: number;
+  }[];
+  storeFrequencies: StoreVisitMetric[];
+}
+
+export interface OperationsReportSummary {
+  timeWindow: {
+    range: "7d" | "30d" | "quarter" | "ytd" | "custom";
+    startDateFrom: string;
+    startDateTo: string;
+    label: string;
+  };
+  kpis: {
+    visitCompletionRate: number;
+    auditComplianceScore: number;
+    totalFieldHours: number;
+    exceptionsLogged: number;
+    approvalTurnaroundHoursAvg: number | null;
+    totalTrips: number;
+    completedTrips: number;
+    activeStoresCount: number;
+    evidenceCompletionRate?: number;
+    overdueVisitsCount?: number;
+    checkInOutComplianceRate?: number;
+  };
+  tripsByStatus: {
+    status: TripStatus;
+    label: string;
+    count: number;
+    percentage: number;
+    color: string;
+  }[];
+  weeklyVisitsTrend: {
+    week: string;
+    visits: number;
+    target: number;
+    compliance: number;
+  }[];
+  territorySummary: {
+    territory: string;
+    storeCount: number;
+    visitedStores: number;
+    scheduledVisits: number;
+    completedVisits: number;
+    compliance: string;
+    coveragePercentage: number;
+    missedVisits?: number;
+  }[];
+  repPerformance: {
+    userId: string;
+    name: string;
+    role: string;
+    territory: string;
+    assignedTrips: number;
+    plannedStops: number;
+    completedVisits: number;
+    completionRate: number;
+    avgVisitDurationMin: number;
+    exceptionsFlagged: number;
+    outstandingAssignments?: number;
+    overdueStops?: number;
+  }[];
+  storeVisitAnalytics?: StoreVisitMetric[];
+  definitions: Record<string, string>;
+  rows: PlannedVsActualStopRow[];
+}
+
