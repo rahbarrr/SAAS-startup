@@ -54,9 +54,9 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
         error?: { message: string };
       };
 
-      if (!res.ok || payload.error || !payload.data) {
+      if (!res.ok || payload?.error || !payload?.data?.inviteToken) {
         throw new Error(
-          payload.error?.message ||
+          payload?.error?.message ||
             "Failed to send invitation. Please verify permissions and try again."
         );
       }

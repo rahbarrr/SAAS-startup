@@ -101,14 +101,27 @@ export function TeamDirectoryClient({
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
+      const payload = (await res.json()) as {
+        data?: {
+          invitation: {
+            id: string;
+            organizationId: string;
+            invitedEmail: string;
+            role: string;
+            expiresAt: string;
+          };
+          inviteToken: string;
+        };
+        error?: { message: string };
+      };
+
+      if (!res.ok || payload?.error || !payload?.data?.inviteToken) {
         throw new Error(
-          data?.error?.message || "Failed to generate workspace invitation."
+          payload?.error?.message || "Failed to generate workspace invitation."
         );
       }
 
-      const token = data.data.inviteToken;
+      const token = payload.data.inviteToken;
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       const link = `${origin}/onboarding?token=${token}`;
 

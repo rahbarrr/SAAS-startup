@@ -4,6 +4,7 @@ import {
   assertValidManagerInOrg,
   generateRawInvitationToken,
   hashInvitationToken,
+  requireAnyOrgRole,
   requireOrgPermission,
   resolveTenantContext,
 } from "./authorization";
@@ -194,9 +195,25 @@ export async function createInvitationForOrg(params: {
     repository: params.repository,
   });
 
+  requireAnyOrgRole(tenantContext, ["admin"]);
   requireOrgPermission(tenantContext, "members:manage");
 
   const input = createOrgInvitationInputSchema.parse(params.rawInput);
+
+  if (params.repository.isEmailActiveMemberOfOrg) {
+    const isMember = await params.repository.isEmailActiveMemberOfOrg(
+      tenantContext.orgId,
+      input.email
+    );
+    if (isMember) {
+      throw new AppError(
+        "CONFLICT",
+        "A user with this email address is already an active member of this organization.",
+        409
+      );
+    }
+  }
+
   const rawToken = generateRawInvitationToken();
   const tokenHash = hashInvitationToken(rawToken);
   const baseTime = params.now ?? new Date();

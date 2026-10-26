@@ -6,6 +6,7 @@ import {
   decodeCursor,
   encodeCursor,
 } from "@/lib/http/envelope";
+import { logger } from "@/lib/observability/logger";
 import type {
   DbOrganizationInvitationRow,
   DbOrganizationMemberRow,
@@ -65,6 +66,7 @@ export interface TenancyRepository {
     nowIso?: string;
   }): Promise<OrganizationMembership>;
   getProfilesByUserIds?(userIds: string[]): Promise<Record<string, MemberProfile>>;
+  isEmailActiveMemberOfOrg?(orgId: string, email: string): Promise<boolean>;
 }
 
 function mapOrganizationRow(row: DbOrganizationRow): Organization {
@@ -297,14 +299,55 @@ export class SupabaseTenancyRepository implements TenancyRepository {
     return mapMembershipRow(data);
   }
 
+  async isEmailActiveMemberOfOrg(orgId: string, email: string): Promise<boolean> {
+    const normalizedEmail = email.toLowerCase().trim();
+    const { data: profile } = await this.supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", normalizedEmail)
+      .maybeSingle<{ id: string }>();
+
+    if (!profile?.id) {
+      return false;
+    }
+
+    const { data: membership } = await this.supabase
+      .from("organization_members")
+      .select("id")
+      .eq("organization_id", orgId)
+      .eq("user_id", profile.id)
+      .eq("status", "active")
+      .maybeSingle<{ id: string }>();
+
+    return Boolean(membership?.id);
+  }
+
   async createOrgInvitation(
     input: CreateInvitationRecordInput
   ): Promise<OrganizationInvitation> {
+    const normalizedEmail = input.invitedEmail.toLowerCase().trim();
+
+    // Revoke any prior pending invitations for this email in this organization
+    const { error: revokeError } = await this.supabase
+      .from("organization_invitations")
+      .update({ status: "revoked" })
+      .eq("organization_id", input.orgId)
+      .eq("invited_email", normalizedEmail)
+      .eq("status", "pending");
+
+    if (revokeError) {
+      logger.warn("Failed to revoke prior pending invitation", {
+        orgId: input.orgId,
+        errorCode: revokeError.code,
+        message: revokeError.message,
+      });
+    }
+
     const { data, error } = await this.supabase
       .from("organization_invitations")
       .insert({
         organization_id: input.orgId,
-        invited_email: input.invitedEmail.toLowerCase().trim(),
+        invited_email: normalizedEmail,
         role: input.role,
         token_hash: input.tokenHash,
         invited_by: input.invitedBy,
@@ -317,6 +360,26 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       .single<DbOrganizationInvitationRow>();
 
     if (error) {
+      logger.error("Database error creating organization invitation", {
+        orgId: input.orgId,
+        errorCode: error.code,
+        errorMessage: error.message,
+      });
+
+      if (error.code === "23505") {
+        throw new AppError(
+          "CONFLICT",
+          "An active invitation already exists for this email address.",
+          409
+        );
+      }
+      if (error.code === "42501") {
+        throw new AppError(
+          "FORBIDDEN_INSUFFICIENT_ROLE",
+          "You do not have permission to invite members to this organization.",
+          403
+        );
+      }
       throw new AppError(
         "INTERNAL_ERROR",
         "Failed to create organization invitation",

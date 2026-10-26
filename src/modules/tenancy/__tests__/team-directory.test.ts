@@ -15,6 +15,8 @@ import type {
 } from "@/modules/tenancy/repository";
 import type { ListOrgMembersQuery } from "@/modules/tenancy/schemas";
 import {
+  acceptInvitationForCaller,
+  createInvitationForOrg,
   listMembersForOrg,
   resolveActiveWorkspaceForUser,
 } from "@/modules/tenancy/service";
@@ -67,13 +69,34 @@ class MockTeamTenancyRepository implements TenancyRepository {
     throw new Error("Not implemented in mock");
   }
 
+  async isEmailActiveMemberOfOrg(orgId: string, email: string): Promise<boolean> {
+    const normalizedEmail = email.toLowerCase().trim();
+    const userIds = Object.values(this.profiles)
+      .filter((p) => p.email.toLowerCase() === normalizedEmail)
+      .map((p) => p.id);
+    return this.memberships.some(
+      (m) => m.orgId === orgId && userIds.includes(m.userId) && m.status === "active"
+    );
+  }
+
   async createOrgInvitation(
     input: CreateInvitationRecordInput
   ): Promise<OrganizationInvitation> {
+    const normalizedEmail = input.invitedEmail.toLowerCase().trim();
+    for (const inv of this.invitations) {
+      if (
+        inv.orgId === input.orgId &&
+        inv.invitedEmail.toLowerCase() === normalizedEmail &&
+        inv.status === "pending"
+      ) {
+        inv.status = "revoked";
+      }
+    }
+
     const record: OrganizationInvitation = {
-      id: "inv-111",
+      id: `inv-${this.invitations.length + 1}`,
       orgId: input.orgId,
-      invitedEmail: input.invitedEmail,
+      invitedEmail: normalizedEmail,
       role: input.role,
       tokenHash: input.tokenHash,
       invitedBy: input.invitedBy,
@@ -88,8 +111,38 @@ class MockTeamTenancyRepository implements TenancyRepository {
     return record;
   }
 
-  async acceptOrgInvitationByTokenHash(): Promise<OrganizationMembership> {
-    throw new Error("Not implemented in mock");
+  async acceptOrgInvitationByTokenHash(params: {
+    user: AuthenticatedUser;
+    tokenHash: string;
+    nowIso?: string;
+  }): Promise<OrganizationMembership> {
+    const invite = this.invitations.find((i) => i.tokenHash === params.tokenHash);
+    if (!invite || invite.status !== "pending") {
+      throw new AppError("INVITATION_INVALID", "Invalid or already used invitation", 400);
+    }
+    const now = params.nowIso ?? new Date().toISOString();
+    if (invite.expiresAt <= now) {
+      throw new AppError("INVITATION_EXPIRED", "Invitation has expired", 400);
+    }
+    if (invite.invitedEmail.toLowerCase() !== params.user.email.toLowerCase()) {
+      throw new AppError("INVITATION_EMAIL_MISMATCH", "Email mismatch", 403);
+    }
+    invite.status = "accepted";
+    invite.acceptedAt = now;
+    invite.acceptedBy = params.user.id;
+
+    const membership: OrganizationMembership = {
+      id: `m-accepted-${this.memberships.length + 1}`,
+      orgId: invite.orgId,
+      userId: params.user.id,
+      role: invite.role,
+      status: "active",
+      managerUserId: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.memberships.push(membership);
+    return membership;
   }
 
   async getProfilesByUserIds(userIds: string[]): Promise<Record<string, MemberProfile>> {
@@ -295,5 +348,252 @@ describe("Team Directory & Member Management Service", () => {
     if (managerId) {
       expect(profiles[managerId]?.fullName).toBe("Mark Manager");
     }
+  });
+
+  describe("Workspace Member Invitations", () => {
+    it("allows authenticated admin to create and persist single-use invitation for field representative", async () => {
+      const result = await createInvitationForOrg({
+        user: ADMIN_USER,
+        candidateOrgId: ORG_ID,
+        rawInput: {
+          email: "new.rep@fieldops.com",
+          role: "field_employee",
+          expiresInHours: 72,
+        },
+        repository,
+      });
+
+      expect(result.inviteToken).toBeDefined();
+      expect(result.inviteToken.length).toBeGreaterThan(20);
+      expect(result.invitation.invitedEmail).toBe("new.rep@fieldops.com");
+      expect(result.invitation.role).toBe("field_employee");
+      expect(result.invitation.status).toBe("pending");
+      expect((result.invitation as unknown as { tokenHash?: string }).tokenHash).toBeUndefined();
+
+      // Check record persisted in repository
+      expect(repository.invitations).toHaveLength(1);
+      const saved = repository.invitations[0];
+      if (!saved) throw new Error("Expected saved invitation");
+      expect(saved.invitedEmail).toBe("new.rep@fieldops.com");
+      expect(saved.role).toBe("field_employee");
+      expect(saved.invitedBy).toBe(ADMIN_USER.id);
+      expect(saved.tokenHash).toMatch(/^[0-9a-f]{64}$/);
+    });
+
+    it("denies invitation creation when caller is a manager (403 FORBIDDEN_INSUFFICIENT_ROLE)", async () => {
+      await expect(
+        createInvitationForOrg({
+          user: MANAGER_USER,
+          candidateOrgId: ORG_ID,
+          rawInput: {
+            email: "candidate@fieldops.com",
+            role: "field_employee",
+            expiresInHours: 72,
+          },
+          repository,
+        })
+      ).rejects.toMatchObject({
+        code: "FORBIDDEN_INSUFFICIENT_ROLE",
+        status: 403,
+      });
+    });
+
+    it("denies invitation creation when caller is a field representative (403 FORBIDDEN_INSUFFICIENT_ROLE)", async () => {
+      await expect(
+        createInvitationForOrg({
+          user: REP_USER,
+          candidateOrgId: ORG_ID,
+          rawInput: {
+            email: "candidate@fieldops.com",
+            role: "field_employee",
+            expiresInHours: 72,
+          },
+          repository,
+        })
+      ).rejects.toMatchObject({
+        code: "FORBIDDEN_INSUFFICIENT_ROLE",
+        status: 403,
+      });
+    });
+
+    it("denies invitation creation when caller is unauthenticated (401 UNAUTHENTICATED)", async () => {
+      await expect(
+        createInvitationForOrg({
+          user: null,
+          candidateOrgId: ORG_ID,
+          rawInput: {
+            email: "candidate@fieldops.com",
+            role: "field_employee",
+            expiresInHours: 72,
+          },
+          repository,
+        })
+      ).rejects.toMatchObject({
+        code: "UNAUTHENTICATED",
+        status: 401,
+      });
+    });
+
+    it("denies invitation creation into another organization's workspace (403 FORBIDDEN_ORG_ACCESS)", async () => {
+      await expect(
+        createInvitationForOrg({
+          user: ADMIN_USER,
+          candidateOrgId: OTHER_ORG_ID,
+          rawInput: {
+            email: "candidate@othercorp.com",
+            role: "field_employee",
+            expiresInHours: 72,
+          },
+          repository,
+        })
+      ).rejects.toMatchObject({
+        code: "FORBIDDEN_ORG_ACCESS",
+        status: 403,
+      });
+    });
+
+    it("rejects invitation creation with invalid email or unsupported role (400 VALIDATION_ERROR)", async () => {
+      await expect(
+        createInvitationForOrg({
+          user: ADMIN_USER,
+          candidateOrgId: ORG_ID,
+          rawInput: {
+            email: "not-an-email",
+            role: "field_employee",
+            expiresInHours: 72,
+          },
+          repository,
+        })
+      ).rejects.toThrow();
+
+      await expect(
+        createInvitationForOrg({
+          user: ADMIN_USER,
+          candidateOrgId: ORG_ID,
+          rawInput: {
+            email: "valid@fieldops.com",
+            role: "super_admin_unsupported",
+            expiresInHours: 72,
+          },
+          repository,
+        })
+      ).rejects.toThrow();
+    });
+
+    it("rejects invitation creation when invited email is already an active member in workspace (409 CONFLICT)", async () => {
+      await expect(
+        createInvitationForOrg({
+          user: ADMIN_USER,
+          candidateOrgId: ORG_ID,
+          rawInput: {
+            email: REP_USER.email, // rep@fieldops.com is already an active member
+            role: "field_employee",
+            expiresInHours: 72,
+          },
+          repository,
+        })
+      ).rejects.toMatchObject({
+        code: "CONFLICT",
+        status: 409,
+      });
+    });
+
+    it("safely revokes prior pending invitation when a new invitation is issued for the same email", async () => {
+      const email = "pending.candidate@fieldops.com";
+
+      const first = await createInvitationForOrg({
+        user: ADMIN_USER,
+        candidateOrgId: ORG_ID,
+        rawInput: { email, role: "field_employee", expiresInHours: 72 },
+        repository,
+      });
+
+      expect(repository.invitations).toHaveLength(1);
+      expect(repository.invitations[0]?.status).toBe("pending");
+
+      const second = await createInvitationForOrg({
+        user: ADMIN_USER,
+        candidateOrgId: ORG_ID,
+        rawInput: { email, role: "manager", expiresInHours: 48 },
+        repository,
+      });
+
+      expect(repository.invitations).toHaveLength(2);
+      expect(repository.invitations[0]?.status).toBe("revoked");
+      expect(repository.invitations[1]?.status).toBe("pending");
+      expect(repository.invitations[1]?.role).toBe("manager");
+
+      // Attempting to accept the superseded token must fail
+      const candidateUser: AuthenticatedUser = {
+        id: "eeeeeeee-0000-4000-8000-000000000005",
+        email,
+      };
+
+      await expect(
+        acceptInvitationForCaller({
+          user: candidateUser,
+          rawInput: { token: first.inviteToken },
+          repository,
+        })
+      ).rejects.toMatchObject({
+        code: "INVITATION_INVALID",
+        status: 400,
+      });
+
+      // The second token is valid and can be accepted once
+      const accepted = await acceptInvitationForCaller({
+        user: candidateUser,
+        rawInput: { token: second.inviteToken },
+        repository,
+      });
+
+      expect(accepted.role).toBe("manager");
+      expect(accepted.status).toBe("active");
+
+      // Replay of second token must now fail (single use)
+      await expect(
+        acceptInvitationForCaller({
+          user: candidateUser,
+          rawInput: { token: second.inviteToken },
+          repository,
+        })
+      ).rejects.toMatchObject({
+        code: "INVITATION_INVALID",
+        status: 400,
+      });
+    });
+
+    it("enforces invitation expiration timestamp and blocks expired tokens", async () => {
+      const email = "expired.candidate@fieldops.com";
+      const baseTime = new Date("2026-10-01T12:00:00Z");
+
+      const { inviteToken } = await createInvitationForOrg({
+        user: ADMIN_USER,
+        candidateOrgId: ORG_ID,
+        rawInput: { email, role: "field_employee", expiresInHours: 24 },
+        repository,
+        now: baseTime,
+      });
+
+      const candidateUser: AuthenticatedUser = {
+        id: "ffffffff-0000-4000-8000-000000000006",
+        email,
+      };
+
+      // 48 hours later (expired)
+      const futureTime = new Date("2026-10-03T12:00:00Z");
+
+      await expect(
+        acceptInvitationForCaller({
+          user: candidateUser,
+          rawInput: { token: inviteToken },
+          repository,
+          now: futureTime,
+        })
+      ).rejects.toMatchObject({
+        code: "INVITATION_EXPIRED",
+        status: 400,
+      });
+    });
   });
 });
