@@ -80,4 +80,4 @@ Error-monitoring provider, backup/PITR plan and restore test, OpenAI spend cap, 
 |  1  | Phase 2 owner decisions + Phase 1 doc fixes | Cheap, unblock everything, and stop inaccurate claims |
 |  2  | Phase 3 storage test                        | Largest unverified security surface; doable offline   |
 |  3  | Phase 4 & Phase 5 (local features)          | Core application and AI workflow verified locally     |
-|  4  | Phase 6–7 (controlled production validation) | Requires owner-approved cloud actions                 |
+|  4  | Phase 6–7 (production validation)           | Requires owner-approved cloud actions                 |
