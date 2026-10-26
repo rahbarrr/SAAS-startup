@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { createUserServerSupabaseClient } from "@/lib/supabase/server";
+import {
+  createAdminServerSupabaseClient,
+  createUserServerSupabaseClient,
+} from "@/lib/supabase/server";
 import { resolveRouteDistanceProvider } from "@/modules/routing/provider";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +46,9 @@ export async function GET(request?: Request): Promise<NextResponse<HealthCheckRe
   let dbError: string | undefined;
 
   try {
-    const supabase = await createUserServerSupabaseClient();
+    const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
+      ? createAdminServerSupabaseClient()
+      : await createUserServerSupabaseClient();
     const { error } = await supabase
       .from("organizations")
       .select("id")

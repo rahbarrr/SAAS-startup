@@ -121,12 +121,33 @@ export interface StartupEnvResult {
 export function validateStartupEnv(
   envSource: Record<string, string | undefined> = process.env
 ): StartupEnvResult {
-  const pick = (key: string): string | undefined => envSource[key] || undefined;
+  const pick = (key: string): string | undefined => {
+    const val = envSource[key];
+    if (typeof val !== "string") return undefined;
+    const trimmed = val.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  };
+
+  const resolveAppUrl = (): string | undefined => {
+    const explicit = pick("NEXT_PUBLIC_APP_URL");
+    if (explicit) return explicit;
+    // On Vercel Preview deployments, dynamically construct https://<VERCEL_URL> if not explicitly configured.
+    // In Production, explicit canonical NEXT_PUBLIC_APP_URL is strictly required.
+    const vercelEnv = pick("VERCEL_ENV");
+    const vercelUrl = pick("VERCEL_URL");
+    if (vercelEnv === "preview" && vercelUrl) {
+      return vercelUrl.startsWith("http://") || vercelUrl.startsWith("https://")
+        ? vercelUrl
+        : `https://${vercelUrl}`;
+    }
+    return undefined;
+  };
+
   const parsed = startupSchema.safeParse({
     APP_ENV: pick("APP_ENV"),
     NEXT_PUBLIC_SUPABASE_URL: pick("NEXT_PUBLIC_SUPABASE_URL"),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: pick("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-    NEXT_PUBLIC_APP_URL: pick("NEXT_PUBLIC_APP_URL"),
+    NEXT_PUBLIC_APP_URL: resolveAppUrl(),
     EXPECTED_SUPABASE_PROJECT_REF: pick("EXPECTED_SUPABASE_PROJECT_REF"),
     OPENAI_API_KEY: pick("OPENAI_API_KEY"),
     OPENAI_REPORT_MODEL: pick("OPENAI_REPORT_MODEL"),

@@ -73,4 +73,101 @@ describe("startup environment validation", () => {
     expect(isUploadsEnabled({})).toBe(true);
     expect(isUploadsEnabled({ UPLOADS_ENABLED: "false" })).toBe(false);
   });
+
+  it("validates exact production settings for rahbar1/saas-startup1 and lrolhonkrjhuwgnmcdsj", () => {
+    const liveProd = {
+      APP_ENV: "production",
+      NEXT_PUBLIC_SUPABASE_URL: "https://lrolhonkrjhuwgnmcdsj.supabase.co",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhYmMxMjMiOiJ0ZXN0In0.eyJyb2xlIjoiYW5vbiJ9.signature",
+      NEXT_PUBLIC_APP_URL: "https://saas-startup1.vercel.app",
+      EXPECTED_SUPABASE_PROJECT_REF: "lrolhonkrjhuwgnmcdsj",
+      VERCEL_ENV: "production",
+    };
+    expect(validateStartupEnv(liveProd).ok).toBe(true);
+  });
+
+  it("safely trims accidental leading/trailing whitespace on environment variables", () => {
+    const withWhitespace = {
+      APP_ENV: "  production  ",
+      NEXT_PUBLIC_SUPABASE_URL: "  https://lrolhonkrjhuwgnmcdsj.supabase.co\n",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "  anon-key-value  ",
+      NEXT_PUBLIC_APP_URL: " https://saas-startup1.vercel.app \t",
+      EXPECTED_SUPABASE_PROJECT_REF: " lrolhonkrjhuwgnmcdsj ",
+    };
+    expect(validateStartupEnv(withWhitespace).ok).toBe(true);
+  });
+
+  it("strictly fails when NEXT_PUBLIC_APP_URL is missing or empty in production", () => {
+    const missingAppUrl = {
+      APP_ENV: "production",
+      NEXT_PUBLIC_SUPABASE_URL: "https://lrolhonkrjhuwgnmcdsj.supabase.co",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-value",
+      EXPECTED_SUPABASE_PROJECT_REF: "lrolhonkrjhuwgnmcdsj",
+    };
+    const result = validateStartupEnv(missingAppUrl);
+    expect(result.ok).toBe(false);
+    expect(result.problems.join(" ")).toContain("NEXT_PUBLIC_APP_URL");
+    expect(() => assertStartupEnv(missingAppUrl)).toThrow(
+      /Invalid environment configuration:\s+- NEXT_PUBLIC_APP_URL: invalid or missing/
+    );
+  });
+
+  it("rejects malformed NEXT_PUBLIC_APP_URL without https protocol", () => {
+    const malformed = {
+      ...base,
+      NEXT_PUBLIC_APP_URL: "saas-startup1.vercel.app", // missing https://
+    };
+    const result = validateStartupEnv(malformed);
+    expect(result.ok).toBe(false);
+    expect(result.problems.join(" ")).toContain("NEXT_PUBLIC_APP_URL");
+  });
+
+  it("handles Vercel Preview deployments: resolves VERCEL_URL in staging, but rejects production in preview", () => {
+    // 1. In Preview with APP_ENV=staging and VERCEL_URL provided, seamlessly resolves
+    const previewStaging = {
+      APP_ENV: "staging",
+      NEXT_PUBLIC_SUPABASE_URL: "https://stagingprojectref.supabase.co",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-value",
+      EXPECTED_SUPABASE_PROJECT_REF: "stagingprojectref",
+      VERCEL_ENV: "preview",
+      VERCEL_URL: "saas-startup1-git-feat-rahbar1.vercel.app",
+    };
+    expect(validateStartupEnv(previewStaging).ok).toBe(true);
+
+    // 2. In Preview with APP_ENV=production, strictly rejected
+    const previewProd = {
+      ...previewStaging,
+      APP_ENV: "production",
+    };
+    const result = validateStartupEnv(previewProd);
+    expect(result.ok).toBe(false);
+    expect(result.problems.join(" ")).toContain("production configuration must never run in a preview deployment");
+
+    // 3. In Production, VERCEL_URL cannot substitute for missing NEXT_PUBLIC_APP_URL
+    const prodMissingAppUrlWithVercelUrl = {
+      APP_ENV: "production",
+      NEXT_PUBLIC_SUPABASE_URL: "https://lrolhonkrjhuwgnmcdsj.supabase.co",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-value",
+      EXPECTED_SUPABASE_PROJECT_REF: "lrolhonkrjhuwgnmcdsj",
+      VERCEL_ENV: "production",
+      VERCEL_URL: "saas-startup1.vercel.app",
+    };
+    expect(validateStartupEnv(prodMissingAppUrlWithVercelUrl).ok).toBe(false);
+  });
+
+  it("ensures sensitive keys and credentials are never leaked in error messages", () => {
+    const sensitiveKey = "sensitive-super-secret-key-12345";
+    const sensitiveRef = "topsecretprojectref999";
+    const result = validateStartupEnv({
+      APP_ENV: "production",
+      NEXT_PUBLIC_SUPABASE_URL: `https://${sensitiveRef}.supabase.co`,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: sensitiveKey,
+      NEXT_PUBLIC_APP_URL: "http://insecure-app.com",
+      EXPECTED_SUPABASE_PROJECT_REF: "differentprojectref",
+    });
+    expect(result.ok).toBe(false);
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain(sensitiveKey);
+    expect(serialized).not.toContain(sensitiveRef);
+  });
 });
