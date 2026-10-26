@@ -65,7 +65,6 @@ The application code is feature-complete for the MVP workflow and passes every l
 4. Run only the reviewed production database release workflow; inspect its dry-run output before approving the apply step.
 5. Verify the private evidence bucket, auth callback URLs, and email policy without changing existing customer data.
 
-
 ## Phase 7 — Live validation (record real results; mark anything untested as unverified)
 
 Signup/confirm/login/logout/reset and callbacks; onboarding persistence; trip → approve → check-in → checklist → upload → checkout; dashboard/CSV accuracy; unauthenticated API calls rejected; cross-tenant read/write/**storage object** access denied with two real tenants; logs contain no secrets/PII.
