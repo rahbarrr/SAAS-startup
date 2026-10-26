@@ -39,7 +39,7 @@ gantt
     title FieldTrack 3-Week Pilot Schedule
     dateFormat  YYYY-MM-DD
     section Preparation
-    Staging Provisioning & Pre-Flight Checks :2026-11-01, 4d
+    Production Go-Live & Pre-Flight Checks :2026-11-01, 4d
     Manager & Field Rep Onboarding           :2026-11-03, 3d
     section Week 1: Core Operations
     Trip Planning & Manager Approvals        :2026-11-06, 3d
@@ -54,7 +54,7 @@ gantt
 
 ### Phase 0: Pre-Flight Onboarding (Days -4 to 0)
 
-- Apply database migrations and verify remote Supabase staging environment.
+- Verify the intended production Supabase project, confirm the required migrations have been applied, and run the controlled production smoke test.
 - Provision organization workspaces and seed initial store directory master data.
 - Distribute [`PILOT_ONBOARDING.md`](file:///Users/rahbarraza/Downloads/SAAS%20startup/PILOT_ONBOARDING.md) to managers and field representatives.
 - Conduct a 30-minute virtual orientation session with field supervisors.
