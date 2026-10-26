@@ -101,7 +101,7 @@ export function TeamDirectoryClient({
         }),
       });
 
-      const payload = (await res.json()) as {
+      const payload = (await res.json().catch(() => null)) as {
         data?: {
           invitation: {
             id: string;
@@ -112,13 +112,19 @@ export function TeamDirectoryClient({
           };
           inviteToken: string;
         };
-        error?: { message: string };
-      };
+        error?: { message: string } | string;
+        message?: string;
+      } | null;
 
       if (!res.ok || payload?.error || !payload?.data?.inviteToken) {
-        throw new Error(
-          payload?.error?.message || "Failed to generate workspace invitation."
-        );
+        const serverError =
+          (typeof payload?.error === "object" ? payload?.error?.message : null) ??
+          (typeof payload?.message === "string" ? payload.message : null) ??
+          (typeof payload?.error === "string" ? payload.error : null) ??
+          (res.ok
+            ? "Invitation generated, but no invite token was returned by the server."
+            : `Failed to generate workspace invitation (HTTP ${res.status}).`);
+        throw new Error(serverError);
       }
 
       const token = payload.data.inviteToken;

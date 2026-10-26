@@ -368,7 +368,9 @@ describe("Team Directory & Member Management Service", () => {
       expect(result.invitation.invitedEmail).toBe("new.rep@fieldops.com");
       expect(result.invitation.role).toBe("field_employee");
       expect(result.invitation.status).toBe("pending");
-      expect((result.invitation as unknown as { tokenHash?: string }).tokenHash).toBeUndefined();
+      expect(
+        (result.invitation as unknown as { tokenHash?: string }).tokenHash
+      ).toBeUndefined();
 
       // Check record persisted in repository
       expect(repository.invitations).toHaveLength(1);

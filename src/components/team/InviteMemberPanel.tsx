@@ -46,19 +46,24 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
         }),
       });
 
-      const payload = (await res.json()) as {
+      const payload = (await res.json().catch(() => null)) as {
         data?: {
           invitation: { invitedEmail: string; role: string; expiresAt: string };
           inviteToken: string;
         };
-        error?: { message: string };
-      };
+        error?: { message: string } | string;
+        message?: string;
+      } | null;
 
       if (!res.ok || payload?.error || !payload?.data?.inviteToken) {
-        throw new Error(
-          payload?.error?.message ||
-            "Failed to send invitation. Please verify permissions and try again."
-        );
+        const serverError =
+          (typeof payload?.error === "object" ? payload?.error?.message : null) ??
+          (typeof payload?.message === "string" ? payload.message : null) ??
+          (typeof payload?.error === "string" ? payload.error : null) ??
+          (res.ok
+            ? "Invitation created, but no invite token was returned by the server."
+            : `Failed to send invitation (HTTP ${res.status}). Please verify permissions and try again.`);
+        throw new Error(serverError);
       }
 
       setCreatedInvite({
