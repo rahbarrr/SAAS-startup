@@ -9,7 +9,7 @@ The application code is feature-complete for the MVP workflow and passes every l
 ## Phase 1 — Foundation and Security Hardening (COMPLETE AND VERIFIED LOCALLY)
 
 - **Secrets and Startup Validation:** Strict detection of service-role keys / `sb_secret_` in public environment variables across all environments; HTTPS enforced outside development; exact hostname matching on `.supabase.co` and `.supabase.in` preventing lookalike subdomain attacks.
-- **Middleware & Session Proxy:** Middleware fail-closed with 503 JSON (`INTERNAL_ERROR`, correlation `x-request-id`) when Supabase env is missing in staging/production, while allowing local development pass-through.
+- **Middleware & Session Proxy:** Middleware fail-closed with 503 JSON (`INTERNAL_ERROR`, correlation `x-request-id`) when Supabase env is missing in hosted production/preview deployments, while allowing local development pass-through.
 - **Error & Log Redaction:** Comprehensive token scrubbing (`sb_secret_`, `sk-`, Bearer tokens, DB connection URLs) in both observability logs and user-facing HTTP error envelopes.
 - **Redirect Path Sanitization:** Rejection of control characters and non-leading backslashes in `sanitizeRedirectPath`.
 - **Database Privilege Hardening (Migration 12):** Revoked table and sequence access from `anon`, revoked EXECUTE from `anon` on all public functions except `consume_rate_limit`, and revoked EXECUTE on trigger functions from `public`, `anon`, and `authenticated`. Verified via PGlite and `post-release.sql`.
@@ -19,8 +19,8 @@ The application code is feature-complete for the MVP workflow and passes every l
 ## Phase 2 — Owner decisions (blocking everything cloud-side)
 
 1. Confirm the hosting platform (B-01).
-2. Confirm project `lrolhonkrjhuwgnmcdsj` is non-production; decide dev vs staging separation (B-02).
-3. Decide auth-email approach for staging: autoconfirm vs SMTP (B-06).
+2. Confirm the configured Supabase project reference and verify it is the intended target before applying any cloud migration.
+3. Verify the production email-confirmation and redirect settings using the intended pilot account.
 
 - **Exit:** a written record of the three answers.
 
@@ -57,13 +57,14 @@ The application code is feature-complete for the MVP workflow and passes every l
 - **Independent Manual Reporting:** Manual visit note drafting and checklist completion operate completely independently of AI availability.
 - **Tests Added & Verified:** 24 test suites, 259 tests passing cleanly across all quality gates.
 
-## Phase 6 — Staging provisioning (requires explicit approval per action)
+## Phase 6 — Controlled production verification (requires explicit approval per action)
 
-1. `supabase db push --dry-run`, review, then apply to the confirmed non-production project.
-2. Run `supabase/verification/post-release.sql`; confirm bucket `visit-evidence` exists and is private.
-3. Configure Site URL and exact-origin redirect URLs; configure confirmation/SMTP.
-4. Create host project, set env vars (names per `.env.example` plus `APP_ENV=staging`, `EXPECTED_SUPABASE_PROJECT_REF`); **do not** set the service-role key.
-5. Deploy a preview/staging build only; never production.
+1. Confirm the production project reference in the hosting environment and Supabase dashboard match exactly.
+2. Review the current migration inventory and the remote migration history before applying any database change.
+3. Take and record the required backup/PITR reference and document the forward-fix/restore plan.
+4. Run only the reviewed production database release workflow; inspect its dry-run output before approving the apply step.
+5. Verify the private evidence bucket, auth callback URLs, and email policy without changing existing customer data.
+
 
 ## Phase 7 — Live validation (record real results; mark anything untested as unverified)
 
@@ -80,4 +81,4 @@ Error-monitoring provider, backup/PITR plan and restore test, OpenAI spend cap, 
 |  1  | Phase 2 owner decisions + Phase 1 doc fixes | Cheap, unblock everything, and stop inaccurate claims |
 |  2  | Phase 3 storage test                        | Largest unverified security surface; doable offline   |
 |  3  | Phase 4 & Phase 5 (local features)          | Core application and AI workflow verified locally     |
-|  4  | Phase 6–7 (staging & live cloud validation) | Requires remote Supabase provisioning                 |
+|  4  | Phase 6–7 (controlled production validation) | Requires owner-approved cloud actions                 |
