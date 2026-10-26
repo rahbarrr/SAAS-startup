@@ -19,17 +19,17 @@ describe("startup environment validation", () => {
     expect(validateStartupEnv(base).ok).toBe(true);
   });
 
-  it("rejects staging credentials in production and never prints values", () => {
+  it("rejects a mismatched Supabase project in production and never prints values", () => {
     const secret = "super-secret-anon-key-xyz";
     const result = validateStartupEnv({
       ...base,
-      NEXT_PUBLIC_SUPABASE_URL: "https://stagingprojectref.supabase.co",
+      NEXT_PUBLIC_SUPABASE_URL: "https://otherprojectref.supabase.co",
       NEXT_PUBLIC_SUPABASE_ANON_KEY: secret,
     });
     expect(result.ok).toBe(false);
     expect(result.problems.join(" ")).toContain("NEXT_PUBLIC_SUPABASE_URL");
     expect(JSON.stringify(result)).not.toContain(secret);
-    expect(JSON.stringify(result)).not.toContain("stagingprojectref");
+    expect(JSON.stringify(result)).not.toContain("otherprojectref");
     expect(() =>
       assertStartupEnv({ ...base, NEXT_PUBLIC_SUPABASE_URL: "https://x.example" })
     ).toThrow(/Invalid environment configuration/);
@@ -123,21 +123,21 @@ describe("startup environment validation", () => {
     expect(result.problems.join(" ")).toContain("NEXT_PUBLIC_APP_URL");
   });
 
-  it("handles Vercel Preview deployments: resolves VERCEL_URL in staging, but rejects production in preview", () => {
-    // 1. In Preview with APP_ENV=staging and VERCEL_URL provided, seamlessly resolves
-    const previewStaging = {
-      APP_ENV: "staging",
-      NEXT_PUBLIC_SUPABASE_URL: "https://stagingprojectref.supabase.co",
+  it("handles Vercel Preview deployments and rejects production config in preview", () => {
+    // Preview builds use their generated HTTPS URL and must validate the configured Supabase project.
+    const previewConfig = {
+      APP_ENV: "development",
+      NEXT_PUBLIC_SUPABASE_URL: "https://previewprojectref.supabase.co",
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-value",
-      EXPECTED_SUPABASE_PROJECT_REF: "stagingprojectref",
+      EXPECTED_SUPABASE_PROJECT_REF: "previewprojectref",
       VERCEL_ENV: "preview",
       VERCEL_URL: "saas-startup1-git-feat-rahbar1.vercel.app",
     };
-    expect(validateStartupEnv(previewStaging).ok).toBe(true);
+    expect(validateStartupEnv(previewConfig).ok).toBe(true);
 
-    // 2. In Preview with APP_ENV=production, strictly rejected
+    // Production config must never run in a Vercel Preview deployment.
     const previewProd = {
-      ...previewStaging,
+      ...previewConfig,
       APP_ENV: "production",
     };
     const result = validateStartupEnv(previewProd);
@@ -146,7 +146,7 @@ describe("startup environment validation", () => {
       "production configuration must never run in a preview deployment"
     );
 
-    // 3. In Production, VERCEL_URL cannot substitute for missing NEXT_PUBLIC_APP_URL
+    // In Production, VERCEL_URL cannot substitute for missing NEXT_PUBLIC_APP_URL.
     const prodMissingAppUrlWithVercelUrl = {
       APP_ENV: "production",
       NEXT_PUBLIC_SUPABASE_URL: "https://lrolhonkrjhuwgnmcdsj.supabase.co",
@@ -156,6 +156,13 @@ describe("startup environment validation", () => {
       VERCEL_URL: "saas-startup1.vercel.app",
     };
     expect(validateStartupEnv(prodMissingAppUrlWithVercelUrl).ok).toBe(false);
+
+    // Hosted Preview deployments must also fail closed when no project reference is supplied.
+    const previewMissingRef = {
+      ...previewConfig,
+      EXPECTED_SUPABASE_PROJECT_REF: undefined,
+    };
+    expect(validateStartupEnv(previewMissingRef).ok).toBe(false);
   });
 
   it("ensures sensitive keys and credentials are never leaked in error messages", () => {

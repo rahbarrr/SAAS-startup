@@ -29,7 +29,7 @@ The entire 12-step retail operations workflow was exercised and verified:
 **Acceptance Status:**
 
 - **Local Verification:** **PASSED (100%)** — All 24 automated test suites (259 tests) passing across PostgreSQL (PGlite WASM), Next.js 16 (Turbopack), TypeScript, ESLint, and Prettier.
-- **Staging / Cloud Environment:** **BLOCKED BY CONFIGURATION** — Remote Supabase project `lrolhonkrjhuwgnmcdsj` is responsive on Auth but requires `supabase db push` to apply the 12 authored database migrations and provision the private `visit-evidence` storage bucket.
+- **Live Cloud Verification:** **PARTIAL** — This report is a historical snapshot. The application and health endpoint were subsequently reported as responding, but invitation handling and evidence uploads still require live end-to-end verification.
 
 ---
 
@@ -66,10 +66,10 @@ The entire 12-step retail operations workflow was exercised and verified:
   - Prettier 3.x code formatting: 100% compliant.
   - Dependency Vulnerability Audit (`npm audit`): 0 vulnerabilities.
 
-### 3.2 Verified Against Staging
+### 3.2 Live Cloud Verification
 
-- **Current Status:** **None** (Deferred pending cloud database migration deployment).
-- **Staging Verification Plan:** Once `supabase db push` is executed against project `lrolhonkrjhuwgnmcdsj`, the 17 live smoke tests outlined in [`STAGING_CHECKLIST.md`](file:///Users/rahbarraza/Downloads/SAAS%20startup/STAGING_CHECKLIST.md) will be performed.
+- **Current Status:** **Partial**. Basic route and health-endpoint responses were reported after the earlier deployment repair.
+- **Remaining Verification:** Complete the current pilot smoke tests against the deployed application, especially invitation creation/acceptance, private evidence upload, tenant isolation, and real database writes. Local tests alone do not prove these live workflows work.
 
 ### 3.3 Blocked by Configuration
 
@@ -80,9 +80,9 @@ The entire 12-step retail operations workflow was exercised and verified:
    - **Blocker:** Bucket `visit-evidence` must be created in the remote Supabase dashboard with private access and 10MB file limit.
    - **Resolution Required:** Create bucket and apply storage RLS policies in `20261022000006_visit_execution_and_evidence.sql`.
 3. **Supabase Auth Email Delivery:**
-   - **Blocker:** Email confirmation requires SMTP provider credentials or "Enable Email Autoconfirm" enabled in Supabase Auth settings for staging.
-4. **Vercel Hosting Environment Variables:**
-   - **Blocker:** Staging deployment environment variables (per `.env.example`) must be populated in the Vercel project dashboard.
+   - **Check:** Verify the intended email-confirmation policy and configured email delivery path for the pilot.
+4. **Evidence Storage Configuration:**
+   - **Check:** Confirm the bucket ID expected by the current upload code matches the private bucket configured in Supabase.
 
 ### 3.4 Not Tested (Intentional Non-Scope)
 
@@ -108,6 +108,6 @@ The entire 12-step retail operations workflow was exercised and verified:
 
 ## 5. Formal MVP Acceptance Verdict
 
-### **VERDICT: ACCEPTED FOR PILOT STAGING DEPLOYMENT**
+### **VERDICT: CONDITIONAL FOR CONTROLLED PILOT**
 
-The FieldTrack codebase satisfies all MVP acceptance criteria and is architecturally complete, secure, and resilient. All core retail workflows operate correctly under strict database-enforced security boundaries. Proceed to staging deployment once remote database migrations are executed.
+The codebase has broad automated coverage, but this historical report does not establish that every live production workflow is verified. Proceed with a small controlled pilot only after the remaining live smoke tests pass and the evidence-storage configuration is confirmed.

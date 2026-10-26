@@ -37,7 +37,7 @@ This checklist provides the mandatory operational procedures for deploying, conf
   - **Tenant Path Constraint:** Enforces `<organization_id>/<visit_id>/<random_uuid>.<ext>` with ownership and active membership checks.
   - **Secondary Bucket Note:** If `fieldtrack-evidence` exists in the Supabase project, it is unused by the application. Once confirmed empty, it can safely be removed. Do not direct application traffic to it.
 
-### 1.2 Environment Variables (Production & Staging)
+### 1.2 Production Environment Variables
 
 Ensure the following variables are configured in the Vercel / deployment environment (never committed to git):
 

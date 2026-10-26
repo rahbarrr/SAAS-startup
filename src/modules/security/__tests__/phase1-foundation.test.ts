@@ -36,7 +36,7 @@ describe("Phase 1: public/server secret separation in startup validation", () =>
     ).toBe(true);
   });
 
-  it.each(["development", "staging", "production"])(
+  it.each(["development", "production"])(
     "rejects a service_role JWT placed in the public anon-key variable (%s) without echoing it",
     (appEnv) => {
       const leaked = fakeJwt({ role: "service_role", iss: "supabase" });
@@ -78,7 +78,7 @@ describe("Phase 1: Supabase URL must really belong to EXPECTED_SUPABASE_PROJECT_
     expect(
       validateStartupEnv({
         ...production,
-        APP_ENV: "staging",
+        APP_ENV: "production",
         NEXT_PUBLIC_SUPABASE_URL: "http://abcdefghijklmnop.supabase.co",
       }).ok
     ).toBe(false);
@@ -187,7 +187,7 @@ describe("Phase 1: proxy session and access enforcement", () => {
     });
   }
 
-  it.each(["staging", "production"])(
+  it.each(["production"])(
     "fails CLOSED (503) when Supabase env is missing in %s, without leaking config",
     async (appEnv) => {
       stubSupabaseEnv(false);

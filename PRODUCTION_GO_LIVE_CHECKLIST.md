@@ -1,6 +1,6 @@
 # FieldTrack — Production Go-Live & Pilot Readiness Checklist
 
-This document is the definitive checklist for taking FieldTrack from development/staging to a live, controlled retail pilot. Every item is categorized with an exact operational status:
+This document is the definitive checklist for taking FieldTrack from local development to a live, controlled retail pilot. Every item is categorized with an exact operational status:
 
 - :white_check_mark: **`VERIFIED AUTOMATICALLY`** — Proven correct by automated suites (migrations, typecheck, lint, unit tests, integration tests, Next.js build).
 - :eye: **`VERIFIED MANUALLY`** — Verified via code inspection, policy review, and architectural validation.

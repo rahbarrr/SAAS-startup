@@ -15,7 +15,7 @@ Welcome to the **FieldTrack Pilot**! This guide walks managers, field supervisor
 
 For fast, app-like access in retail stores:
 
-- **iOS Safari:** Navigate to your organization's FieldTrack staging URL, tap the **Share** button, and select **Add to Home Screen**.
+- **iOS Safari:** Navigate to the FieldTrack URL provided by your administrator, tap the **Share** button, and select **Add to Home Screen**.
 - **Android Chrome:** Tap the three dots (menu) in the top-right corner and select **Install app** or **Add to Home screen**.
 
 ---

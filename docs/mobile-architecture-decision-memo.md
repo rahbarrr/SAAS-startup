@@ -98,7 +98,7 @@ flowchart TD
 
 ### Proposed Action:
 1. **Do not create the React Native app today.**
-2. Complete the staging-first pilot rollout using the responsive mobile web interface already delivered and verified.
+2. Complete the controlled pilot rollout using the responsive mobile web interface already delivered and verified.
 3. If pilot metrics demonstrate that camera memory pressure or offline connectivity breaks store checkouts, approve **Option B** and initiate native app development using the architecture blueprint below.
 
 ---
@@ -150,6 +150,6 @@ sequenceDiagram
 - **Zero service-role keys, zero OpenAI keys, zero database connection strings.** All AI draft requests and trip decisions route through authenticated server APIs under RLS.
 
 ### 5. App Store & Play Store Release Guardrails
-- **Automated EAS Build:** Managed cloud credentials; release profiles for `staging` (internal test distribution via TestFlight and Google Play Internal Track) and `production`.
+- **Automated EAS Build:** Managed cloud credentials; separate internal-test and production release profiles.
 - **Signing:** Apple distribution certificates and Android keystores managed in Expo Application Services (EAS) with hardware 2FA.
 - **Zero Auto-Publish:** Builds generate signed binary artifacts (`.ipa`, `.aab`) that require explicit human approval and release notes before promotion to production tracks.

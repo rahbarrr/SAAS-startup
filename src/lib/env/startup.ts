@@ -33,7 +33,7 @@ function isPrivilegedSupabaseKey(value: string): boolean {
 
 const startupSchema = z
   .object({
-    APP_ENV: z.enum(["development", "staging", "production"]),
+    APP_ENV: z.enum(["development", "production"]),
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
     NEXT_PUBLIC_APP_URL: z.string().url(),
@@ -58,7 +58,11 @@ const startupSchema = z
           "must be the public anon/publishable key; a service-role or secret key must never be exposed via NEXT_PUBLIC_*",
       });
     }
-    if (env.APP_ENV !== "development") {
+    if (
+      env.APP_ENV !== "development" ||
+      env.VERCEL_ENV === "preview" ||
+      env.VERCEL_ENV === "production"
+    ) {
       if (!env.NEXT_PUBLIC_APP_URL.startsWith("https://")) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -78,7 +82,7 @@ const startupSchema = z
           code: z.ZodIssueCode.custom,
           path: ["EXPECTED_SUPABASE_PROJECT_REF"],
           message:
-            "is required in staging/production to prevent cross-environment credentials",
+            "is required for hosted deployments to prevent cross-environment credentials",
         });
       } else {
         const host = new URL(env.NEXT_PUBLIC_SUPABASE_URL).hostname.toLowerCase();
