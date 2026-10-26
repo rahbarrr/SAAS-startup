@@ -43,9 +43,7 @@ export async function createUserServerSupabaseClient(): Promise<SupabaseClient> 
 export function createAdminServerSupabaseClient(): SupabaseClient {
   const env = getPublicEnv();
   const serviceRoleKey =
-    typeof process !== "undefined"
-      ? process.env.SUPABASE_SERVICE_ROLE_KEY
-      : undefined;
+    typeof process !== "undefined" ? process.env.SUPABASE_SERVICE_ROLE_KEY : undefined;
 
   if (!serviceRoleKey) {
     throw new Error(
@@ -54,16 +52,12 @@ export function createAdminServerSupabaseClient(): SupabaseClient {
   }
 
   // Use createServerClient without cookies for unauthenticated service operations
-  return createServerClient(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    serviceRoleKey,
-    {
-      cookies: {
-        getAll() {
-          return [];
-        },
-        setAll() {},
+  return createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, serviceRoleKey, {
+    cookies: {
+      getAll() {
+        return [];
       },
-    }
-  );
+      setAll() {},
+    },
+  });
 }

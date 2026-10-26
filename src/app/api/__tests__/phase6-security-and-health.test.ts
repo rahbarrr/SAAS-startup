@@ -43,12 +43,15 @@ describe("Phase 6: Production Security, Cron Authentication, and Health Probes",
     const response = await healthGet();
     expect(response.status).toBe(200);
 
-    const data = await response.json() as Record<string, unknown>;
+    const data = (await response.json()) as Record<string, unknown>;
     expect(data.status).toBe("healthy");
     expect(data.environment).toBeDefined();
     expect(data.services).toBeDefined();
 
-    const services = data.services as Record<string, { configured?: boolean; status?: string; provider?: string }>;
+    const services = data.services as Record<
+      string,
+      { configured?: boolean; status?: string; provider?: string }
+    >;
     expect(services.database?.status).toBe("connected");
     expect(services.routing?.provider).toBeDefined();
     expect(typeof services.pushNotifications?.configured).toBe("boolean");
@@ -92,7 +95,7 @@ describe("Phase 6: Production Security, Cron Authentication, and Health Probes",
       });
 
       expect(response.status).toBe(401);
-      const body = await response.json() as { error?: { message: string } };
+      const body = (await response.json()) as { error?: { message: string } };
       expect(body.error?.message).toMatch(/invalid.*scheduler.*secret/i);
     } finally {
       process.env.CRON_SECRET = prevSecret;
@@ -117,7 +120,7 @@ describe("Phase 6: Production Security, Cron Authentication, and Health Probes",
       });
 
       expect(bearerRes.status).toBe(200);
-      const bearerData = await bearerRes.json() as { data?: { orgId: string } };
+      const bearerData = (await bearerRes.json()) as { data?: { orgId: string } };
       expect(bearerData.data?.orgId).toBe("org-1");
 
       // 2. x-cron-secret header

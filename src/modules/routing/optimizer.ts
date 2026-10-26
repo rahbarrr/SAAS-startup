@@ -70,7 +70,10 @@ async function computeRouteLegs(
     if (!from || !to) continue;
 
     if (from.coordinates && to.coordinates) {
-      const legResult = await provider.calculateDistance(from.coordinates, to.coordinates);
+      const legResult = await provider.calculateDistance(
+        from.coordinates,
+        to.coordinates
+      );
       totalDistanceMeters += legResult.distanceMeters;
       totalDurationMinutes += legResult.durationMinutes;
       distanceType = legResult.distanceType;

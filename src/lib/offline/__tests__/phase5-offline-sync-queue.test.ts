@@ -83,17 +83,15 @@ describe("Phase 5: Offline Sync Queue & Conflict Resolution", () => {
   });
 
   it("strictly rejects non-offline operations such as manager approvals or trip creation", () => {
-    expect(() =>
-      assertOperationSupportedOffline("trip_approval")
-    ).toThrow(/cannot be performed offline/i);
+    expect(() => assertOperationSupportedOffline("trip_approval")).toThrow(
+      /cannot be performed offline/i
+    );
 
-    expect(() =>
-      assertOperationSupportedOffline("create_trip_draft")
-    ).toThrow(/cannot be performed offline/i);
+    expect(() => assertOperationSupportedOffline("create_trip_draft")).toThrow(
+      /cannot be performed offline/i
+    );
 
-    expect(() =>
-      assertOperationSupportedOffline("save_checklist")
-    ).not.toThrow();
+    expect(() => assertOperationSupportedOffline("save_checklist")).not.toThrow();
   });
 
   it("processes queue sequentially, bounded retries on failure, and marks permanently failed after maxRetries", async () => {
@@ -189,7 +187,9 @@ describe("Phase 5: Offline Sync Queue & Conflict Resolution", () => {
 
     expect(syncRes.conflictCount).toBe(1);
     expect(syncRes.operations[0]?.status).toBe("conflict");
-    expect(syncRes.operations[0]?.conflictDetails?.serverUpdatedAt).toBe("2026-10-25T11:00:00Z");
+    expect(syncRes.operations[0]?.conflictDetails?.serverUpdatedAt).toBe(
+      "2026-10-25T11:00:00Z"
+    );
 
     // Actionable resolution: "keep_client" forces pending state with server base timestamp
     const resolved = resolveQueuedConflict({

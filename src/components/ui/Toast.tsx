@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 
 export type ToastType = "success" | "error" | "info" | "warning";
 
@@ -43,11 +37,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="toast-container" aria-live="polite" aria-atomic="true">
         {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={`toast toast--${toast.type}`}
-            role="alert"
-          >
+          <div key={toast.id} className={`toast toast--${toast.type}`} role="alert">
             <span>
               {toast.type === "success" && "✓"}
               {toast.type === "error" && "✕"}

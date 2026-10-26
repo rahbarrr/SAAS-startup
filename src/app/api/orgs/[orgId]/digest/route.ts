@@ -7,7 +7,10 @@ import {
 } from "@/lib/supabase/server";
 import { generateAndDispatchDailyManagerDigestForOrg } from "@/modules/notifications/digest";
 import { SupabaseReportingRepository } from "@/modules/reporting/repository";
-import { requireOrgPermission, resolveTenantContext } from "@/modules/tenancy/authorization";
+import {
+  requireOrgPermission,
+  resolveTenantContext,
+} from "@/modules/tenancy/authorization";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
 
 interface RouteContext {

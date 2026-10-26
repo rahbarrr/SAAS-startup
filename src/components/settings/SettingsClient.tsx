@@ -1,21 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { DEMO_ORGANIZATION } from "@/lib/mock-data/fieldtrack-demo-data";
 import { useCurrentRole } from "@/components/ui/RoleContext";
 import { useToast } from "@/components/ui/Toast";
+import type { OrgRole } from "@/modules/tenancy/domain";
 
-type SettingsTab = "company" | "preferences" | "notifications" | "workspace" | "security" | "billing";
+type SettingsTab =
+  "company" | "preferences" | "notifications" | "workspace" | "security" | "billing";
 
-export function SettingsClient() {
+export interface SettingsClientProps {
+  activeOrg: {
+    id: string;
+    name: string;
+    slug: string;
+    status: string;
+  };
+  userEmail: string;
+  userRole: OrgRole;
+}
+
+export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClientProps) {
   const { currentRole, profile } = useCurrentRole();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<SettingsTab>("company");
 
   // Form states
-  const [orgName, setOrgName] = useState(DEMO_ORGANIZATION.name);
-  const [industry, setIndustry] = useState(DEMO_ORGANIZATION.industry);
-  const [timezone, setTimezone] = useState(DEMO_ORGANIZATION.timezone);
+  const [orgName, setOrgName] = useState(activeOrg.name);
+  const [industry, setIndustry] = useState("Retail & FMCG Operations");
+  const [timezone, setTimezone] = useState(
+    typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC"
+  );
 
   // Notification toggles
   const [notifApprovals, setNotifApprovals] = useState(true);
@@ -47,7 +61,14 @@ export function SettingsClient() {
   ];
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", gap: "1.5rem", alignItems: "start" }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "240px 1fr",
+        gap: "1.5rem",
+        alignItems: "start",
+      }}
+    >
       {/* Settings Navigation Sidebar */}
       <div
         className="card"
@@ -93,84 +114,99 @@ export function SettingsClient() {
         {activeTab === "company" && (
           <div>
             <div style={{ marginBottom: "1.5rem" }}>
-              <h2 style={{ fontSize: "1.25rem", fontFamily: "var(--font-heading)", color: "var(--brand-dark)", margin: "0 0 0.25rem" }}>
-                Company & Workspace Profile
+              <h2
+                style={{
+                  fontSize: "1.25rem",
+                  fontFamily: "var(--font-heading)",
+                  color: "var(--brand-dark)",
+                  margin: "0 0 0.25rem",
+                }}
+              >
+                Company &amp; Workspace Profile
               </h2>
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", margin: 0 }}>
-                Manage your enterprise workspace identity, timezone, and operational parameters.
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--text-secondary)",
+                  margin: 0,
+                }}
+              >
+                Manage your enterprise workspace identity, timezone, and operational
+                parameters.
               </p>
             </div>
 
-            <form onSubmit={handleSaveCompany} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              <div>
-                <label className="form-label" htmlFor="company-name">
-                  Company Name
+            <form
+              onSubmit={handleSaveCompany}
+              style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+            >
+              <div className="form-group">
+                <label htmlFor="company-name" className="form-label">
+                  Organization Legal Name *
                 </label>
                 <input
                   id="company-name"
                   type="text"
+                  className="form-input"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
-                  className="input-field"
+                  disabled={userRole !== "admin"}
                   required
                 />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                <div>
-                  <label className="form-label" htmlFor="company-industry">
-                    Industry Sector
-                  </label>
-                  <input
-                    id="company-industry"
-                    type="text"
-                    value={industry}
-                    onChange={(e) => setIndustry(e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-
-                <div>
-                  <label className="form-label" htmlFor="company-timezone">
-                    Operational Timezone
-                  </label>
-                  <select
-                    id="company-timezone"
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
-                    className="input-field"
-                  >
-                    <option value="UTC (Coordinated Universal Time)">UTC (Coordinated Universal Time)</option>
-                    <option value="America/New_York (EST/EDT)">America/New_York (EST/EDT)</option>
-                    <option value="America/Chicago (CST/CDT)">America/Chicago (CST/CDT)</option>
-                    <option value="America/Los_Angeles (PST/PDT)">America/Los_Angeles (PST/PDT)</option>
-                    <option value="Europe/London (GMT/BST)">Europe/London (GMT/BST)</option>
-                  </select>
-                </div>
+              <div className="form-group">
+                <label htmlFor="company-industry" className="form-label">
+                  Industry &amp; Operating Sector
+                </label>
+                <input
+                  id="company-industry"
+                  type="text"
+                  className="form-input"
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  disabled={userRole !== "admin"}
+                />
               </div>
 
-              <div>
-                <label className="form-label" htmlFor="company-slug">
-                  Workspace Slug Identifier
+              <div className="form-group">
+                <label htmlFor="company-timezone" className="form-label">
+                  Primary Operating Timezone
+                </label>
+                <input
+                  id="company-timezone"
+                  type="text"
+                  className="form-input"
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                  disabled={userRole !== "admin"}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="company-slug" className="form-label">
+                  Workspace URL Slug
                 </label>
                 <input
                   id="company-slug"
                   type="text"
-                  value={DEMO_ORGANIZATION.slug}
+                  className="form-input"
+                  value={activeOrg.slug}
+                  readOnly
                   disabled
-                  className="input-field"
-                  style={{ background: "var(--bg-canvas)", color: "var(--text-muted)" }}
                 />
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem", display: "block" }}>
-                  Workspace identifiers are immutable and assigned during enterprise provisioning.
+                <span className="card-meta" style={{ fontSize: "0.75rem" }}>
+                  Unique URL namespace: <code>app.fieldtrack.io/{activeOrg.slug}</code>
                 </span>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "0.5rem" }}>
-                <button type="submit" className="btn btn-primary">
-                  Save Changes
-                </button>
-              </div>
+              {userRole === "admin" && (
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button type="submit" className="btn btn-primary">
+                    Save Changes
+                  </button>
+                </div>
+              )}
             </form>
           </div>
         )}
@@ -179,91 +215,103 @@ export function SettingsClient() {
         {activeTab === "preferences" && (
           <div>
             <div style={{ marginBottom: "1.5rem" }}>
-              <h2 style={{ fontSize: "1.25rem", fontFamily: "var(--font-heading)", color: "var(--brand-dark)", margin: "0 0 0.25rem" }}>
-                User Preferences
+              <h2
+                style={{
+                  fontSize: "1.25rem",
+                  fontFamily: "var(--font-heading)",
+                  color: "var(--brand-dark)",
+                  margin: "0 0 0.25rem",
+                }}
+              >
+                Personal User Preferences
               </h2>
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", margin: 0 }}>
-                Customise personal display options, offline caching, and briefing schedules.
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--text-secondary)",
+                  margin: 0,
+                }}
+              >
+                Configure your display name, digest timing, and offline synchronization
+                rules.
               </p>
             </div>
 
-            <form onSubmit={handleSavePreferences} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            <form
+              onSubmit={handleSavePreferences}
+              style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+            >
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "1rem",
+                  background: "var(--bg-subtle)",
                   padding: "1rem",
-                  background: "var(--bg-canvas)",
                   borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--border-subtle)",
                 }}
               >
-                <div
-                  style={{
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "50%",
-                    background: "var(--brand-primary)",
-                    color: "#FFFFFF",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "1.125rem",
-                    fontWeight: 700,
-                  }}
-                >
-                  {profile.avatarInitials}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: "1rem", color: "var(--brand-dark)" }}>
-                    {profile.userName}
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <div
+                    className="user-avatar"
+                    style={{ width: "2.5rem", height: "2.5rem", fontSize: "1rem" }}
+                  >
+                    {profile.avatarInitials}
                   </div>
-                  <div style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
-                    {profile.userEmail} • {profile.title}
-                  </div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
-                    Role: <strong style={{ textTransform: "capitalize" }}>{currentRole}</strong> (Apex Retail Solutions)
+                  <div>
+                    <strong>{profile.userName}</strong>
+                    <p className="card-meta" style={{ margin: 0 }}>
+                      Role:{" "}
+                      <strong style={{ textTransform: "capitalize" }}>
+                        {currentRole}
+                      </strong>{" "}
+                      • Email: {userEmail}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div>
-                <label className="form-label" htmlFor="agenda-time">
-                  Daily Morning Agenda Dispatch Time
+              <div className="form-group">
+                <label htmlFor="pref-digest" className="form-label">
+                  Daily Briefing Delivery Time (Local)
                 </label>
                 <input
-                  id="agenda-time"
+                  id="pref-digest"
                   type="time"
+                  className="form-input"
                   value={emailDigestTime}
                   onChange={(e) => setEmailDigestTime(e.target.value)}
-                  className="input-field"
-                  style={{ width: "160px" }}
                 />
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.75rem",
+                  paddingTop: "0.5rem",
+                }}
+              >
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={offlineSyncWifiOnly}
                     onChange={(e) => setOfflineSyncWifiOnly(e.target.checked)}
-                    style={{ width: "18px", height: "18px" }}
                   />
-                  <div>
-                    <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--text-primary)" }}>
-                      Sync High-Resolution Photo Evidence on Wi-Fi Only
-                    </span>
-                    <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                      Saves cellular data when field representatives upload in-store display audits.
-                    </p>
-                  </div>
+                  <span>
+                    Upload high-resolution photo evidence only when connected to Wi-Fi
+                  </span>
                 </label>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "0.5rem" }}>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <button type="submit" className="btn btn-primary">
-                  Save Preferences
+                  Update Preferences
                 </button>
               </div>
             </form>
@@ -274,258 +322,167 @@ export function SettingsClient() {
         {activeTab === "notifications" && (
           <div>
             <div style={{ marginBottom: "1.5rem" }}>
-              <h2 style={{ fontSize: "1.25rem", fontFamily: "var(--font-heading)", color: "var(--brand-dark)", margin: "0 0 0.25rem" }}>
-                Notification Preferences
+              <h2
+                style={{
+                  fontSize: "1.25rem",
+                  fontFamily: "var(--font-heading)",
+                  color: "var(--brand-dark)",
+                  margin: "0 0 0.25rem",
+                }}
+              >
+                Notification Dispatch Rules
               </h2>
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", margin: 0 }}>
-                Control which operational events trigger email and in-app alerts.
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--text-secondary)",
+                  margin: 0,
+                }}
+              >
+                Control which operational events trigger alerts.
               </p>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {[
-                {
-                  id: "approvals",
-                  title: "Trip Approval & Review Requests",
-                  desc: "Receive instant notifications when a team member submits a travel itinerary.",
-                  checked: notifApprovals,
-                  onChange: () => {
-                    setNotifApprovals(!notifApprovals);
-                    showToast("Approval notification setting changed", "info");
-                  },
-                },
-                {
-                  id: "exceptions",
-                  title: "Store Visit Exception Alerts",
-                  desc: "Alerts when out-of-stock items or checklist failures are logged by representatives.",
-                  checked: notifExceptions,
-                  onChange: () => {
-                    setNotifExceptions(!notifExceptions);
-                    showToast("Exception notification setting changed", "info");
-                  },
-                },
-                {
-                  id: "dailyDigest",
-                  title: "Daily Operations Executive Briefing",
-                  desc: "Morning summary of scheduled visits, active trips, and pending reviews.",
-                  checked: notifDailyDigest,
-                  onChange: () => {
-                    setNotifDailyDigest(!notifDailyDigest);
-                    showToast("Daily digest setting changed", "info");
-                  },
-                },
-                {
-                  id: "weeklyReport",
-                  title: "Weekly Compliance & Velocity Digest",
-                  desc: "End-of-week breakdown of territory execution and representative completion rates.",
-                  checked: notifWeeklyReport,
-                  onChange: () => {
-                    setNotifWeeklyReport(!notifWeeklyReport);
-                    showToast("Weekly report setting changed", "info");
-                  },
-                },
-              ].map((item) => (
-                <div
-                  key={item.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "1rem",
-                    borderRadius: "var(--radius-md)",
-                    border: "1px solid var(--border-subtle)",
-                    background: "var(--surface)",
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: "0.875rem", color: "var(--text-primary)" }}>
-                      {item.title}
-                    </div>
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                      {item.desc}
-                    </div>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={item.checked}
-                    onChange={item.onChange}
-                    style={{ width: "20px", height: "20px", cursor: "pointer" }}
-                    aria-label={item.title}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Phase 5: Web Push Notification Subscriptions */}
-            <div
-              style={{
-                marginTop: "1.5rem",
-                padding: "1rem",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--border-default, #e5e7eb)",
-                backgroundColor: "var(--bg-subtle, #f9fafb)",
-              }}
-            >
-              <div
+              <label
                 style={{
                   display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "1rem",
+                  alignItems: "flex-start",
+                  gap: "0.75rem",
+                  cursor: "pointer",
+                  padding: "0.75rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-default)",
                 }}
               >
+                <input
+                  type="checkbox"
+                  checked={notifApprovals}
+                  onChange={(e) => setNotifApprovals(e.target.checked)}
+                  style={{ marginTop: "0.25rem" }}
+                />
                 <div>
-                  <div
-                    style={{
-                      fontWeight: 600,
-                      fontSize: "0.875rem",
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    Browser Web Push Notifications
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "var(--text-muted)",
-                      marginTop: "0.25rem",
-                    }}
-                  >
-                    Receive real-time trip approvals, visit reminders, and operational alerts
-                    directly on your desktop or mobile lock-screen.
-                  </div>
+                  <strong style={{ fontSize: "0.875rem" }}>
+                    Trip Submission &amp; Approval Decisions
+                  </strong>
+                  <p className="card-meta" style={{ margin: "0.125rem 0 0" }}>
+                    Notify when a field itinerary is submitted for policy review or when a
+                    decision is recorded.
+                  </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (typeof window === "undefined" || !("Notification" in window)) {
-                      showToast(
-                        "Web push is not supported in this browser environment.",
-                        "error"
-                      );
-                      return;
-                    }
-                    try {
-                      const perm = await Notification.requestPermission();
-                      if (perm === "granted") {
-                        showToast(
-                          "Push notifications enabled. Subscriptions will trigger on workflow alerts.",
-                          "success"
-                        );
-                      } else {
-                        showToast(
-                          `Push permission was ${perm}. You can enable it anytime in browser settings.`,
-                          "info"
-                        );
-                      }
-                    } catch {
-                      showToast("Could not request notification permission.", "error");
-                    }
-                  }}
-                  className="btn btn-secondary"
-                  style={{ fontSize: "0.8125rem", whiteSpace: "nowrap" }}
-                >
-                  Configure Web Push
-                </button>
-              </div>
+              </label>
+
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "0.75rem",
+                  cursor: "pointer",
+                  padding: "0.75rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-default)",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={notifExceptions}
+                  onChange={(e) => setNotifExceptions(e.target.checked)}
+                  style={{ marginTop: "0.25rem" }}
+                />
+                <div>
+                  <strong style={{ fontSize: "0.875rem" }}>
+                    Store Inspection Anomalies &amp; Exceptions
+                  </strong>
+                  <p className="card-meta" style={{ margin: "0.125rem 0 0" }}>
+                    Immediate alert when a representative flags a failed checklist item
+                    during store visits.
+                  </p>
+                </div>
+              </label>
+
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "0.75rem",
+                  cursor: "pointer",
+                  padding: "0.75rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-default)",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={notifDailyDigest}
+                  onChange={(e) => setNotifDailyDigest(e.target.checked)}
+                  style={{ marginTop: "0.25rem" }}
+                />
+                <div>
+                  <strong style={{ fontSize: "0.875rem" }}>
+                    Morning Field Intelligence Digest
+                  </strong>
+                  <p className="card-meta" style={{ margin: "0.125rem 0 0" }}>
+                    Daily summary of assigned field visits, outstanding approvals, and AI
+                    observations.
+                  </p>
+                </div>
+              </label>
+
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "0.75rem",
+                  cursor: "pointer",
+                  padding: "0.75rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-default)",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={notifWeeklyReport}
+                  onChange={(e) => setNotifWeeklyReport(e.target.checked)}
+                  style={{ marginTop: "0.25rem" }}
+                />
+                <div>
+                  <strong style={{ fontSize: "0.875rem" }}>
+                    Weekly Operations &amp; Compliance Rollup
+                  </strong>
+                  <p className="card-meta" style={{ margin: "0.125rem 0 0" }}>
+                    Executive synthesis of planogram compliance and territory completion
+                    trends.
+                  </p>
+                </div>
+              </label>
             </div>
           </div>
         )}
 
-        {/* Tab 4: Workspace & Territories */}
+        {/* Tab 4: Territories & Workflows */}
         {activeTab === "workspace" && (
           <div>
             <div style={{ marginBottom: "1.5rem" }}>
-              <h2 style={{ fontSize: "1.25rem", fontFamily: "var(--font-heading)", color: "var(--brand-dark)", margin: "0 0 0.25rem" }}>
-                Territories & Workflows
-              </h2>
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", margin: 0 }}>
-                Organizational defaults for store routing, checklist schemas, and geofencing.
-              </p>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              <div
+              <h2
                 style={{
-                  padding: "1rem",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--border-subtle)",
+                  fontSize: "1.25rem",
+                  fontFamily: "var(--font-heading)",
+                  color: "var(--brand-dark)",
+                  margin: "0 0 0.25rem",
                 }}
               >
-                <div style={{ fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
-                  Default FMCG Checklist Template
-                </div>
-                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0 0 0.75rem" }}>
-                  Applied automatically to all newly scheduled store visits unless customized.
-                </p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                  <span className="status-badge" style={{ background: "rgba(27, 53, 128, 0.08)", color: "var(--brand-primary)" }}>
-                    1. Endcap Merchandising Compliance
-                  </span>
-                  <span className="status-badge" style={{ background: "rgba(27, 53, 128, 0.08)", color: "var(--brand-primary)" }}>
-                    2. Inventory On-Shelf Stock Count
-                  </span>
-                  <span className="status-badge" style={{ background: "rgba(27, 53, 128, 0.08)", color: "var(--brand-primary)" }}>
-                    3. Cooler Temperature Verification
-                  </span>
-                  <span className="status-badge" style={{ background: "rgba(27, 53, 128, 0.08)", color: "var(--brand-primary)" }}>
-                    4. POS Promotional Banner Photo
-                  </span>
-                </div>
-              </div>
-
-              <div
+                Territories &amp; Workflow Policies
+              </h2>
+              <p
                 style={{
-                  padding: "1rem",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--border-subtle)",
+                  fontSize: "0.8125rem",
+                  color: "var(--text-secondary)",
+                  margin: 0,
                 }}
               >
-                <div style={{ fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
-                  Geofence Proximity Threshold
-                </div>
-                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0 0 0.5rem" }}>
-                  Device check-in proximity warning distance.
-                </p>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <input
-                    type="number"
-                    defaultValue={100}
-                    className="input-field"
-                    style={{ width: "100px" }}
-                    disabled
-                  />
-                  <span style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>meters radius</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 5: Security & SSO Placeholder */}
-        {activeTab === "security" && (
-          <div>
-            <div style={{ marginBottom: "1.5rem" }}>
-              <h2 style={{ fontSize: "1.25rem", fontFamily: "var(--font-heading)", color: "var(--brand-dark)", margin: "0 0 0.25rem" }}>
-                Enterprise Security & Access Control
-              </h2>
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", margin: 0 }}>
-                Single Sign-On, Multi-Factor Authentication, and role policy configuration.
+                Operating rules enforced across itineraries, store visits, and supervisor
+                sign-offs.
               </p>
-            </div>
-
-            <div
-              style={{
-                padding: "1rem 1.25rem",
-                borderRadius: "var(--radius-md)",
-                background: "rgba(245, 158, 11, 0.08)",
-                border: "1px solid rgba(245, 158, 11, 0.25)",
-                marginBottom: "1.25rem",
-                fontSize: "0.8125rem",
-                color: "var(--brand-dark)",
-              }}
-            >
-              <strong>Phase 1 Demonstration:</strong> Single Sign-On and cryptographic key provisioning will be configured during Phase 2 (Authentication & Workspace Foundation).
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -533,20 +490,26 @@ export function SettingsClient() {
                 style={{
                   padding: "1rem",
                   borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--border-subtle)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  border: "1px solid var(--border-default)",
                 }}
               >
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>Single Sign-On (SAML 2.0 / OIDC)</div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                    Okta, Microsoft Azure AD, Google Workspace
-                  </div>
-                </div>
-                <span className="status-badge" style={{ background: "rgba(5, 150, 105, 0.1)", color: "var(--success-green)" }}>
-                  Available in Enterprise Tier
+                <strong style={{ fontSize: "0.875rem" }}>
+                  Self-Approval Prevention Rule
+                </strong>
+                <p className="card-meta" style={{ margin: "0.25rem 0 0" }}>
+                  Field managers cannot approve their own submitted trips. All requests
+                  require peer or administrator review.
+                </p>
+                <span
+                  className="status-badge"
+                  style={{
+                    marginTop: "0.5rem",
+                    display: "inline-block",
+                    background: "rgba(5, 150, 105, 0.1)",
+                    color: "var(--success-green)",
+                  }}
+                >
+                  Enforced via Database Trigger &amp; Domain Model
                 </span>
               </div>
 
@@ -554,19 +517,84 @@ export function SettingsClient() {
                 style={{
                   padding: "1rem",
                   borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--border-subtle)",
+                  border: "1px solid var(--border-default)",
+                }}
+              >
+                <strong style={{ fontSize: "0.875rem" }}>
+                  Point-in-Time Location Verification
+                </strong>
+                <p className="card-meta" style={{ margin: "0.25rem 0 0" }}>
+                  Check-ins record device sensor latitude, longitude, and accuracy with
+                  employee consent. No continuous tracking is performed.
+                </p>
+                <span
+                  className="status-badge"
+                  style={{
+                    marginTop: "0.5rem",
+                    display: "inline-block",
+                    background: "rgba(5, 150, 105, 0.1)",
+                    color: "var(--success-green)",
+                  }}
+                >
+                  Active Compliance Policy
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 5: Security & SSO */}
+        {activeTab === "security" && (
+          <div>
+            <div style={{ marginBottom: "1.5rem" }}>
+              <h2
+                style={{
+                  fontSize: "1.25rem",
+                  fontFamily: "var(--font-heading)",
+                  color: "var(--brand-dark)",
+                  margin: "0 0 0.25rem",
+                }}
+              >
+                Security, SSO &amp; Access Controls
+              </h2>
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--text-secondary)",
+                  margin: 0,
+                }}
+              >
+                Enterprise identity integration, session policies, and encryption
+                settings.
+              </p>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div
+                style={{
+                  padding: "1rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-default)",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>Mandatory Multi-Factor Authentication (MFA)</div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                    Enforced for all Workspace Admins and Territory Managers
-                  </div>
+                  <strong style={{ fontSize: "0.875rem" }}>
+                    PostgreSQL Row-Level Security (RLS)
+                  </strong>
+                  <p className="card-meta" style={{ margin: "0.125rem 0 0" }}>
+                    Tenant isolation enforced in database engine on every query
+                  </p>
                 </div>
-                <span className="status-badge" style={{ background: "rgba(5, 150, 105, 0.1)", color: "var(--success-green)" }}>
+                <span
+                  className="status-badge"
+                  style={{
+                    background: "rgba(5, 150, 105, 0.1)",
+                    color: "var(--success-green)",
+                  }}
+                >
                   Active
                 </span>
               </div>
@@ -575,33 +603,87 @@ export function SettingsClient() {
                 style={{
                   padding: "1rem",
                   borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--border-subtle)",
+                  border: "1px solid var(--border-default)",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>Session Inactivity Timeout</div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                    Automatic session termination for security compliance
-                  </div>
+                  <strong style={{ fontSize: "0.875rem" }}>
+                    Append-Only Audit Trail
+                  </strong>
+                  <p className="card-meta" style={{ margin: "0.125rem 0 0" }}>
+                    Cryptographic audit events for all trips, visits, approvals, and
+                    mutations
+                  </p>
                 </div>
-                <span style={{ fontSize: "0.8125rem", fontWeight: 600 }}>8 Hours</span>
+                <span
+                  className="status-badge"
+                  style={{
+                    background: "rgba(5, 150, 105, 0.1)",
+                    color: "var(--success-green)",
+                  }}
+                >
+                  Active
+                </span>
+              </div>
+
+              <div
+                style={{
+                  padding: "1rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-default)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <strong style={{ fontSize: "0.875rem" }}>
+                    Private Evidence Storage
+                  </strong>
+                  <p className="card-meta" style={{ margin: "0.125rem 0 0" }}>
+                    Photos stored in canonical private bucket (<code>visit-evidence</code>
+                    ) with authenticated signed URLs
+                  </p>
+                </div>
+                <span
+                  className="status-badge"
+                  style={{
+                    background: "rgba(5, 150, 105, 0.1)",
+                    color: "var(--success-green)",
+                  }}
+                >
+                  Active
+                </span>
               </div>
             </div>
           </div>
         )}
 
-        {/* Tab 6: Subscription & Billing Placeholder */}
+        {/* Tab 6: Subscription & Billing */}
         {activeTab === "billing" && (
           <div>
             <div style={{ marginBottom: "1.5rem" }}>
-              <h2 style={{ fontSize: "1.25rem", fontFamily: "var(--font-heading)", color: "var(--brand-dark)", margin: "0 0 0.25rem" }}>
-                Subscription & Seat Allocation
+              <h2
+                style={{
+                  fontSize: "1.25rem",
+                  fontFamily: "var(--font-heading)",
+                  color: "var(--brand-dark)",
+                  margin: "0 0 0.25rem",
+                }}
+              >
+                Subscription &amp; Workspace Allocation
               </h2>
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", margin: 0 }}>
-                Enterprise contract details, seat utilization, and billing statements.
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--text-secondary)",
+                  margin: 0,
+                }}
+              >
+                Enterprise contract details and workspace management.
               </p>
             </div>
 
@@ -609,21 +691,43 @@ export function SettingsClient() {
               style={{
                 padding: "1.25rem",
                 borderRadius: "var(--radius-md)",
-                background: "linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-primary) 100%)",
+                background:
+                  "linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-primary) 100%)",
                 color: "#FFFFFF",
                 marginBottom: "1.5rem",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  marginBottom: "0.75rem",
+                }}
+              >
                 <div>
-                  <span style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.8 }}>
-                    Current Active Tier
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                      opacity: 0.8,
+                    }}
+                  >
+                    Active Workspace Tier
                   </span>
-                  <h3 style={{ fontSize: "1.375rem", margin: "0.25rem 0", color: "#FFFFFF" }}>
-                    {DEMO_ORGANIZATION.plan}
+                  <h3
+                    style={{
+                      fontSize: "1.375rem",
+                      margin: "0.25rem 0",
+                      color: "#FFFFFF",
+                    }}
+                  >
+                    Enterprise Pilot Edition
                   </h3>
                   <p style={{ fontSize: "0.8125rem", margin: 0, opacity: 0.9 }}>
-                    50 Field Seats • Unlimited Multi-Stop Itineraries • AI Synthesis Enabled
+                    Multi-Store Itineraries • GPS Telemetry • Photo Proof • Audit Trail •
+                    AI Synthesis
                   </p>
                 </div>
                 <span
@@ -639,81 +743,20 @@ export function SettingsClient() {
                   Active Subscription
                 </span>
               </div>
-
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", marginBottom: "0.375rem" }}>
-                  <span>Seat Utilization: <strong>{DEMO_ORGANIZATION.activeSeats} of {DEMO_ORGANIZATION.totalSeats} seats</strong></span>
-                  <span>12 seats available</span>
-                </div>
-                <div style={{ height: "8px", width: "100%", background: "rgba(255, 255, 255, 0.2)", borderRadius: "4px", overflow: "hidden" }}>
-                  <div
-                    style={{
-                      height: "100%",
-                      width: `${(DEMO_ORGANIZATION.activeSeats / DEMO_ORGANIZATION.totalSeats) * 100}%`,
-                      background: "var(--brand-accent)",
-                    }}
-                  />
-                </div>
-              </div>
             </div>
 
-            <div>
-              <h4 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--brand-dark)", marginBottom: "0.75rem" }}>
-                Recent Invoices (Demonstration)
-              </h4>
-              <div className="table-responsive">
-                <table className="table" style={{ width: "100%" }}>
-                  <thead>
-                    <tr>
-                      <th>Invoice ID</th>
-                      <th>Billing Period</th>
-                      <th>Amount</th>
-                      <th>Status</th>
-                      <th>Receipt</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><code>INV-2026-10</code></td>
-                      <td>Oct 1 - Oct 31, 2026</td>
-                      <td>$2,450.00</td>
-                      <td>
-                        <span className="status-badge" style={{ background: "rgba(5, 150, 105, 0.1)", color: "var(--success-green)" }}>
-                          Paid
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => showToast("Demo invoice downloaded.", "info")}
-                          style={{ background: "none", border: "none", color: "var(--brand-primary)", cursor: "pointer", fontWeight: 600, fontSize: "0.8125rem" }}
-                        >
-                          Download PDF
-                        </button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td><code>INV-2026-09</code></td>
-                      <td>Sep 1 - Sep 30, 2026</td>
-                      <td>$2,450.00</td>
-                      <td>
-                        <span className="status-badge" style={{ background: "rgba(5, 150, 105, 0.1)", color: "var(--success-green)" }}>
-                          Paid
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => showToast("Demo invoice downloaded.", "info")}
-                          style={{ background: "none", border: "none", color: "var(--brand-primary)", cursor: "pointer", fontWeight: 600, fontSize: "0.8125rem" }}
-                        >
-                          Download PDF
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+            <div
+              className="card"
+              style={{ padding: "1.25rem", background: "var(--bg-subtle)" }}
+            >
+              <strong style={{ fontSize: "0.875rem" }}>
+                Plan &amp; Capacity Inquiries
+              </strong>
+              <p className="card-meta" style={{ margin: "0.25rem 0 0" }}>
+                To modify your workspace seat quota, add territory accounts, or adjust
+                billing parameters, please contact your organization administrator or
+                FieldTrack enterprise support.
+              </p>
             </div>
           </div>
         )}

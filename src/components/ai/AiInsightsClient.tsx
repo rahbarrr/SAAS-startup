@@ -23,17 +23,24 @@ export function AiInsightsClient({
 
   // Executive summary editable state
   const [isEditingSummary, setIsEditingSummary] = useState(false);
-  const [editedSummary, setEditedSummary] = useState(initialBriefing?.executiveSummary ?? "");
+  const [editedSummary, setEditedSummary] = useState(
+    initialBriefing?.executiveSummary ?? ""
+  );
 
   // Local actions tracking
-  const [actionStatuses, setActionStatuses] = useState<Record<string, "pending" | "accepted" | "dismissed">>({});
+  const [actionStatuses, setActionStatuses] = useState<
+    Record<string, "pending" | "accepted" | "dismissed">
+  >({});
 
   async function refreshBriefing() {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(`/api/orgs/${encodeURIComponent(orgId)}/ai/briefing`);
-      const payload = (await res.json()) as { data?: ManagerDailyBriefing; error?: { message?: string } };
+      const payload = (await res.json()) as {
+        data?: ManagerDailyBriefing;
+        error?: { message?: string };
+      };
       if (!res.ok || !payload.data) {
         throw new Error(payload.error?.message || "Failed to load live daily briefing.");
       }
@@ -50,17 +57,22 @@ export function AiInsightsClient({
   async function handleUpdateAction(actionId: string, status: "accepted" | "dismissed") {
     setActionStatuses((prev) => ({ ...prev, [actionId]: status }));
     try {
-      const res = await fetch(`/api/orgs/${encodeURIComponent(orgId)}/ai/briefing/action`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ actionId, status }),
-      });
+      const res = await fetch(
+        `/api/orgs/${encodeURIComponent(orgId)}/ai/briefing/action`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ actionId, status }),
+        }
+      );
       const payload = (await res.json()) as { error?: { message?: string } };
       if (!res.ok || payload.error) {
         throw new Error(payload.error?.message || "Failed to update action status.");
       }
       showToast(
-        status === "accepted" ? "Follow-up action accepted and recorded." : "Recommendation dismissed.",
+        status === "accepted"
+          ? "Follow-up action accepted and recorded."
+          : "Recommendation dismissed.",
         "success"
       );
     } catch (err) {
@@ -82,8 +94,13 @@ export function AiInsightsClient({
   if (loading && !briefing) {
     return (
       <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
-        <div className="spinner" style={{ margin: "0 auto 1rem", width: "2rem", height: "2rem" }} />
-        <p style={{ margin: 0, color: "var(--text-secondary)" }}>Synthesizing authorized operations briefing...</p>
+        <div
+          className="spinner"
+          style={{ margin: "0 auto 1rem", width: "2rem", height: "2rem" }}
+        />
+        <p style={{ margin: 0, color: "var(--text-secondary)" }}>
+          Synthesizing authorized operations briefing...
+        </p>
       </div>
     );
   }
@@ -94,6 +111,17 @@ export function AiInsightsClient({
         title="Operations Briefing Unavailable"
         message={error}
         onRetry={refreshBriefing}
+      />
+    );
+  }
+
+  if (!briefing) {
+    return (
+      <EmptyState
+        title="Insufficient Operational Data for AI Synthesis"
+        description="Daily operational intelligence briefings and automated managerial recommendations require active field trips and store visit activity. Once your team plans trips and executes visits, daily insights will appear here."
+        actionLabel="Plan Field Trip"
+        actionHref="/trips/new"
       />
     );
   }
@@ -109,9 +137,25 @@ export function AiInsightsClient({
           background: "linear-gradient(180deg, #FFFFFF 0%, #F9FAFF 100%)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "1rem",
+            flexWrap: "wrap",
+          }}
+        >
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", flexWrap: "wrap" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                marginBottom: "0.35rem",
+                flexWrap: "wrap",
+              }}
+            >
               <span
                 style={{
                   display: "inline-flex",
@@ -136,7 +180,8 @@ export function AiInsightsClient({
                   fontSize: "0.75rem",
                 }}
               >
-                Daily Briefing: {briefing?.briefingDate ?? new Date().toISOString().slice(0, 10)}
+                Daily Briefing:{" "}
+                {briefing?.briefingDate ?? new Date().toISOString().slice(0, 10)}
               </span>
               <span
                 className="status-badge"
@@ -150,11 +195,27 @@ export function AiInsightsClient({
               </span>
             </div>
 
-            <h2 style={{ fontSize: "1.35rem", fontFamily: "var(--font-heading)", color: "var(--brand-dark)", margin: "0 0 0.25rem" }}>
+            <h2
+              style={{
+                fontSize: "1.35rem",
+                fontFamily: "var(--font-heading)",
+                color: "var(--brand-dark)",
+                margin: "0 0 0.25rem",
+              }}
+            >
               {briefing?.summaryHeadline ?? "Manager's Daily Operations Intelligence"}
             </h2>
-            <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
-              Data retrieved at {briefing ? new Date(briefing.retrievedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "just now"} UTC. Powered by {briefing?.modelUsed ?? "FieldTrack Engine"}.
+            <p
+              style={{ margin: 0, fontSize: "0.8125rem", color: "var(--text-secondary)" }}
+            >
+              Data retrieved at{" "}
+              {briefing
+                ? new Date(briefing.retrievedAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "just now"}{" "}
+              UTC. Powered by {briefing?.modelUsed ?? "FieldTrack Engine"}.
             </p>
           </div>
 
@@ -172,48 +233,183 @@ export function AiInsightsClient({
 
       {/* Operational Metrics Ribbon */}
       {briefing && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "0.75rem" }}>
-          <div style={{ padding: "0.875rem", background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)" }}>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>Trips Today</div>
-            <div style={{ fontSize: "1.35rem", fontWeight: 700, color: "var(--brand-dark)" }}>{briefing.metrics.tripsScheduledToday}</div>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>Active work itineraries</div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+            gap: "0.75rem",
+          }}
+        >
+          <div
+            style={{
+              padding: "0.875rem",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "var(--radius-md)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--text-secondary)",
+                textTransform: "uppercase",
+              }}
+            >
+              Trips Today
+            </div>
+            <div
+              style={{ fontSize: "1.35rem", fontWeight: 700, color: "var(--brand-dark)" }}
+            >
+              {briefing.metrics.tripsScheduledToday}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+              Active work itineraries
+            </div>
           </div>
 
-          <div style={{ padding: "0.875rem", background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)" }}>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>Visits Scheduled</div>
-            <div style={{ fontSize: "1.35rem", fontWeight: 700, color: "var(--brand-dark)" }}>{briefing.metrics.visitsScheduledToday}</div>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>{briefing.metrics.completedVisitsCount} completed today</div>
+          <div
+            style={{
+              padding: "0.875rem",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "var(--radius-md)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--text-secondary)",
+                textTransform: "uppercase",
+              }}
+            >
+              Visits Scheduled
+            </div>
+            <div
+              style={{ fontSize: "1.35rem", fontWeight: 700, color: "var(--brand-dark)" }}
+            >
+              {briefing.metrics.visitsScheduledToday}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+              {briefing.metrics.completedVisitsCount} completed today
+            </div>
           </div>
 
-          <div style={{ padding: "0.875rem", background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)" }}>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>Overdue Visits</div>
-            <div style={{ fontSize: "1.35rem", fontWeight: 700, color: briefing.metrics.overdueVisitsCount > 0 ? "var(--error-red)" : "var(--success-green)" }}>
+          <div
+            style={{
+              padding: "0.875rem",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "var(--radius-md)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--text-secondary)",
+                textTransform: "uppercase",
+              }}
+            >
+              Overdue Visits
+            </div>
+            <div
+              style={{
+                fontSize: "1.35rem",
+                fontWeight: 700,
+                color:
+                  briefing.metrics.overdueVisitsCount > 0
+                    ? "var(--error-red)"
+                    : "var(--success-green)",
+              }}
+            >
               {briefing.metrics.overdueVisitsCount}
             </div>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>Passed appointment time</div>
+            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+              Passed appointment time
+            </div>
           </div>
 
-          <div style={{ padding: "0.875rem", background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)" }}>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>Pending Approvals</div>
-            <div style={{ fontSize: "1.35rem", fontWeight: 700, color: briefing.metrics.pendingApprovalsCount > 0 ? "var(--brand-accent)" : "var(--success-green)" }}>
+          <div
+            style={{
+              padding: "0.875rem",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "var(--radius-md)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--text-secondary)",
+                textTransform: "uppercase",
+              }}
+            >
+              Pending Approvals
+            </div>
+            <div
+              style={{
+                fontSize: "1.35rem",
+                fontWeight: 700,
+                color:
+                  briefing.metrics.pendingApprovalsCount > 0
+                    ? "var(--brand-accent)"
+                    : "var(--success-green)",
+              }}
+            >
               {briefing.metrics.pendingApprovalsCount}
             </div>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>Submitted trips</div>
+            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+              Submitted trips
+            </div>
           </div>
 
-          <div style={{ padding: "0.875rem", background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)" }}>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>Missing Evidence</div>
-            <div style={{ fontSize: "1.35rem", fontWeight: 700, color: briefing.metrics.missingEvidenceCount > 0 ? "var(--brand-accent)" : "var(--success-green)" }}>
+          <div
+            style={{
+              padding: "0.875rem",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "var(--radius-md)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--text-secondary)",
+                textTransform: "uppercase",
+              }}
+            >
+              Missing Evidence
+            </div>
+            <div
+              style={{
+                fontSize: "1.35rem",
+                fontWeight: 700,
+                color:
+                  briefing.metrics.missingEvidenceCount > 0
+                    ? "var(--brand-accent)"
+                    : "var(--success-green)",
+              }}
+            >
               {briefing.metrics.missingEvidenceCount}
             </div>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>Completed with 0 photos</div>
+            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+              Completed with 0 photos
+            </div>
           </div>
         </div>
       )}
 
       {/* Executive Summary Card with Editability */}
       <div className="card" style={{ padding: "1.5rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "0.75rem",
+            flexWrap: "wrap",
+            gap: "0.5rem",
+          }}
+        >
           <h3 style={{ margin: 0, fontSize: "1.0625rem", color: "var(--brand-dark)" }}>
             Operational Executive Summary
           </h3>
@@ -252,8 +448,16 @@ export function AiInsightsClient({
         </div>
 
         {!isEditingSummary ? (
-          <p style={{ margin: 0, fontSize: "0.9375rem", color: "var(--text-main)", lineHeight: 1.6 }}>
-            {briefing?.executiveSummary ?? "No operational summary available for this period."}
+          <p
+            style={{
+              margin: 0,
+              fontSize: "0.9375rem",
+              color: "var(--text-main)",
+              lineHeight: 1.6,
+            }}
+          >
+            {briefing?.executiveSummary ??
+              "No operational summary available for this period."}
           </p>
         ) : (
           <textarea
@@ -272,15 +476,31 @@ export function AiInsightsClient({
           />
         )}
 
-        <div style={{ marginTop: "1rem", fontSize: "0.75rem", color: "var(--text-secondary)", borderTop: "1px solid var(--border-color)", paddingTop: "0.5rem" }}>
-          <strong>Data Basis:</strong> {briefing?.dataCompleteness.explanation ?? "Synthesized from authorized records."}
+        <div
+          style={{
+            marginTop: "1rem",
+            fontSize: "0.75rem",
+            color: "var(--text-secondary)",
+            borderTop: "1px solid var(--border-color)",
+            paddingTop: "0.5rem",
+          }}
+        >
+          <strong>Data Basis:</strong>{" "}
+          {briefing?.dataCompleteness.explanation ??
+            "Synthesized from authorized records."}
         </div>
       </div>
 
       {/* Critical Operational Exceptions */}
       {briefing && briefing.criticalExceptions.length > 0 && (
         <div className="card" style={{ padding: "1.5rem" }}>
-          <h3 style={{ margin: "0 0 1rem", fontSize: "1.0625rem", color: "var(--brand-dark)" }}>
+          <h3
+            style={{
+              margin: "0 0 1rem",
+              fontSize: "1.0625rem",
+              color: "var(--brand-dark)",
+            }}
+          >
             🚨 Critical Operational Exceptions ({briefing.criticalExceptions.length})
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
@@ -291,7 +511,8 @@ export function AiInsightsClient({
                   padding: "0.875rem 1rem",
                   borderRadius: "var(--radius-md)",
                   background: exc.severity === "high" ? "#FEF2F2" : "#FFFBEB",
-                  border: exc.severity === "high" ? "1px solid #FECACA" : "1px solid #FDE68A",
+                  border:
+                    exc.severity === "high" ? "1px solid #FECACA" : "1px solid #FDE68A",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "flex-start",
@@ -300,7 +521,14 @@ export function AiInsightsClient({
                 }}
               >
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      marginBottom: "0.25rem",
+                    }}
+                  >
                     <span
                       style={{
                         fontWeight: 700,
@@ -311,11 +539,23 @@ export function AiInsightsClient({
                       [{exc.severity.toUpperCase()}] {exc.title}
                     </span>
                   </div>
-                  <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--brand-dark)" }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.8125rem",
+                      color: "var(--brand-dark)",
+                    }}
+                  >
                     {exc.detail}
                   </p>
                 </div>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", fontFamily: "monospace" }}>
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "var(--text-secondary)",
+                    fontFamily: "monospace",
+                  }}
+                >
                   Ref: {exc.sourceRecordId.slice(0, 8)}…
                 </span>
               </div>
@@ -327,10 +567,22 @@ export function AiInsightsClient({
       {/* Recommended Follow-Up Actions */}
       {briefing && briefing.recommendedActions.length > 0 && (
         <div className="card" style={{ padding: "1.5rem" }}>
-          <h3 style={{ margin: "0 0 1rem", fontSize: "1.0625rem", color: "var(--brand-dark)" }}>
+          <h3
+            style={{
+              margin: "0 0 1rem",
+              fontSize: "1.0625rem",
+              color: "var(--brand-dark)",
+            }}
+          >
             ⚡ Recommended Manager Actions ({briefing.recommendedActions.length})
           </h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "0.875rem" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "0.875rem",
+            }}
+          >
             {briefing.recommendedActions.map((action) => {
               const currentStatus = actionStatuses[action.id] ?? action.status;
               const isHandled = currentStatus !== "pending";
@@ -350,8 +602,18 @@ export function AiInsightsClient({
                   }}
                 >
                   <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.35rem" }}>
-                      <strong style={{ fontSize: "0.875rem", color: "var(--brand-dark)" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: "0.5rem",
+                        marginBottom: "0.35rem",
+                      }}
+                    >
+                      <strong
+                        style={{ fontSize: "0.875rem", color: "var(--brand-dark)" }}
+                      >
                         {action.title}
                       </strong>
                       <span
@@ -361,35 +623,59 @@ export function AiInsightsClient({
                             currentStatus === "accepted"
                               ? "rgba(5, 150, 105, 0.12)"
                               : currentStatus === "dismissed"
-                              ? "rgba(107, 114, 128, 0.12)"
-                              : "rgba(79, 70, 229, 0.12)",
+                                ? "rgba(107, 114, 128, 0.12)"
+                                : "rgba(79, 70, 229, 0.12)",
                           color:
                             currentStatus === "accepted"
                               ? "var(--success-green)"
                               : currentStatus === "dismissed"
-                              ? "var(--text-secondary)"
-                              : "var(--brand-primary)",
+                                ? "var(--text-secondary)"
+                                : "var(--brand-primary)",
                           fontSize: "0.7rem",
                         }}
                       >
                         {currentStatus.toUpperCase()}
                       </span>
                     </div>
-                    <p style={{ margin: "0 0 0.5rem", fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
+                    <p
+                      style={{
+                        margin: "0 0 0.5rem",
+                        fontSize: "0.8125rem",
+                        color: "var(--text-secondary)",
+                      }}
+                    >
                       {action.rationale}
                     </p>
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", fontFamily: "monospace" }}>
-                      Target: {action.targetEntityType} • Ref: {action.targetEntityId.slice(0, 8)}…
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--text-secondary)",
+                        fontFamily: "monospace",
+                      }}
+                    >
+                      Target: {action.targetEntityType} • Ref:{" "}
+                      {action.targetEntityId.slice(0, 8)}…
                     </div>
                   </div>
 
                   {!isHandled ? (
-                    <div style={{ display: "flex", gap: "0.5rem", borderTop: "1px solid var(--border-color)", paddingTop: "0.75rem" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "0.5rem",
+                        borderTop: "1px solid var(--border-color)",
+                        paddingTop: "0.75rem",
+                      }}
+                    >
                       <button
                         type="button"
                         className="btn btn-primary"
                         onClick={() => handleUpdateAction(action.id, "accepted")}
-                        style={{ fontSize: "0.75rem", padding: "0.35rem 0.65rem", flex: 1 }}
+                        style={{
+                          fontSize: "0.75rem",
+                          padding: "0.35rem 0.65rem",
+                          flex: 1,
+                        }}
                       >
                         ✓ Accept Action
                       </button>
@@ -403,7 +689,15 @@ export function AiInsightsClient({
                       </button>
                     </div>
                   ) : (
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", fontStyle: "italic", borderTop: "1px solid var(--border-color)", paddingTop: "0.5rem" }}>
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--text-secondary)",
+                        fontStyle: "italic",
+                        borderTop: "1px solid var(--border-color)",
+                        paddingTop: "0.5rem",
+                      }}
+                    >
                       Action recorded by manager.
                     </div>
                   )}
@@ -417,11 +711,20 @@ export function AiInsightsClient({
       {/* Team Workload Imbalances */}
       {briefing && briefing.workloadImbalances.length > 0 && (
         <div className="card" style={{ padding: "1.5rem" }}>
-          <h3 style={{ margin: "0 0 1rem", fontSize: "1.0625rem", color: "var(--brand-dark)" }}>
+          <h3
+            style={{
+              margin: "0 0 1rem",
+              fontSize: "1.0625rem",
+              color: "var(--brand-dark)",
+            }}
+          >
             👥 Representative Workload Distribution
           </h3>
           <div style={{ overflowX: "auto" }}>
-            <table className="data-table" style={{ width: "100%", fontSize: "0.8125rem" }}>
+            <table
+              className="data-table"
+              style={{ width: "100%", fontSize: "0.8125rem" }}
+            >
               <thead>
                 <tr>
                   <th style={{ textAlign: "left" }}>Representative</th>
@@ -439,7 +742,16 @@ export function AiInsightsClient({
                     <td style={{ textAlign: "center" }}>{wl.assignedTripsCount}</td>
                     <td style={{ textAlign: "center" }}>{wl.plannedStopsCount}</td>
                     <td style={{ textAlign: "center" }}>{wl.completedVisitsCount}</td>
-                    <td style={{ textAlign: "center", fontWeight: 700, color: wl.outstandingAssignments > 8 ? "var(--brand-accent)" : "var(--brand-dark)" }}>
+                    <td
+                      style={{
+                        textAlign: "center",
+                        fontWeight: 700,
+                        color:
+                          wl.outstandingAssignments > 8
+                            ? "var(--brand-accent)"
+                            : "var(--brand-dark)",
+                      }}
+                    >
                       {wl.outstandingAssignments}
                     </td>
                     <td>
@@ -450,14 +762,14 @@ export function AiInsightsClient({
                             wl.status === "overloaded"
                               ? "rgba(220, 38, 38, 0.12)"
                               : wl.status === "underutilized"
-                              ? "rgba(107, 114, 128, 0.12)"
-                              : "rgba(5, 150, 105, 0.12)",
+                                ? "rgba(107, 114, 128, 0.12)"
+                                : "rgba(5, 150, 105, 0.12)",
                           color:
                             wl.status === "overloaded"
                               ? "var(--error-red)"
                               : wl.status === "underutilized"
-                              ? "var(--text-secondary)"
-                              : "var(--success-green)",
+                                ? "var(--text-secondary)"
+                                : "var(--success-green)",
                           fontSize: "0.7rem",
                           marginRight: "0.5rem",
                         }}
@@ -484,8 +796,17 @@ export function AiInsightsClient({
 
       {/* Disclaimers Footer */}
       {briefing && (
-        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", lineHeight: 1.5, textAlign: "center", padding: "0.5rem" }}>
-          {briefing.aiDisclaimer} AI recommendations do not replace managerial judgement or organizational policies.
+        <div
+          style={{
+            fontSize: "0.75rem",
+            color: "var(--text-secondary)",
+            lineHeight: 1.5,
+            textAlign: "center",
+            padding: "0.5rem",
+          }}
+        >
+          {briefing.aiDisclaimer} AI recommendations do not replace managerial judgement
+          or organizational policies.
         </div>
       )}
     </div>

@@ -21,12 +21,7 @@ import type {
   UserOrganizationSummary,
 } from "@/modules/tenancy/domain";
 import type { TenancyRepository } from "@/modules/tenancy/repository";
-import type {
-  Trip,
-  TripDetail,
-  TripStatus,
-  TripStop,
-} from "@/modules/trips/domain";
+import type { Trip, TripDetail, TripStatus, TripStop } from "@/modules/trips/domain";
 import type { TripsRepository } from "@/modules/trips/repository";
 
 class MockLocationRepo implements LocationRepository {
@@ -61,10 +56,7 @@ class MockLocationRepo implements LocationRepository {
       .slice(0, limit);
   }
 
-  async purgeExpiredBreadcrumbs(
-    orgId: string,
-    _retentionDays = 30
-  ): Promise<number> {
+  async purgeExpiredBreadcrumbs(orgId: string, _retentionDays = 30): Promise<number> {
     const beforeCount = this.breadcrumbs.length;
     // Simulate purge
     this.breadcrumbs = this.breadcrumbs.filter((b) => b.orgId !== orgId);
@@ -125,9 +117,7 @@ class MockTenancyRepo implements TenancyRepository {
     userId: string,
     orgId: string
   ): Promise<OrganizationMembership | null> {
-    return (
-      this.memberships.find((m) => m.userId === userId && m.orgId === orgId) ?? null
-    );
+    return this.memberships.find((m) => m.userId === userId && m.orgId === orgId) ?? null;
   }
 
   async listUserOrganizations(userId: string): Promise<UserOrganizationSummary[]> {

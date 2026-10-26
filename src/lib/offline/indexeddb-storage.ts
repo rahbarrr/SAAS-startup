@@ -41,7 +41,9 @@ function getIndexedDB(): IDBFactory | null {
 function openDatabase(): Promise<IDBDatabase> {
   const idb = getIndexedDB();
   if (!idb) {
-    return Promise.reject(new Error("IndexedDB is not available in current environment."));
+    return Promise.reject(
+      new Error("IndexedDB is not available in current environment.")
+    );
   }
 
   return new Promise((resolve, reject) => {
@@ -138,7 +140,9 @@ export async function storeOfflineEvidenceBlob(
     // If IndexedDB transaction errors out (e.g., QuotaExceededError), fallback to memory store
     memoryBlobStore.set(record.evidenceId, record);
     if (err instanceof Error && /quota/i.test(err.message)) {
-      throw new Error("Device storage quota exceeded while saving photo evidence offline.");
+      throw new Error(
+        "Device storage quota exceeded while saving photo evidence offline."
+      );
     }
   }
 }

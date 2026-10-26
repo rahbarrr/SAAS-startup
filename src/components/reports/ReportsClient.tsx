@@ -10,15 +10,10 @@ import type { OperationsReportSummary } from "@/modules/reporting/domain";
 export interface ReportsClientProps {
   initialReport: OperationsReportSummary;
   orgId?: string | null;
-  isDemo?: boolean;
   userRole?: string;
 }
 
-export function ReportsClient({
-  initialReport,
-  orgId,
-  isDemo = true,
-}: ReportsClientProps) {
+export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
   const { showToast } = useToast();
   const [report, setReport] = useState<OperationsReportSummary>(initialReport);
   const initialRange =
@@ -38,7 +33,7 @@ export function ReportsClient({
 
   const fetchReport = useCallback(
     async (range: string, territory: string) => {
-      if (!orgId || isDemo) {
+      if (!orgId) {
         return;
       }
 
@@ -55,9 +50,7 @@ export function ReportsClient({
         const envelope = await res.json();
 
         if (!res.ok || !envelope.data) {
-          throw new Error(
-            envelope.error?.message || "Failed to load operations report."
-          );
+          throw new Error(envelope.error?.message || "Failed to load operations report.");
         }
 
         setReport(envelope.data);
@@ -71,15 +64,14 @@ export function ReportsClient({
         setIsLoading(false);
       }
     },
-    [orgId, isDemo]
+    [orgId]
   );
 
   useEffect(() => {
-    // Only trigger fetch if range or territory changes away from initial
-    if (orgId && !isDemo) {
+    if (orgId) {
       void fetchReport(selectedRange, selectedTerritory);
     }
-  }, [selectedRange, selectedTerritory, fetchReport, orgId, isDemo]);
+  }, [selectedRange, selectedTerritory, fetchReport, orgId]);
 
   const handleExportCsv = () => {
     setIsExporting(true);
@@ -181,13 +173,11 @@ export function ReportsClient({
                     selectedRange === tab.id
                       ? "var(--brand-primary)"
                       : "var(--text-secondary)",
-                  background:
-                    selectedRange === tab.id ? "var(--surface)" : "transparent",
+                  background: selectedRange === tab.id ? "var(--surface)" : "transparent",
                   border: "none",
                   borderRadius: "var(--radius-sm)",
                   cursor: "pointer",
-                  boxShadow:
-                    selectedRange === tab.id ? "var(--shadow-sm)" : "none",
+                  boxShadow: selectedRange === tab.id ? "var(--shadow-sm)" : "none",
                 }}
               >
                 {tab.label}
@@ -298,8 +288,7 @@ export function ReportsClient({
           }
           subtitle="Avg submission-to-decision time"
           trend={{
-            direction:
-              report.kpis.exceptionsLogged > 0 ? "down" : "neutral",
+            direction: report.kpis.exceptionsLogged > 0 ? "down" : "neutral",
             label: `${report.kpis.exceptionsLogged} exceptions flagged`,
           }}
           variant={report.kpis.exceptionsLogged > 0 ? "warning" : "primary"}
@@ -320,7 +309,10 @@ export function ReportsClient({
           subtitle="Planned stops past trip deadline"
           trend={{
             direction: (report.kpis.overdueVisitsCount ?? 0) > 0 ? "down" : "neutral",
-            label: (report.kpis.overdueVisitsCount ?? 0) > 0 ? "Requires attention" : "All on schedule",
+            label:
+              (report.kpis.overdueVisitsCount ?? 0) > 0
+                ? "Requires attention"
+                : "All on schedule",
           }}
           variant={(report.kpis.overdueVisitsCount ?? 0) > 0 ? "warning" : "primary"}
         />
@@ -704,9 +696,7 @@ export function ReportsClient({
                               }}
                             />
                           </div>
-                          <span
-                            style={{ fontSize: "0.8125rem", fontWeight: 600 }}
-                          >
+                          <span style={{ fontSize: "0.8125rem", fontWeight: 600 }}>
                             {rep.completionRate}%
                           </span>
                         </div>
@@ -820,12 +810,8 @@ export function ReportsClient({
                         justifyContent: "space-between",
                       }}
                     >
-                      <span style={{ color: "var(--text-muted)" }}>
-                        Active Doors:
-                      </span>
-                      <span style={{ fontWeight: 600 }}>
-                        {t.storeCount} stores
-                      </span>
+                      <span style={{ color: "var(--text-muted)" }}>Active Doors:</span>
+                      <span style={{ fontWeight: 600 }}>{t.storeCount} stores</span>
                     </div>
                     <div
                       style={{
@@ -833,9 +819,7 @@ export function ReportsClient({
                         justifyContent: "space-between",
                       }}
                     >
-                      <span style={{ color: "var(--text-muted)" }}>
-                        Visits Done:
-                      </span>
+                      <span style={{ color: "var(--text-muted)" }}>Visits Done:</span>
                       <span style={{ fontWeight: 600 }}>
                         {t.completedVisits} / {t.scheduledVisits}
                       </span>
@@ -846,9 +830,7 @@ export function ReportsClient({
                         justifyContent: "space-between",
                       }}
                     >
-                      <span style={{ color: "var(--text-muted)" }}>
-                        Coverage:
-                      </span>
+                      <span style={{ color: "var(--text-muted)" }}>Coverage:</span>
                       <span
                         style={{
                           fontWeight: 700,
@@ -882,9 +864,7 @@ export function ReportsClient({
                         justifyContent: "space-between",
                       }}
                     >
-                      <span style={{ color: "var(--text-muted)" }}>
-                        Missed Visits:
-                      </span>
+                      <span style={{ color: "var(--text-muted)" }}>Missed Visits:</span>
                       <span
                         style={{
                           fontWeight: 600,
@@ -925,7 +905,8 @@ export function ReportsClient({
                       margin: 0,
                     }}
                   >
-                    Account-level door frequency, completion rates, and last visit timestamps
+                    Account-level door frequency, completion rates, and last visit
+                    timestamps
                   </p>
                 </div>
               </div>
@@ -966,7 +947,12 @@ export function ReportsClient({
                           {s.missedVisitsCount}
                         </td>
                         <td>{s.completionRate}%</td>
-                        <td style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
+                        <td
+                          style={{
+                            fontSize: "0.8125rem",
+                            color: "var(--text-secondary)",
+                          }}
+                        >
                           {s.lastVisitedAt ? s.lastVisitedAt.slice(0, 10) : "Never"}
                         </td>
                       </tr>
@@ -979,7 +965,7 @@ export function ReportsClient({
         </>
       )}
 
-      {/* Audit & Demonstration Disclaimer */}
+      {/* Operational Reporting Governance Notice */}
       <div
         style={{
           padding: "0.875rem 1.25rem",
@@ -1009,11 +995,10 @@ export function ReportsClient({
           />
         </svg>
         <span>
-          <strong>Operational Reporting Governance:</strong> All timestamps and
-          date boundaries are evaluated in UTC according to enterprise reporting
-          specifications. Coordinates and visit evidence are point-in-time
-          check-in/out records, protected by Row Level Security and role-based
-          permissions.
+          <strong>Operational Reporting Governance:</strong> All timestamps and date
+          boundaries are evaluated in UTC according to enterprise reporting
+          specifications. Coordinates and visit evidence are point-in-time check-in/out
+          records, protected by Row Level Security and role-based permissions.
         </span>
       </div>
     </div>

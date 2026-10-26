@@ -180,7 +180,12 @@ export function InAppNotificationsList({
           <div
             role="group"
             aria-label="Filter notifications by read state"
-            style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
           >
             <button
               type="button"
@@ -298,7 +303,9 @@ export function InAppNotificationsList({
                       <strong>In-App Only</strong>
                     </p>
                   </div>
-                  <StatusBadge descriptor={getApprovalStatusDescriptor(item.tripStatus)} />
+                  <StatusBadge
+                    descriptor={getApprovalStatusDescriptor(item.tripStatus)}
+                  />
                 </div>
 
                 <p className="break-long-words" style={{ margin: "0.25rem 0" }}>
@@ -342,7 +349,9 @@ export function InAppNotificationsList({
           </ul>
 
           {visibleItems.length > displayLimit ? (
-            <div style={{ display: "flex", justifyContent: "center", marginTop: "0.5rem" }}>
+            <div
+              style={{ display: "flex", justifyContent: "center", marginTop: "0.5rem" }}
+            >
               <button
                 type="button"
                 className="btn btn-secondary"

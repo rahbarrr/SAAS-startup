@@ -23,7 +23,9 @@ export default function LoginPage(): ReactNode {
         setError(result.error ?? "Unable to sign in.");
         return;
       }
-      setMessage(`Signed in as ${result.data?.email ?? email}. Redirecting to your workspace…`);
+      setMessage(
+        `Signed in as ${result.data?.email ?? email}. Redirecting to your workspace…`
+      );
       window.location.assign("/");
     });
   }
@@ -51,10 +53,15 @@ export default function LoginPage(): ReactNode {
             marginBottom: "0.5rem",
           }}
         >
-          <div className="brand-icon-box" style={{ width: "2.5rem", height: "2.5rem", fontSize: "1.25rem" }}>
+          <div
+            className="brand-icon-box"
+            style={{ width: "2.5rem", height: "2.5rem", fontSize: "1.25rem" }}
+          >
             F
           </div>
-          <span style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-dark)" }}>
+          <span
+            style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-dark)" }}
+          >
             FieldTrack
           </span>
         </Link>
@@ -131,7 +138,12 @@ export default function LoginPage(): ReactNode {
           <div>
             <label
               htmlFor="login-email"
-              style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}
+              style={{
+                display: "block",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                marginBottom: "0.375rem",
+              }}
             >
               Work Email
             </label>
@@ -153,7 +165,14 @@ export default function LoginPage(): ReactNode {
           </div>
 
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.375rem" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "0.375rem",
+              }}
+            >
               <label
                 htmlFor="login-password"
                 style={{ fontWeight: 600, fontSize: "0.875rem" }}
@@ -162,7 +181,12 @@ export default function LoginPage(): ReactNode {
               </label>
               <Link
                 href="/forgot-password"
-                style={{ fontSize: "0.75rem", color: "var(--brand-primary)", textDecoration: "none", fontWeight: 600 }}
+                style={{
+                  fontSize: "0.75rem",
+                  color: "var(--brand-primary)",
+                  textDecoration: "none",
+                  fontWeight: 600,
+                }}
               >
                 Forgot password?
               </Link>
@@ -211,7 +235,11 @@ export default function LoginPage(): ReactNode {
             type="submit"
             disabled={isPending}
             className="btn btn-primary"
-            style={{ width: "100%", marginTop: "0.5rem", minHeight: "var(--touch-target-min)" }}
+            style={{
+              width: "100%",
+              marginTop: "0.5rem",
+              minHeight: "var(--touch-target-min)",
+            }}
           >
             {isPending ? "Signing in…" : "Sign In to Workspace"}
           </button>
@@ -230,33 +258,16 @@ export default function LoginPage(): ReactNode {
           Don’t have an organization account yet?{" "}
           <Link
             href="/signup"
-            style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}
+            style={{
+              color: "var(--brand-primary)",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
           >
             Create an account
           </Link>
         </div>
       </section>
-
-      {/* Demo Credentials Helper Pill */}
-      <div
-        style={{
-          marginTop: "1.25rem",
-          padding: "0.625rem 1rem",
-          background: "rgba(27, 53, 128, 0.05)",
-          borderRadius: "var(--radius-md)",
-          border: "1px solid var(--border-subtle)",
-          fontSize: "0.8125rem",
-          color: "var(--text-secondary)",
-          textAlign: "center",
-          maxWidth: "28rem",
-          width: "100%",
-        }}
-      >
-        <span>💡 <strong>Quick Demo Preview:</strong> You can browse the interactive application immediately via the </span>
-        <Link href="/" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
-          Operations Dashboard →
-        </Link>
-      </div>
     </div>
   );
 }

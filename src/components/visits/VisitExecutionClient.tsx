@@ -1,7 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type ChangeEvent, type FormEvent, type ReactNode, useEffect, useState } from "react";
+import {
+  type ChangeEvent,
+  type FormEvent,
+  type ReactNode,
+  useEffect,
+  useState,
+} from "react";
 import { ErrorState } from "@/components/ui/States";
 import {
   loadLocalVisitDraft,
@@ -124,7 +130,9 @@ export function VisitExecutionClient({
       setNotes((prev) => (prev ? prev : draft.notes));
       setChecklist((prev) =>
         prev.map((item) => {
-          const draftItem = draft.checklist.find((d) => d.questionKey === item.questionKey);
+          const draftItem = draft.checklist.find(
+            (d) => d.questionKey === item.questionKey
+          );
           if (draftItem) {
             return {
               ...item,
@@ -746,7 +754,14 @@ export function VisitExecutionClient({
                 alignItems: "center",
               }}
             >
-              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "0.5rem",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                }}
+              >
                 <label
                   style={{
                     display: "inline-flex",
@@ -804,8 +819,16 @@ export function VisitExecutionClient({
               </div>
 
               {selectedFile ? (
-                <div style={{ fontSize: "0.8125rem", color: "#0f766e", fontWeight: 600, width: "100%" }}>
-                  Ready to upload: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KiB)
+                <div
+                  style={{
+                    fontSize: "0.8125rem",
+                    color: "#0f766e",
+                    fontWeight: 600,
+                    width: "100%",
+                  }}
+                >
+                  Ready to upload: {selectedFile.name} (
+                  {Math.round(selectedFile.size / 1024)} KiB)
                 </div>
               ) : null}
 

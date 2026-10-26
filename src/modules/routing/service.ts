@@ -10,16 +10,9 @@ import type { AuthenticatedUser } from "@/modules/tenancy/domain";
 import type { TenancyRepository } from "@/modules/tenancy/repository";
 import type { TripsRepository } from "@/modules/trips/repository";
 import { updateTripDraftForOrg } from "@/modules/trips/service";
-import type {
-  LatLng,
-  RouteOptimizationProposal,
-  RouteStopCandidate,
-} from "./domain";
+import type { LatLng, RouteOptimizationProposal, RouteStopCandidate } from "./domain";
 import { optimizeTripRoute } from "./optimizer";
-import {
-  type RouteDistanceProvider,
-  resolveRouteDistanceProvider,
-} from "./provider";
+import { type RouteDistanceProvider, resolveRouteDistanceProvider } from "./provider";
 
 export async function generateRouteOptimizationProposalForTrip(params: {
   user: AuthenticatedUser | null;

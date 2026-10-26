@@ -24,10 +24,7 @@ export interface DistanceCalculationResult {
 
 export interface RouteDistanceProvider {
   readonly providerName: string;
-  calculateDistance(
-    from: LatLng,
-    to: LatLng
-  ): Promise<DistanceCalculationResult>;
+  calculateDistance(from: LatLng, to: LatLng): Promise<DistanceCalculationResult>;
 }
 
 const EARTH_RADIUS_METERS = 6_371_000;
@@ -58,10 +55,7 @@ export function calculateHaversineMeters(from: LatLng, to: LatLng): number {
 export class HaversineDistanceProvider implements RouteDistanceProvider {
   readonly providerName = "haversine";
 
-  async calculateDistance(
-    from: LatLng,
-    to: LatLng
-  ): Promise<DistanceCalculationResult> {
+  async calculateDistance(from: LatLng, to: LatLng): Promise<DistanceCalculationResult> {
     const distanceMeters = calculateHaversineMeters(from, to);
     // Rough heuristic estimate for duration in minutes: (meters / (speed in meters/minute))
     const metersPerMinute = (ASSUMED_URBAN_SPEED_KMH * 1000) / 60;
@@ -93,7 +87,10 @@ export class OsrmRoadNetworkProvider implements RouteDistanceProvider {
   private readonly baseUrl: string;
   private readonly timeoutMs: number;
   private readonly fetchFn: typeof fetch;
-  private readonly cache = new Map<string, { result: DistanceCalculationResult; timestamp: number }>();
+  private readonly cache = new Map<
+    string,
+    { result: DistanceCalculationResult; timestamp: number }
+  >();
   private readonly cacheTtlMs: number = 60 * 60 * 1000; // 1 hour
 
   constructor(options?: OsrmRoadNetworkProviderOptions) {
@@ -103,13 +100,14 @@ export class OsrmRoadNetworkProvider implements RouteDistanceProvider {
       "https://router.project-osrm.org";
     this.baseUrl = rawUrl.replace(/\/+$/, "");
     this.timeoutMs = options?.timeoutMs ?? 5000;
-    this.fetchFn = options?.fetchFn ?? (typeof fetch !== "undefined" ? fetch.bind(globalThis) : (fetch as unknown as typeof fetch));
+    this.fetchFn =
+      options?.fetchFn ??
+      (typeof fetch !== "undefined"
+        ? fetch.bind(globalThis)
+        : (fetch as unknown as typeof fetch));
   }
 
-  async calculateDistance(
-    from: LatLng,
-    to: LatLng
-  ): Promise<DistanceCalculationResult> {
+  async calculateDistance(from: LatLng, to: LatLng): Promise<DistanceCalculationResult> {
     const cacheKey = `${from.latitude.toFixed(5)},${from.longitude.toFixed(5)}->${to.latitude.toFixed(5)},${to.longitude.toFixed(5)}`;
     const cached = this.cache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < this.cacheTtlMs) {
@@ -140,10 +138,13 @@ export class OsrmRoadNetworkProvider implements RouteDistanceProvider {
         routes?: Array<{ distance: number; duration: number }>;
       };
 
-      if (data.code !== "Ok" || !data.routes || data.routes.length === 0 || !data.routes[0]) {
-        throw new Error(
-          `OSRM routing returned invalid code '${data.code ?? "UNKNOWN"}'`
-        );
+      if (
+        data.code !== "Ok" ||
+        !data.routes ||
+        data.routes.length === 0 ||
+        !data.routes[0]
+      ) {
+        throw new Error(`OSRM routing returned invalid code '${data.code ?? "UNKNOWN"}'`);
       }
 
       const route = data.routes[0];
@@ -185,10 +186,7 @@ export class ResilientRoadRoutingProvider implements RouteDistanceProvider {
     this.providerName = primary.providerName;
   }
 
-  async calculateDistance(
-    from: LatLng,
-    to: LatLng
-  ): Promise<DistanceCalculationResult> {
+  async calculateDistance(from: LatLng, to: LatLng): Promise<DistanceCalculationResult> {
     try {
       return await this.primary.calculateDistance(from, to);
     } catch (err) {

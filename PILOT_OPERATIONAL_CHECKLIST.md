@@ -7,6 +7,7 @@ This checklist provides the mandatory operational procedures for deploying, conf
 ## 1. Pre-Deployment Infrastructure & Environment Checklist
 
 ### 1.1 Supabase Database & Security Verification
+
 - [ ] **Migration State:** Execute `npm run lint:migrations` to ensure 0 lint errors across all 14 database migrations.
 - [ ] **Database Schema:** Confirm all 14 migrations are applied in sequential timestamp order:
   1. `20261022000001_init_orgs_and_memberships.sql`
@@ -24,7 +25,7 @@ This checklist provides the mandatory operational procedures for deploying, conf
   13. `20261022000013_phase5_offline_push_and_digests.sql`
   14. `20261025000014_phase7_enterprise_audit_and_location.sql`
 - [ ] **Row-Level Security (RLS):** Verify RLS is enabled and forced on all public tables:
-  `organizations`, `organization_members`, `organization_invitations`, `stores`, `trips`, `trip_stops`, `visits`, `visit_checklist_items`, `visit_evidence`, `trip_audit_events`, `organization_audit_events`, `trip_location_breadcrumbs`, `visit_ai_report_drafts`, `in_app_notification_reads`.
+      `organizations`, `organization_members`, `organization_invitations`, `stores`, `trips`, `trip_stops`, `visits`, `visit_checklist_items`, `visit_evidence`, `trip_audit_events`, `organization_audit_events`, `trip_location_breadcrumbs`, `visit_ai_report_drafts`, `in_app_notification_reads`.
 - [ ] **Database Triggers:** Verify triggers are active:
   - `trg_trips_workflow_and_decisions` (blocks self-approval; enforces state machine).
   - `trg_visits_lifecycle_invariants` (blocks checkout with incomplete required checklists; prevents non-owner edits).
@@ -37,7 +38,9 @@ This checklist provides the mandatory operational procedures for deploying, conf
   - **Secondary Bucket Note:** If `fieldtrack-evidence` exists in the Supabase project, it is unused by the application. Once confirmed empty, it can safely be removed. Do not direct application traffic to it.
 
 ### 1.2 Environment Variables (Production & Staging)
+
 Ensure the following variables are configured in the Vercel / deployment environment (never committed to git):
+
 - [ ] `NEXT_PUBLIC_SUPABASE_URL`: Production Supabase project URL (e.g. `https://xyz.supabase.co`).
 - [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase anon/public key.
 - [ ] `NEXT_PUBLIC_APP_URL`: Canonical application origin (e.g. `https://app.fieldtrack.example.com`).
@@ -56,6 +59,7 @@ Ensure the following variables are configured in the Vercel / deployment environ
 ## 2. Organization Onboarding & Pilot Setup Checklist
 
 ### 2.1 Workspace Initialization
+
 - [ ] **Create Tenant Workspace:** Organization Administrator registers and calls `/api/orgs` to create the tenant (e.g., `Summit Retail Ltd`).
 - [ ] **Store Directory Configuration:** Administrator imports or creates active retail stores with verified street addresses, postal codes, and GPS coordinates (`latitude`, `longitude`).
 - [ ] **Team Invitations:**
@@ -64,7 +68,9 @@ Ensure the following variables are configured in the Vercel / deployment environ
 - [ ] **Account Activation:** Invited members receive email/token and accept their invitations, establishing authenticated user sessions.
 
 ### 2.2 Device & Browser Pre-Flight (Physical Devices)
+
 Conduct on test devices prior to active field work:
+
 - [ ] **Android Chrome (v120+):**
   - Navigate to `NEXT_PUBLIC_APP_URL`.
   - Install as Progressive Web App (PWA) via Chrome menu (`Install app`).
@@ -84,6 +90,7 @@ Conduct on test devices prior to active field work:
 ## 3. Daily Pilot Operations Checklist
 
 ### Morning Routine (Retail Manager)
+
 1. [ ] **Daily Briefing Review:** Open `/ai-insights` to review the Manager Daily Briefing.
    - Review critical exceptions (overdue visits, pending approvals, missing evidence).
    - Review recommended actions and mark as `accepted` or `dismissed`.
@@ -92,6 +99,7 @@ Conduct on test devices prior to active field work:
    - Authorize or request changes on pending trips (self-approval is automatically blocked).
 
 ### Daytime Routine (Field Representative)
+
 1. [ ] **Trip Roster:** Open `/trips` and view assigned approved trip.
 2. [ ] **Store Check-In:** Tap "Check In" upon arriving at store destination.
    - Confirm coordinates are captured (`captured_unverified`).
@@ -103,6 +111,7 @@ Conduct on test devices prior to active field work:
    - Confirm stop status transitions to `visited` and visit status to `submitted`.
 
 ### Evening Routine (Retail Manager & Administrator)
+
 1. [ ] **Visit Quality Review:** Open `/visits` to inspect submitted store visit records and photographic evidence. Mark visits as `reviewed`.
 2. [ ] **Territory Analytics & Reports:** Open `/reports` to verify completed store visits, coverage rates, and audit compliance metrics.
 3. [ ] **Audit Trail Spot-Check:** Open `/audit` to verify all state-changing operations are faithfully recorded in immutable audit logs.
@@ -112,9 +121,9 @@ Conduct on test devices prior to active field work:
 
 ## 4. Emergency Kill-Switches & Incident Procedures
 
-| Incident Scenario | Kill Switch / Mitigation Procedure |
-| :--- | :--- |
-| **OpenAI Rate Limit / API Outage** | Application automatically falls back to the zero-network `HeuristicIntelligenceProvider`. No downtime occurs. Optional: set `AI_REPORTS_ENABLED="false"`. |
-| **Evidence Upload Storage Issue** | Set `UPLOADS_ENABLED="false"` in environment variables. Representative checklist completion and visit submissions continue uninterrupted. |
-| **Compromised Cron Secret** | Generate new 64-char random string, update `CRON_SECRET` in Vercel environment variables, and update external scheduler request headers. |
-| **Data Retention Compliance** | Organization Administrator executes `/api/orgs/[orgId]/location/purge` with `retentionDays: 30` to permanently purge location breadcrumbs older than the configured threshold. |
+| Incident Scenario                  | Kill Switch / Mitigation Procedure                                                                                                                                             |
+| :--------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **OpenAI Rate Limit / API Outage** | Application automatically falls back to the zero-network `HeuristicIntelligenceProvider`. No downtime occurs. Optional: set `AI_REPORTS_ENABLED="false"`.                      |
+| **Evidence Upload Storage Issue**  | Set `UPLOADS_ENABLED="false"` in environment variables. Representative checklist completion and visit submissions continue uninterrupted.                                      |
+| **Compromised Cron Secret**        | Generate new 64-char random string, update `CRON_SECRET` in Vercel environment variables, and update external scheduler request headers.                                       |
+| **Data Retention Compliance**      | Organization Administrator executes `/api/orgs/[orgId]/location/purge` with `retentionDays: 30` to permanently purge location breadcrumbs older than the configured threshold. |

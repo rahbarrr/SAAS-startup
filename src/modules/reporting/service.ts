@@ -791,9 +791,7 @@ export async function getOperationsReportForOrg(params: {
       r.evidenceCount > 0
   ).length;
   const evidenceCompletionRate =
-    completedVisits > 0
-      ? Math.round((visitsWithEvidence / completedVisits) * 100)
-      : 100;
+    completedVisits > 0 ? Math.round((visitsWithEvidence / completedVisits) * 100) : 100;
 
   // Metric: Overdue visits (uncompleted stops where trip end date has passed)
   const overdueVisitsCount = stopRows.filter(
@@ -1140,4 +1138,3 @@ export async function getTerritoryAnalyticsForOrg(params: {
     storeFrequencies: report.storeVisitAnalytics ?? [],
   };
 }
-

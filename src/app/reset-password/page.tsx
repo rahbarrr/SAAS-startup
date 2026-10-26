@@ -52,10 +52,15 @@ export default function ResetPasswordPage(): ReactNode {
             marginBottom: "0.5rem",
           }}
         >
-          <div className="brand-icon-box" style={{ width: "2.5rem", height: "2.5rem", fontSize: "1.25rem" }}>
+          <div
+            className="brand-icon-box"
+            style={{ width: "2.5rem", height: "2.5rem", fontSize: "1.25rem" }}
+          >
             F
           </div>
-          <span style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-dark)" }}>
+          <span
+            style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-dark)" }}
+          >
             FieldTrack
           </span>
         </Link>
@@ -129,7 +134,12 @@ export default function ResetPasswordPage(): ReactNode {
           <div>
             <label
               htmlFor="reset-password-input"
-              style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}
+              style={{
+                display: "block",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                marginBottom: "0.375rem",
+              }}
             >
               New Password (minimum 8 characters)
             </label>
@@ -178,7 +188,11 @@ export default function ResetPasswordPage(): ReactNode {
             type="submit"
             disabled={isPending}
             className="btn btn-primary"
-            style={{ width: "100%", marginTop: "0.5rem", minHeight: "var(--touch-target-min)" }}
+            style={{
+              width: "100%",
+              marginTop: "0.5rem",
+              minHeight: "var(--touch-target-min)",
+            }}
           >
             {isPending ? "Updating password…" : "Save New Password"}
           </button>
@@ -196,7 +210,11 @@ export default function ResetPasswordPage(): ReactNode {
         >
           <Link
             href="/login"
-            style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}
+            style={{
+              color: "var(--brand-primary)",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
           >
             Back to Sign in
           </Link>

@@ -19,9 +19,7 @@ export const NOTIFICATION_EVENT_TYPES = [
 export type NotificationAuditEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 
 export type InAppNotificationCategory =
-  | "submission_awaiting_approval"
-  | "approval_decision"
-  | "workflow_event";
+  "submission_awaiting_approval" | "approval_decision" | "workflow_event";
 
 export interface ExternalProviderStatus {
   email: false;

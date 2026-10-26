@@ -78,7 +78,8 @@ describe("startup environment validation", () => {
     const liveProd = {
       APP_ENV: "production",
       NEXT_PUBLIC_SUPABASE_URL: "https://lrolhonkrjhuwgnmcdsj.supabase.co",
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhYmMxMjMiOiJ0ZXN0In0.eyJyb2xlIjoiYW5vbiJ9.signature",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY:
+        "eyJhYmMxMjMiOiJ0ZXN0In0.eyJyb2xlIjoiYW5vbiJ9.signature",
       NEXT_PUBLIC_APP_URL: "https://saas-startup1.vercel.app",
       EXPECTED_SUPABASE_PROJECT_REF: "lrolhonkrjhuwgnmcdsj",
       VERCEL_ENV: "production",
@@ -141,7 +142,9 @@ describe("startup environment validation", () => {
     };
     const result = validateStartupEnv(previewProd);
     expect(result.ok).toBe(false);
-    expect(result.problems.join(" ")).toContain("production configuration must never run in a preview deployment");
+    expect(result.problems.join(" ")).toContain(
+      "production configuration must never run in a preview deployment"
+    );
 
     // 3. In Production, VERCEL_URL cannot substitute for missing NEXT_PUBLIC_APP_URL
     const prodMissingAppUrlWithVercelUrl = {

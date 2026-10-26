@@ -8,22 +8,23 @@ This document provides operational instructions, deployment verification checkli
 
 Verify all items prior to launching tenant pilots or granting production access:
 
-| Area | Requirement | Verification Method | Status |
-| :--- | :--- | :--- | :--- |
-| **Migrations** | All 14 migrations applied sequentially | `npm run lint:migrations` passes with 0 errors | Verified |
-| **Row Level Security** | RLS enabled and forced on 100% of public tables | `src/modules/security/__tests__/db-privilege-hardening.test.ts` passes | Verified |
-| **Audit Immutability** | Append-only triggers prevent UPDATE/DELETE on `organization_audit_events` | PostgreSQL raises exception `42501` on mutation | Verified |
-| **Location Privacy** | Breadcrumb points restricted to `in_progress` trips; admin purge function available | Unit & integration test suites verify status check | Verified |
-| **Formula Injection** | Formula trigger characters (`=`, `+`, `-`, `@`, `\t`, `\r`) sanitized in CSV exports | `sanitizeCsvCell` unit tests passing | Verified |
-| **Health Probe** | Distinguishes service availability from dependency failures; echoes `x-correlation-id` | `GET /api/health` returns 200 with service map | Verified |
-| **Access Control** | Every API route enforces 401 unauthenticated and 403 non-member isolation | `api-access-control.test.ts` (85 automated tests pass) | Verified |
-| **Client Bundles** | Zero service-role keys or sensitive credentials exposed | Turbopack client bundle audit and strict environment separation | Verified |
+| Area                   | Requirement                                                                            | Verification Method                                                    | Status   |
+| :--------------------- | :------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- | :------- |
+| **Migrations**         | All 14 migrations applied sequentially                                                 | `npm run lint:migrations` passes with 0 errors                         | Verified |
+| **Row Level Security** | RLS enabled and forced on 100% of public tables                                        | `src/modules/security/__tests__/db-privilege-hardening.test.ts` passes | Verified |
+| **Audit Immutability** | Append-only triggers prevent UPDATE/DELETE on `organization_audit_events`              | PostgreSQL raises exception `42501` on mutation                        | Verified |
+| **Location Privacy**   | Breadcrumb points restricted to `in_progress` trips; admin purge function available    | Unit & integration test suites verify status check                     | Verified |
+| **Formula Injection**  | Formula trigger characters (`=`, `+`, `-`, `@`, `\t`, `\r`) sanitized in CSV exports   | `sanitizeCsvCell` unit tests passing                                   | Verified |
+| **Health Probe**       | Distinguishes service availability from dependency failures; echoes `x-correlation-id` | `GET /api/health` returns 200 with service map                         | Verified |
+| **Access Control**     | Every API route enforces 401 unauthenticated and 403 non-member isolation              | `api-access-control.test.ts` (85 automated tests pass)                 | Verified |
+| **Client Bundles**     | Zero service-role keys or sensitive credentials exposed                                | Turbopack client bundle audit and strict environment separation        | Verified |
 
 ---
 
 ## 2. Environment Configuration
 
 ### Required Variables
+
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
@@ -34,6 +35,7 @@ EXPECTED_SUPABASE_PROJECT_REF=<project-ref>
 ```
 
 ### Optional Integration Variables
+
 ```bash
 # Automated Digest & Cron Trigger Authentication
 CRON_SECRET=super-secret-random-32-byte-hex-string
@@ -56,6 +58,7 @@ OSRM_BASE_URL=https://router.project-osrm.org
 ## 3. Scheduled Jobs & Operator Runbook
 
 ### Manager Operations Digest (`/api/orgs/[orgId]/digest`)
+
 - **Schedule:** Triggered daily at 06:00 UTC (or end-of-day per customer timezone).
 - **Authentication:** `CRON_SECRET` required as `Authorization: Bearer <token>` or `x-cron-secret: <token>`.
 - **Operator Failure Procedure:**
@@ -70,6 +73,7 @@ OSRM_BASE_URL=https://router.project-osrm.org
      ```
 
 ### Location Retention Purge (`/api/orgs/[orgId]/location/purge`)
+
 - **Policy:** Location breadcrumbs are retained for a configurable period (default: 30 days).
 - **Execution:** Automated via database pg_cron or invoked by an organization administrator:
   ```bash
@@ -85,6 +89,7 @@ OSRM_BASE_URL=https://router.project-osrm.org
 ## 4. Controlled Location Tracking & Architecture Reality
 
 ### Current Web/PWA Capability
+
 1. **Core Workflow:** Point-in-time check-in and check-out GPS snapshots recorded with explicit user consent.
 2. **Active Trip Tracking:** Users can explicitly activate location telemetry on `in_progress` work trips. A visible `🟢 Tracking Active` banner is displayed throughout the session.
 3. **Strict Constraints:**
@@ -93,7 +98,9 @@ OSRM_BASE_URL=https://router.project-osrm.org
    - Web browsers (Safari iOS and Chrome/Edge Android) suspend JavaScript and terminate timer loops when tabs are backgrounded or the screen locks.
 
 ### Future Native Architecture Recommendation (Phase 8)
+
 If continuous background GPS tracking while the screen is locked or device is in a representative's pocket is a mandatory enterprise requirement:
+
 - **Framework:** React Native / Expo with `@transistorsoft/react-native-background-geolocation` or Expo Background Location.
 - **Platform Permissions:**
   - **iOS:** `NSLocationAlwaysAndWhenInUseUsageDescription`, `UIBackgroundModes: ["location"]`.
@@ -116,6 +123,7 @@ If continuous background GPS tracking while the screen is locked or device is in
 FieldTrack Phase 8 introduces three operational AI intelligence workflows designed with strict safety boundaries and zero-dependency resilience:
 
 ### Workstreams
+
 1. **AI Trip Planning Assistant (`/api/orgs/[orgId]/trips/[tripId]/ai-plan`):**
    - Synthesizes schedule conflicts, rep overlapping itineraries, daily stop workloads (>8 stops flagged), and missing store coordinates.
    - Integrates the 2-Opt TSP route optimizer (`optimizeTripRoute`) to propose optimized visit sequences and distance savings.
@@ -132,12 +140,13 @@ FieldTrack Phase 8 introduces three operational AI intelligence workflows design
    - Representatives can review and edit all text before submission.
 
 ### Resilience & Zero-Network Offline Fallback
+
 - `ResilientAiIntelligenceProvider` coordinates between external OpenAI models and `HeuristicIntelligenceProvider`.
 - If `OPENAI_API_KEY` is omitted, offline, timed out (15s boundary), or rate-limited, FieldTrack functions seamlessly without disruption using verified database heuristics.
 
 ### Security & Privacy Controls
+
 - **Zero API Key Leakage:** `OPENAI_API_KEY` and Supabase service-role keys are strictly server-side and never bundled to client browsers.
 - **Tenant Isolation:** Enforced via `resolveTenantContext` and `assertTenantResourceOwnership`. Managers and reps cannot query or summarize other organizations' data.
 - **Prompt Injection Defense:** Operational strings (store addresses, notes, checklist answers) are strictly delimited inside `<untrusted_operational_data>` boundary tags.
 - **No Autonomous Mutations:** AI outputs are advisory recommendations. All mutations require authenticated user interaction through existing business authorization logic.
-

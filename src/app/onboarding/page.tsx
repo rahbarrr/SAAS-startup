@@ -1,7 +1,14 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, type FormEvent, type ReactNode, useEffect, useState, useTransition } from "react";
+import {
+  Suspense,
+  type FormEvent,
+  type ReactNode,
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 import {
   acceptInvitationAction,
   onboardOrganizationAction,
@@ -77,9 +84,25 @@ function OnboardingContent(): ReactNode {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem", maxWidth: "56rem", margin: "1rem auto", width: "100%" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1.75rem",
+        maxWidth: "56rem",
+        margin: "1rem auto",
+        width: "100%",
+      }}
+    >
       <section aria-labelledby="onboarding-heading">
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            marginBottom: "0.25rem",
+          }}
+        >
           <span
             style={{
               fontSize: "0.75rem",
@@ -107,7 +130,8 @@ function OnboardingContent(): ReactNode {
           Organization Onboarding
         </h1>
         <p className="card-meta" style={{ fontSize: "0.9375rem" }}>
-          Create a new company workspace as the initial Workspace Administrator, or join an existing organization using a verified invitation token.
+          Create a new company workspace as the initial Workspace Administrator, or join
+          an existing organization using a verified invitation token.
         </p>
       </section>
 
@@ -115,7 +139,11 @@ function OnboardingContent(): ReactNode {
         <div
           role="alert"
           className="state-panel state-panel--error"
-          style={{ padding: "0.875rem 1.25rem", textAlign: "left", borderRadius: "var(--radius-md)" }}
+          style={{
+            padding: "0.875rem 1.25rem",
+            textAlign: "left",
+            borderRadius: "var(--radius-md)",
+          }}
         >
           {error}
         </div>
@@ -139,7 +167,13 @@ function OnboardingContent(): ReactNode {
         </div>
       ) : null}
 
-      <div className="card-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(22rem, 1fr))", gap: "1.5rem" }}>
+      <div
+        className="card-grid"
+        style={{
+          gridTemplateColumns: "repeat(auto-fit, minmax(22rem, 1fr))",
+          gap: "1.5rem",
+        }}
+      >
         {/* Option 1: Create Organization */}
         <section
           className="card"
@@ -154,7 +188,14 @@ function OnboardingContent(): ReactNode {
           }}
         >
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                marginBottom: "0.5rem",
+              }}
+            >
               <span
                 style={{
                   width: "1.75rem",
@@ -180,7 +221,8 @@ function OnboardingContent(): ReactNode {
               </h2>
             </div>
             <p className="card-meta" style={{ marginBottom: "1.25rem" }}>
-              Transactionally provisions the workspace database schema and assigns your account as the initial Admin.
+              Transactionally provisions the workspace database schema and assigns your
+              account as the initial Admin.
             </p>
 
             <form
@@ -246,7 +288,14 @@ function OnboardingContent(): ReactNode {
                     minHeight: "var(--touch-target-min)",
                   }}
                 />
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem", display: "block" }}>
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "var(--text-muted)",
+                    marginTop: "0.25rem",
+                    display: "block",
+                  }}
+                >
                   Used for unique tenant identification and routing.
                 </span>
               </div>
@@ -261,7 +310,8 @@ function OnboardingContent(): ReactNode {
                   color: "var(--text-secondary)",
                 }}
               >
-                ✓ <strong>Admin Privileges:</strong> Full control over trip approvals, checklist templates, store directories, and team member invitations.
+                ✓ <strong>Admin Privileges:</strong> Full control over trip approvals,
+                checklist templates, store directories, and team member invitations.
               </div>
 
               <button
@@ -290,7 +340,14 @@ function OnboardingContent(): ReactNode {
           }}
         >
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                marginBottom: "0.5rem",
+              }}
+            >
               <span
                 style={{
                   width: "1.75rem",
@@ -316,7 +373,8 @@ function OnboardingContent(): ReactNode {
               </h2>
             </div>
             <p className="card-meta" style={{ marginBottom: "1.25rem" }}>
-              Paste your one-time invitation token. Your role is assigned strictly by your organization’s administrator.
+              Paste your one-time invitation token. Your role is assigned strictly by your
+              organization’s administrator.
             </p>
 
             <form
@@ -352,7 +410,14 @@ function OnboardingContent(): ReactNode {
                     fontSize: "0.8125rem",
                   }}
                 />
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem", display: "block" }}>
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "var(--text-muted)",
+                    marginTop: "0.25rem",
+                    display: "block",
+                  }}
+                >
                   Tokens are cryptographic, single-use, and expire automatically.
                 </span>
               </div>
@@ -367,7 +432,9 @@ function OnboardingContent(): ReactNode {
                   color: "var(--text-secondary)",
                 }}
               >
-                🔒 <strong>Cryptographic Verification:</strong> Role and organization access are validated server-side. Form tampering cannot elevate privileges.
+                🔒 <strong>Cryptographic Verification:</strong> Role and organization
+                access are validated server-side. Form tampering cannot elevate
+                privileges.
               </div>
 
               <button
@@ -388,7 +455,13 @@ function OnboardingContent(): ReactNode {
 
 export default function OnboardingPage(): ReactNode {
   return (
-    <Suspense fallback={<div className="card" style={{ padding: "2rem", textAlign: "center" }}>Loading workspace onboarding…</div>}>
+    <Suspense
+      fallback={
+        <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
+          Loading workspace onboarding…
+        </div>
+      }
+    >
       <OnboardingContent />
     </Suspense>
   );

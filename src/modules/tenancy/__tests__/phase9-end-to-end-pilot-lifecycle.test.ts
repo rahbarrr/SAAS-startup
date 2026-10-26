@@ -205,7 +205,12 @@ describe("Phase 9: End-to-End Full User-Journey Pilot Validation (13 Steps)", ()
 
     // Manager accepts invitation
     await runAs(MANAGER_ID, async () => {
-      const res = await db.query<{ organization_id: string; user_id: string; role: string; status: string }>(
+      const res = await db.query<{
+        organization_id: string;
+        user_id: string;
+        role: string;
+        status: string;
+      }>(
         `select organization_id, user_id, role, status from public.accept_organization_invitation($1)`,
         [mgrTokenHash]
       );
@@ -219,7 +224,12 @@ describe("Phase 9: End-to-End Full User-Journey Pilot Validation (13 Steps)", ()
 
     // Representative accepts invitation
     await runAs(REP_ID, async () => {
-      const res = await db.query<{ organization_id: string; user_id: string; role: string; status: string }>(
+      const res = await db.query<{
+        organization_id: string;
+        user_id: string;
+        role: string;
+        status: string;
+      }>(
         `select organization_id, user_id, role, status from public.accept_organization_invitation($1)`,
         [repTokenHash]
       );
@@ -330,7 +340,11 @@ describe("Phase 9: End-to-End Full User-Journey Pilot Validation (13 Steps)", ()
     expect(repTrips[0]?.title).toBe("Q4 Retail Display Audit");
 
     const stops = await runAs(REP_ID, async () => {
-      const res = await db.query<{ id: string; store_id: string; sequence_number: number }>(
+      const res = await db.query<{
+        id: string;
+        store_id: string;
+        sequence_number: number;
+      }>(
         `select id, store_id, sequence_number from public.trip_stops where trip_id = $1 order by sequence_number`,
         [tripId]
       );
@@ -366,10 +380,13 @@ describe("Phase 9: End-to-End Full User-Journey Pilot Validation (13 Steps)", ()
       );
     });
 
-    const approvedTrip = await db.query<{ status: string; decided_by: string; decision_note: string }>(
-      `select status, decided_by, decision_note from public.trips where id = $1`,
-      [tripId]
-    );
+    const approvedTrip = await db.query<{
+      status: string;
+      decided_by: string;
+      decision_note: string;
+    }>(`select status, decided_by, decision_note from public.trips where id = $1`, [
+      tripId,
+    ]);
     const row = requireRow(approvedTrip.rows[0]);
     expect(row.status).toBe("approved");
     expect(row.decided_by).toBe(MANAGER_ID);
@@ -475,10 +492,13 @@ describe("Phase 9: End-to-End Full User-Journey Pilot Validation (13 Steps)", ()
     expect(requireRow(stopCheck.rows[0]).status).toBe("visited");
 
     // Verify visit timestamps and notes
-    const visitCheck = await db.query<{ checked_in_at: string; checked_out_at: string; notes: string }>(
-      `select checked_in_at, checked_out_at, notes from public.visits where id = $1`,
-      [visitAId]
-    );
+    const visitCheck = await db.query<{
+      checked_in_at: string;
+      checked_out_at: string;
+      notes: string;
+    }>(`select checked_in_at, checked_out_at, notes from public.visits where id = $1`, [
+      visitAId,
+    ]);
     const v = requireRow(visitCheck.rows[0]);
     expect(v.checked_in_at).not.toBeNull();
     expect(v.checked_out_at).not.toBeNull();
@@ -736,7 +756,10 @@ describe("Phase 9: End-to-End Full User-Journey Pilot Validation (13 Steps)", ()
       executor: async (queuedOp) => {
         executionCount++;
         // Simulate successful server update
-        return { success: true, serverResponse: { updated: true, id: queuedOp.targetId } };
+        return {
+          success: true,
+          serverResponse: { updated: true, id: queuedOp.targetId },
+        };
       },
     });
 
@@ -760,4 +783,3 @@ describe("Phase 9: End-to-End Full User-Journey Pilot Validation (13 Steps)", ()
     expect(executionCount).toBe(1); // Not called again
   });
 });
-

@@ -51,9 +51,25 @@ export interface TripPlanningPromptInput {
 export interface ManagerBriefingPromptInput {
   briefingDate: string;
   metrics: BriefingMetrics;
-  tripsToday: readonly { id: string; title: string; ownerName: string; status: string; stopsCount: number }[];
-  overdueVisits: readonly { id: string; storeName: string; plannedAt: string | null; repName: string }[];
-  pendingApprovals: readonly { id: string; title: string; ownerName: string; submittedAt: string | null }[];
+  tripsToday: readonly {
+    id: string;
+    title: string;
+    ownerName: string;
+    status: string;
+    stopsCount: number;
+  }[];
+  overdueVisits: readonly {
+    id: string;
+    storeName: string;
+    plannedAt: string | null;
+    repName: string;
+  }[];
+  pendingApprovals: readonly {
+    id: string;
+    title: string;
+    ownerName: string;
+    submittedAt: string | null;
+  }[];
   missingEvidenceVisits: readonly { id: string; storeName: string; repName: string }[];
   repWorkloads: readonly BriefingWorkloadImbalance[];
   hasSufficientData: boolean;
@@ -61,9 +77,7 @@ export interface ManagerBriefingPromptInput {
 
 export interface AiIntelligenceProvider {
   providerName: string;
-  generateTripPlanningInsights(
-    input: TripPlanningPromptInput
-  ): Promise<AiTripPlanOutput>;
+  generateTripPlanningInsights(input: TripPlanningPromptInput): Promise<AiTripPlanOutput>;
   generateManagerDailyBriefing(
     input: ManagerBriefingPromptInput
   ): Promise<AiManagerBriefingOutput>;
@@ -157,7 +171,8 @@ export class HeuristicIntelligenceProvider implements AiIntelligenceProvider {
         id: "rec-split-trip",
         category: "workload",
         title: "Split Trip Across Additional Days",
-        rationale: "Exceeding 8 stops in a single shift correlates with missed compliance checklists and unrecorded evidence.",
+        rationale:
+          "Exceeding 8 stops in a single shift correlates with missed compliance checklists and unrecorded evidence.",
         suggestedAction: "Split high-density cluster into a multi-day itinerary.",
         sourceRecordIds: [input.tripId],
       });
@@ -167,7 +182,10 @@ export class HeuristicIntelligenceProvider implements AiIntelligenceProvider {
     }
 
     // 5. Sequence optimization recommendation
-    if (input.routeOptimization.isReordered && input.routeOptimization.distanceSavingsMeters > 500) {
+    if (
+      input.routeOptimization.isReordered &&
+      input.routeOptimization.distanceSavingsMeters > 500
+    ) {
       const kmSaved = (input.routeOptimization.distanceSavingsMeters / 1000).toFixed(1);
       recommendations.push({
         id: "rec-reorder-stops",
@@ -239,7 +257,8 @@ export class HeuristicIntelligenceProvider implements AiIntelligenceProvider {
         actionType: "review_trip",
         targetEntityId: pa.id,
         targetEntityType: "trip",
-        rationale: "Field employee cannot execute travel until trip receives formal manager authorization.",
+        rationale:
+          "Field employee cannot execute travel until trip receives formal manager authorization.",
         sourceRecordIds: [pa.id],
         status: "pending",
       });
@@ -342,7 +361,9 @@ export class OpenAiIntelligenceProvider implements AiIntelligenceProvider {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`OpenAI API failed with status ${response.status}: ${errorText.slice(0, 200)}`);
+        throw new Error(
+          `OpenAI API failed with status ${response.status}: ${errorText.slice(0, 200)}`
+        );
       }
 
       const json = await response.json();
@@ -406,7 +427,9 @@ export class OpenAiIntelligenceProvider implements AiIntelligenceProvider {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`OpenAI API failed with status ${response.status}: ${errorText.slice(0, 200)}`);
+        throw new Error(
+          `OpenAI API failed with status ${response.status}: ${errorText.slice(0, 200)}`
+        );
       }
 
       const json = await response.json();
@@ -442,7 +465,9 @@ export class ResilientAiIntelligenceProvider implements AiIntelligenceProvider {
     } else {
       this.primary = null;
     }
-    this.providerName = this.primary ? `resilient(${this.primary.providerName})` : "heuristic_fallback";
+    this.providerName = this.primary
+      ? `resilient(${this.primary.providerName})`
+      : "heuristic_fallback";
   }
 
   async generateTripPlanningInsights(

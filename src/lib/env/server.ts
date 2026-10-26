@@ -7,10 +7,7 @@ const serverEnvSchema = z.object({
     .string()
     .min(1, "SUPABASE_SERVICE_ROLE_KEY must be a non-empty string")
     .optional(),
-  CRON_SECRET: z
-    .string()
-    .min(1, "CRON_SECRET must be a non-empty string")
-    .optional(),
+  CRON_SECRET: z.string().min(1, "CRON_SECRET must be a non-empty string").optional(),
   OPENAI_API_KEY: z
     .string()
     .min(1, "OPENAI_API_KEY must be a non-empty string")

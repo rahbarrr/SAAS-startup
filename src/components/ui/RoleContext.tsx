@@ -1,66 +1,40 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useMemo,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 import type { OrgRole } from "@/modules/tenancy/domain";
 
-export interface DemoRoleProfile {
+export interface UserRoleProfile {
   role: OrgRole;
   userName: string;
-  userEmail: string;
+  userEmail: string | null;
   title: string;
   avatarInitials: string;
 }
 
-export const ROLE_PROFILES: Record<OrgRole, DemoRoleProfile> = {
-  admin: {
-    role: "admin",
-    userName: "Sarah Jenkins",
-    userEmail: "sarah.jenkins@apexretail.io",
-    title: "Director of Field Operations & Admin",
-    avatarInitials: "SJ",
-  },
-  manager: {
-    role: "manager",
-    userName: "Marcus Vance",
-    userEmail: "marcus.vance@apexretail.io",
-    title: "Regional Field Operations Manager",
-    avatarInitials: "MV",
-  },
-  field_employee: {
-    role: "field_employee",
-    userName: "Elena Rostova",
-    userEmail: "elena.rostova@apexretail.io",
-    title: "Senior Field Sales & Merchandising Rep",
-    avatarInitials: "ER",
-  },
-};
-
 export interface RoleContextValue {
   currentRole: OrgRole;
-  setRole: (role: OrgRole) => void;
-  profile: DemoRoleProfile;
+  profile: UserRoleProfile;
   isAuthenticated: boolean;
   authenticatedEmail?: string | null;
   authenticatedRole?: OrgRole;
 }
 
+const DEFAULT_GUEST_PROFILE: UserRoleProfile = {
+  role: "field_employee",
+  userName: "Guest User",
+  userEmail: null,
+  title: "Not signed in",
+  avatarInitials: "--",
+};
+
 const RoleContext = createContext<RoleContextValue>({
-  currentRole: "manager",
-  setRole: () => {},
-  profile: ROLE_PROFILES.manager,
+  currentRole: "field_employee",
+  profile: DEFAULT_GUEST_PROFILE,
   isAuthenticated: false,
 });
 
 export function RoleProvider({
   children,
-  initialRole = "manager",
   authenticatedEmail = null,
   authenticatedRole,
 }: {
@@ -69,40 +43,10 @@ export function RoleProvider({
   authenticatedEmail?: string | null;
   authenticatedRole?: OrgRole;
 }) {
-  const [role, setRoleState] = useState<OrgRole>(authenticatedRole || initialRole);
   const isAuthenticated = Boolean(authenticatedEmail && authenticatedRole);
+  const effectiveRole: OrgRole = authenticatedRole ?? "field_employee";
 
-  useEffect(() => {
-    if (isAuthenticated && authenticatedRole) {
-      setRoleState(authenticatedRole);
-      return;
-    }
-    try {
-      const saved = localStorage.getItem("fieldtrack_demo_role") as OrgRole;
-      if (saved && ROLE_PROFILES[saved]) {
-        setRoleState(saved);
-      }
-    } catch {
-      // localStorage may not be accessible in all environments
-    }
-  }, [isAuthenticated, authenticatedRole]);
-
-  function setRole(newRole: OrgRole) {
-    if (isAuthenticated) {
-      // In authenticated mode, client-side role switching is locked to prevent unauthorized tampering
-      return;
-    }
-    setRoleState(newRole);
-    try {
-      localStorage.setItem("fieldtrack_demo_role", newRole);
-    } catch {
-      // Ignore
-    }
-  }
-
-  const effectiveRole = isAuthenticated && authenticatedRole ? authenticatedRole : role;
-
-  const profile = useMemo<DemoRoleProfile>(() => {
+  const profile = useMemo<UserRoleProfile>(() => {
     if (isAuthenticated && authenticatedEmail && authenticatedRole) {
       const prefix = authenticatedEmail.split("@")[0] || "User";
       const words = prefix.replace(/[._-]/g, " ").split(" ").filter(Boolean);
@@ -120,8 +64,8 @@ export function RoleProvider({
         authenticatedRole === "admin"
           ? "Workspace Administrator"
           : authenticatedRole === "manager"
-          ? "Regional Operations Manager"
-          : "Field Merchandising Representative";
+            ? "Regional Operations Manager"
+            : "Field Merchandising Representative";
 
       return {
         role: authenticatedRole,
@@ -132,14 +76,13 @@ export function RoleProvider({
       };
     }
 
-    return ROLE_PROFILES[effectiveRole] || ROLE_PROFILES.manager;
-  }, [isAuthenticated, authenticatedEmail, authenticatedRole, effectiveRole]);
+    return DEFAULT_GUEST_PROFILE;
+  }, [isAuthenticated, authenticatedEmail, authenticatedRole]);
 
   return (
     <RoleContext.Provider
       value={{
         currentRole: effectiveRole,
-        setRole,
         profile,
         isAuthenticated,
         authenticatedEmail,

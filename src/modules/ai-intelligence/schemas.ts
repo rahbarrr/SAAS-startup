@@ -1,12 +1,14 @@
 import { z } from "zod";
 
 export const applyTripPlanRecommendationSchema = z.object({
-  proposedStopOrder: z.array(
-    z.object({
-      storeId: z.string().min(1, "storeId is required"),
-      plannedAt: z.string().nullable().optional(),
-    })
-  ).min(1, "At least one stop order item is required"),
+  proposedStopOrder: z
+    .array(
+      z.object({
+        storeId: z.string().min(1, "storeId is required"),
+        plannedAt: z.string().nullable().optional(),
+      })
+    )
+    .min(1, "At least one stop order item is required"),
   confirmApprovedTripModification: z.boolean().default(false),
 });
 
@@ -20,9 +22,7 @@ export const updateBriefingActionSchema = z.object({
   note: z.string().max(500).optional(),
 });
 
-export type UpdateBriefingActionInput = z.infer<
-  typeof updateBriefingActionSchema
->;
+export type UpdateBriefingActionInput = z.infer<typeof updateBriefingActionSchema>;
 
 export const aiTripPlanOutputSchema = z.object({
   conflicts: z.array(
@@ -72,7 +72,7 @@ export const aiManagerBriefingOutputSchema = z.object({
     z.object({
       id: z.string(),
       type: z.enum([
-        "overdue_visit" ,
+        "overdue_visit",
         "unapproved_trip",
         "missing_evidence",
         "missed_store",
@@ -103,6 +103,4 @@ export const aiManagerBriefingOutputSchema = z.object({
   dataCompletenessExplanation: z.string(),
 });
 
-export type AiManagerBriefingOutput = z.infer<
-  typeof aiManagerBriefingOutputSchema
->;
+export type AiManagerBriefingOutput = z.infer<typeof aiManagerBriefingOutputSchema>;

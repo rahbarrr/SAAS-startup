@@ -25,7 +25,15 @@ export function KpiCard({
   return (
     <article className={`kpi-card kpi-card--${variant}`}>
       <div className="card-header">
-        <h3 className="card-meta" style={{ fontWeight: 600, fontSize: "0.8125rem", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+        <h3
+          className="card-meta"
+          style={{
+            fontWeight: 600,
+            fontSize: "0.8125rem",
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+          }}
+        >
           {title}
         </h3>
         {badge}
@@ -44,10 +52,20 @@ export function KpiCard({
         </div>
       ) : null}
 
-      {subtitle ? <p className="card-meta" style={{ margin: "0.25rem 0 0" }}>{subtitle}</p> : null}
+      {subtitle ? (
+        <p className="card-meta" style={{ margin: "0.25rem 0 0" }}>
+          {subtitle}
+        </p>
+      ) : null}
 
       {formulaNote ? (
-        <div style={{ marginTop: "auto", paddingTop: "0.5rem", borderTop: "1px dashed var(--border-default)" }}>
+        <div
+          style={{
+            marginTop: "auto",
+            paddingTop: "0.5rem",
+            borderTop: "1px dashed var(--border-default)",
+          }}
+        >
           <span className="card-meta" style={{ fontSize: "0.75rem", display: "block" }}>
             <strong>Rule:</strong> {formulaNote}
           </span>

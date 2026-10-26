@@ -313,10 +313,9 @@ describe("Phase 9: Supabase Storage Security & Policy Invariants", () => {
       expect(updateRes.rows).toHaveLength(0);
 
       // DELETE yields 0 rows (default deny by RLS)
-      const deleteRes = await db.query(
-        `delete from storage.objects where name = $1`,
-        [objectPath]
-      );
+      const deleteRes = await db.query(`delete from storage.objects where name = $1`, [
+        objectPath,
+      ]);
       expect(deleteRes.rows).toHaveLength(0);
     });
   });

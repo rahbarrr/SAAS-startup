@@ -251,4 +251,3 @@ export interface OperationsReportSummary {
   definitions: Record<string, string>;
   rows: PlannedVsActualStopRow[];
 }
-

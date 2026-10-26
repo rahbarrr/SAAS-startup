@@ -1,37 +1,60 @@
 import type { ReactNode } from "react";
-import { TeamDirectoryClient } from "@/components/team/TeamDirectoryClient";
+import {
+  TeamDirectoryClient,
+  type TeamMemberDisplay,
+} from "@/components/team/TeamDirectoryClient";
 import { ErrorState } from "@/components/ui/States";
-import { getActiveOrgCookie } from "@/lib/auth/active-org-cookie";
-import { getAuthenticatedUser } from "@/lib/auth/session";
-import { createUserServerSupabaseClient } from "@/lib/supabase/server";
-import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
-import { resolveActiveWorkspaceForUser } from "@/modules/tenancy/service";
+import { requireActiveWorkspace } from "@/lib/auth/workspace-context";
+import type { OrganizationMembership } from "@/modules/tenancy/domain";
+import { listMembersForOrg } from "@/modules/tenancy/service";
 
 export default async function TeamPage(): Promise<ReactNode> {
-  let activeOrgId: string | undefined;
-  let activeOrgName: string | null = null;
-  let isAdmin = false;
+  const context = await requireActiveWorkspace();
+  const { user, activeOrgId, activeOrg, role, tenancyRepository } = context;
+
+  const isAdmin = role === "admin";
+  let members: TeamMemberDisplay[] = [];
   let errorMessage: string | null = null;
 
   try {
-    const supabase = await createUserServerSupabaseClient();
-    const user = await getAuthenticatedUser(supabase);
+    const membersResult = await listMembersForOrg({
+      user,
+      candidateOrgId: activeOrgId,
+      rawQuery: { limit: 100 },
+      repository: tenancyRepository,
+    });
 
-    if (user) {
-      const preferredOrgId = await getActiveOrgCookie();
-      const tenancyRepository = new SupabaseTenancyRepository(supabase);
-      const workspace = await resolveActiveWorkspaceForUser({
-        user,
-        preferredOrgId,
-        repository: tenancyRepository,
-      });
+    const userIds = membersResult.items.map((m: OrganizationMembership) => m.userId);
+    const profiles = tenancyRepository.getProfilesByUserIds
+      ? await tenancyRepository.getProfilesByUserIds(userIds)
+      : {};
 
-      if (workspace.activeOrganization) {
-        activeOrgId = workspace.activeOrganization.organization.id;
-        activeOrgName = workspace.activeOrganization.organization.name;
-        isAdmin = workspace.activeOrganization.membership.role === "admin";
-      }
-    }
+    members = membersResult.items.map((m: OrganizationMembership) => {
+      const prof = profiles[m.userId];
+      const name = prof?.fullName || `User (${m.userId.slice(0, 8)})`;
+      const email = prof?.email || "—";
+      const managerProf = m.managerUserId ? profiles[m.managerUserId] : null;
+
+      const title =
+        m.role === "admin"
+          ? "Workspace Administrator"
+          : m.role === "manager"
+            ? "Operations Manager"
+            : "Field Merchandising Representative";
+
+      return {
+        id: m.id,
+        userId: m.userId,
+        name,
+        email,
+        role: m.role,
+        status: m.status,
+        managerUserId: m.managerUserId,
+        managerName: managerProf?.fullName,
+        title,
+        createdAt: m.createdAt,
+      };
+    });
   } catch (err) {
     errorMessage =
       err instanceof Error
@@ -52,13 +75,12 @@ export default async function TeamPage(): Promise<ReactNode> {
     );
   }
 
-  const displayOrgName = activeOrgName ?? "Apex Retail Solutions (Demo)";
-
   return (
     <TeamDirectoryClient
       activeOrgId={activeOrgId}
-      activeOrgName={displayOrgName}
+      activeOrgName={activeOrg.name}
       isAdmin={isAdmin}
+      initialMembers={members}
     />
   );
 }

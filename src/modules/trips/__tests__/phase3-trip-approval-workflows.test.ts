@@ -134,7 +134,10 @@ describe("Phase 3: Production Trip and Approval Workflows", () => {
     };
   }
 
-  function createMockTripsRepo(initialTrip: Trip, initialStops: TripStop[]): TripsRepository {
+  function createMockTripsRepo(
+    initialTrip: Trip,
+    initialStops: TripStop[]
+  ): TripsRepository {
     let currentTrip = { ...initialTrip };
     const currentStops = [...initialStops];
 
@@ -153,10 +156,16 @@ describe("Phase 3: Production Trip and Approval Workflows", () => {
         currentTrip = {
           ...currentTrip,
           status: input.newStatus,
-          submittedAt: input.submittedAt !== undefined ? input.submittedAt : currentTrip.submittedAt,
-          decidedBy: input.decidedBy !== undefined ? input.decidedBy : currentTrip.decidedBy,
-          decidedAt: input.decidedAt !== undefined ? input.decidedAt : currentTrip.decidedAt,
-          decisionNote: input.decisionNote !== undefined ? input.decisionNote : currentTrip.decisionNote,
+          submittedAt:
+            input.submittedAt !== undefined ? input.submittedAt : currentTrip.submittedAt,
+          decidedBy:
+            input.decidedBy !== undefined ? input.decidedBy : currentTrip.decidedBy,
+          decidedAt:
+            input.decidedAt !== undefined ? input.decidedAt : currentTrip.decidedAt,
+          decisionNote:
+            input.decisionNote !== undefined
+              ? input.decisionNote
+              : currentTrip.decisionNote,
           updatedAt: "2026-10-25T10:30:00.000Z",
         };
         return {

@@ -2,14 +2,11 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ManagerDashboardClient } from "@/components/dashboard/ManagerDashboardClient";
 import { EmptyState, ErrorState } from "@/components/ui/States";
-import {
-  getApprovalStatusDescriptor,
-  getSyncStatusDescriptor,
-  StatusBadge,
-} from "@/components/ui/StatusBadge";
-import { getActiveOrgCookie } from "@/lib/auth/active-org-cookie";
-import { getAuthenticatedUser } from "@/lib/auth/session";
-import { createUserServerSupabaseClient } from "@/lib/supabase/server";
+import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
+import { requireActiveWorkspace } from "@/lib/auth/workspace-context";
+import type { OrganizationAuditEvent } from "@/modules/audit/domain";
+import { SupabaseAuditRepository } from "@/modules/audit/repository";
+import { listAuditEventsForOrg } from "@/modules/audit/service";
 import {
   DASHBOARD_METRIC_DEFINITIONS,
   type DashboardMetricsSummary,
@@ -17,8 +14,12 @@ import {
 } from "@/modules/reporting/domain";
 import { SupabaseReportingRepository } from "@/modules/reporting/repository";
 import { getManagerDashboardForOrg } from "@/modules/reporting/service";
-import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
-import { resolveActiveWorkspaceForUser } from "@/modules/tenancy/service";
+import type { Trip } from "@/modules/trips/domain";
+import { SupabaseTripsRepository } from "@/modules/trips/repository";
+import { listManagerApprovalInboxForOrg, listTripsForOrg } from "@/modules/trips/service";
+import type { Visit } from "@/modules/visits/domain";
+import { SupabaseVisitsRepository } from "@/modules/visits/repository";
+import { listVisitsForOrg } from "@/modules/visits/service";
 
 interface HomePageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -59,150 +60,10 @@ function buildEmptyMetricsSummary(referenceDateUtc: string): DashboardMetricsSum
   };
 }
 
-const DEMO_PLANNED_VS_ACTUAL_ROWS: PlannedVsActualStopRow[] = [
-  {
-    tripId: "trip-01",
-    tripTitle: "Q4 FMCG Shelf Audit & Endcap Compliance Route",
-    tripStatus: "in_progress",
-    tripStartDate: "2026-10-25",
-    tripEndDate: "2026-10-26",
-    ownerUserId: "Elena Rostova (Senior Rep)",
-    tripStopId: "stop-01",
-    sequenceNumber: 1,
-    storeId: "store-01",
-    storeName: "Metro Hypermarket — Downtown Central",
-    storeRegion: "Sector 4",
-    plannedAt: "2026-10-25 09:00:00",
-    plannedStopStatus: "visited",
-    actualVisitId: "visit-01",
-    actualVisitStatus: "reviewed",
-    checkedInAt: "2026-10-25 09:04 UTC",
-    checkedOutAt: "2026-10-25 10:22 UTC",
-    checkInLocation: {
-      status: "captured_unverified",
-      latitude: 37.7749,
-      longitude: -122.4194,
-      accuracyMeters: 8.4,
-      verificationNotice: "unverified_device_reported",
-      limitationExplanation: null,
-    },
-    checkOutLocation: {
-      status: "captured_unverified",
-      latitude: 37.7749,
-      longitude: -122.4194,
-      accuracyMeters: 8.4,
-      verificationNotice: "unverified_device_reported",
-      limitationExplanation: null,
-    },
-    requiredChecklistCompletedCount: 4,
-    requiredChecklistTotalCount: 4,
-    flaggedChecklistCount: 0,
-    evidenceCount: 2,
-    visitNotes: "Display verified on Aisle 3. 100% compliance score.",
-    requiresAttention: false,
-    attentionReasons: [],
-  },
-  {
-    tripId: "trip-01",
-    tripTitle: "Q4 FMCG Shelf Audit & Endcap Compliance Route",
-    tripStatus: "in_progress",
-    tripStartDate: "2026-10-25",
-    tripEndDate: "2026-10-26",
-    ownerUserId: "Elena Rostova (Senior Rep)",
-    tripStopId: "stop-02",
-    sequenceNumber: 2,
-    storeId: "store-06",
-    storeName: "Kroger Fresh Fare — Uptown Crossing",
-    storeRegion: "Downtown Central",
-    plannedAt: "2026-10-25 11:30:00",
-    plannedStopStatus: "visited",
-    actualVisitId: "visit-02",
-    actualVisitStatus: "submitted",
-    checkedInAt: "2026-10-25 11:35 UTC",
-    checkedOutAt: "2026-10-25 12:45 UTC",
-    checkInLocation: {
-      status: "captured_unverified",
-      latitude: 37.7885,
-      longitude: -122.4075,
-      accuracyMeters: 11.2,
-      verificationNotice: "unverified_device_reported",
-      limitationExplanation: null,
-    },
-    checkOutLocation: {
-      status: "captured_unverified",
-      latitude: 37.7885,
-      longitude: -122.4075,
-      accuracyMeters: 11.2,
-      verificationNotice: "unverified_device_reported",
-      limitationExplanation: null,
-    },
-    requiredChecklistCompletedCount: 3,
-    requiredChecklistTotalCount: 4,
-    flaggedChecklistCount: 1,
-    evidenceCount: 1,
-    visitNotes: "Out-of-stock tags missing for SKU-491. Exception flagged.",
-    requiresAttention: true,
-    attentionReasons: ["Stockout on SKU-491 (Sparkling Peach 12oz)"],
-  },
-  {
-    tripId: "trip-01",
-    tripTitle: "Q4 FMCG Shelf Audit & Endcap Compliance Route",
-    tripStatus: "in_progress",
-    tripStartDate: "2026-10-25",
-    tripEndDate: "2026-10-26",
-    ownerUserId: "Elena Rostova (Senior Rep)",
-    tripStopId: "stop-03",
-    sequenceNumber: 3,
-    storeId: "store-05",
-    storeName: "Costco Wholesale — South Industrial Terminal",
-    storeRegion: "South Industrial",
-    plannedAt: "2026-10-25 14:30:00",
-    plannedStopStatus: "planned",
-    actualVisitId: "visit-03",
-    actualVisitStatus: "in_progress",
-    checkedInAt: null,
-    checkedOutAt: null,
-    checkInLocation: null,
-    checkOutLocation: null,
-    requiredChecklistCompletedCount: 0,
-    requiredChecklistTotalCount: 3,
-    flaggedChecklistCount: 0,
-    evidenceCount: 0,
-    visitNotes: "En route. Scheduled for afternoon arrival.",
-    requiresAttention: false,
-    attentionReasons: [],
-  },
-  {
-    tripId: "trip-02",
-    tripTitle: "North Bay Plaza Display Refresh & Stock Count",
-    tripStatus: "submitted",
-    tripStartDate: "2026-10-26",
-    tripEndDate: "2026-10-26",
-    ownerUserId: "David Chen (Territory Merchandiser)",
-    tripStopId: "stop-04",
-    sequenceNumber: 1,
-    storeId: "store-02",
-    storeName: "Target Express — North Bay Plaza",
-    storeRegion: "North Bay Plaza",
-    plannedAt: "2026-10-26 10:00:00",
-    plannedStopStatus: "planned",
-    actualVisitId: null,
-    actualVisitStatus: "not_started",
-    checkedInAt: null,
-    checkedOutAt: null,
-    checkInLocation: null,
-    checkOutLocation: null,
-    requiredChecklistCompletedCount: 0,
-    requiredChecklistTotalCount: 2,
-    flaggedChecklistCount: 0,
-    evidenceCount: 0,
-    visitNotes: "",
-    requiresAttention: false,
-    attentionReasons: [],
-  },
-];
-
 export default async function HomePage(props: HomePageProps): Promise<ReactNode> {
+  const context = await requireActiveWorkspace();
+  const { user, activeOrgId, activeOrg, role, tenancyRepository, supabase } = context;
+
   const resolvedParams = (await props.searchParams) ?? {};
   const startDateFrom = pickSingleParam(resolvedParams.startDateFrom);
   const startDateTo = pickSingleParam(resolvedParams.startDateTo);
@@ -214,94 +75,89 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
   const cursor = pickSingleParam(resolvedParams.cursor);
 
   const referenceDateUtc = new Date().toISOString().slice(0, 10);
-  let activeOrgId: string | null = null;
-  let activeOrgName: string | null = null;
   let metrics: DashboardMetricsSummary = buildEmptyMetricsSummary(referenceDateUtc);
   let items: PlannedVsActualStopRow[] = [];
   let nextCursor: string | null = null;
   let accessNote: string | null = null;
   let dashboardError: string | null = null;
-  let isDemoData = false;
+
+  let pendingApprovals: readonly Trip[] = [];
+  let inProgressTrips: readonly Trip[] = [];
+  let recentVisits: readonly Visit[] = [];
+  let recentAuditEvents: readonly OrganizationAuditEvent[] = [];
 
   try {
-    const supabase = await createUserServerSupabaseClient();
-    const user = await getAuthenticatedUser(supabase);
-
-    if (user) {
-      const preferredOrgId = await getActiveOrgCookie();
-      const tenancyRepository = new SupabaseTenancyRepository(supabase);
-      const workspace = await resolveActiveWorkspaceForUser({
+    if (role === "manager" || role === "admin") {
+      const reportingRepository = new SupabaseReportingRepository(supabase);
+      const dashboard = await getManagerDashboardForOrg({
         user,
-        preferredOrgId,
-        repository: tenancyRepository,
+        candidateOrgId: activeOrgId,
+        rawQuery: {
+          startDateFrom,
+          startDateTo,
+          employeeUserId,
+          tripStatus,
+          visitStatus,
+          storeId,
+          onlyExceptions,
+          cursor,
+        },
+        tenancyRepository,
+        reportingRepository,
       });
+      metrics = dashboard.metrics;
+      items = dashboard.items;
+      nextCursor = dashboard.pagination.nextCursor;
 
-      if (workspace.activeOrganization) {
-        activeOrgId = workspace.activeOrganization.organization.id;
-        activeOrgName = workspace.activeOrganization.organization.name;
-        const role = workspace.activeOrganization.membership.role;
+      const tripsRepository = new SupabaseTripsRepository(supabase);
+      const visitsRepository = new SupabaseVisitsRepository(supabase);
+      const auditRepository = new SupabaseAuditRepository(supabase);
 
-        if (role === "manager" || role === "admin") {
-          const reportingRepository = new SupabaseReportingRepository(supabase);
-          const dashboard = await getManagerDashboardForOrg({
+      const [pendingResult, inProgressResult, visitsResult, auditResult] =
+        await Promise.all([
+          listManagerApprovalInboxForOrg({
             user,
             candidateOrgId: activeOrgId,
-            rawQuery: {
-              startDateFrom,
-              startDateTo,
-              employeeUserId,
-              tripStatus,
-              visitStatus,
-              storeId,
-              onlyExceptions,
-              cursor,
-            },
+            rawQuery: { status: "submitted", limit: 10 },
             tenancyRepository,
-            reportingRepository,
-          });
-          metrics = dashboard.metrics;
-          items = dashboard.items;
-          nextCursor = dashboard.pagination.nextCursor;
-        } else {
-          accessNote =
-            "You are signed in with a field_employee role. Organization-wide dashboard aggregates and CSV export require an active manager or admin membership.";
-        }
-      }
+            tripsRepository,
+          }).catch(() => ({ items: [] })),
+          listTripsForOrg({
+            user,
+            candidateOrgId: activeOrgId,
+            rawQuery: { status: "in_progress", limit: 10 },
+            tenancyRepository,
+            tripsRepository,
+          }).catch(() => ({ items: [] })),
+          listVisitsForOrg({
+            user,
+            candidateOrgId: activeOrgId,
+            rawQuery: { limit: 5 },
+            tenancyRepository,
+            visitsRepository,
+          }).catch(() => ({ items: [] })),
+          listAuditEventsForOrg({
+            user,
+            candidateOrgId: activeOrgId,
+            rawQuery: { limit: 5 },
+            tenancyRepository,
+            auditRepository,
+          }).catch(() => ({ items: [] })),
+        ]);
+
+      pendingApprovals = pendingResult.items;
+      inProgressTrips = inProgressResult.items;
+      recentVisits = visitsResult.items;
+      recentAuditEvents = auditResult.items;
+    } else {
+      accessNote =
+        "You are signed in with a field_employee role. Organization-wide dashboard aggregates and CSV export require an active manager or admin membership.";
     }
   } catch (err) {
     dashboardError =
       err instanceof Error
         ? err.message
         : "An unexpected error occurred while loading dashboard operational metrics.";
-  }
-
-  // Graceful fallback to enterprise demo data when unauthenticated or in preview mode
-  if (!activeOrgId && !dashboardError) {
-    isDemoData = true;
-    activeOrgName = "Apex Retail Solutions Ltd (Interactive Demo)";
-    metrics.tripsAwaitingApproval = 3;
-    metrics.approvedTrips = 14;
-    metrics.approvedTripsBreakdown = {
-      approvedNotStarted: 6,
-      inProgress: 4,
-      completedAllStopsCheckedOut: 4,
-    };
-    metrics.tripsByStatus = {
-      draft: 2,
-      submitted: 3,
-      approved: 14,
-      in_progress: 4,
-      completed: 18,
-      changes_requested: 2,
-      rejected: 1,
-    };
-    metrics.completedVisits = 38;
-    metrics.pendingVisits = 6;
-    metrics.exceptionsRequiringAttention = 2;
-
-    items = onlyExceptions === "true"
-      ? DEMO_PLANNED_VS_ACTUAL_ROWS.filter((r) => r.requiresAttention)
-      : DEMO_PLANNED_VS_ACTUAL_ROWS;
   }
 
   const exportQuery = new URLSearchParams();
@@ -313,9 +169,7 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
   if (storeId) exportQuery.set("storeId", storeId);
   if (onlyExceptions) exportQuery.set("onlyExceptions", onlyExceptions);
 
-  const exportHref = activeOrgId
-    ? `/api/orgs/${activeOrgId}/dashboard/export${exportQuery.toString() ? `?${exportQuery.toString()}` : ""}`
-    : "/reports";
+  const exportHref = `/api/orgs/${activeOrgId}/dashboard/export${exportQuery.toString() ? `?${exportQuery.toString()}` : ""}`;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
@@ -325,32 +179,19 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
           <div>
             <h1
               id="overview-heading"
-              style={{ margin: "0 0 0.25rem", fontSize: "1.625rem", fontFamily: "var(--font-heading)", color: "var(--brand-dark)" }}
+              style={{
+                margin: "0 0 0.25rem",
+                fontSize: "1.625rem",
+                fontFamily: "var(--font-heading)",
+                color: "var(--brand-dark)",
+              }}
             >
-              Manager Field Operations Dashboard
-              {activeOrgName ? ` — ${activeOrgName}` : ""}
+              Manager Field Operations Dashboard — {activeOrg.name}
             </h1>
             <p className="card-meta" style={{ margin: 0 }}>
-              Operational metrics computed from committed database state. All check-ins and evidence strictly isolated per tenant.
+              Operational metrics computed from committed database state. All check-ins
+              and evidence strictly isolated per tenant.
             </p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            {isDemoData ? (
-              <span
-                style={{
-                  background: "var(--status-info-bg)",
-                  color: "var(--brand-primary)",
-                  padding: "0.25rem 0.625rem",
-                  borderRadius: "var(--radius-full)",
-                  fontSize: "0.75rem",
-                  fontWeight: 700,
-                  border: "1px solid var(--status-info-border)",
-                }}
-              >
-                ⚡ Live Demo State
-              </span>
-            ) : null}
-            <StatusBadge descriptor={getSyncStatusDescriptor("synced")} />
           </div>
         </div>
       </section>
@@ -383,14 +224,34 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
               <StatusBadge descriptor={getApprovalStatusDescriptor("submitted")} />
             </Link>
           </div>
-          <p style={{ fontSize: "2.25rem", fontWeight: 700, margin: "0.25rem 0", fontFamily: "var(--font-heading)", color: "var(--text-primary)" }}>
+          <p
+            style={{
+              fontSize: "2.25rem",
+              fontWeight: 700,
+              margin: "0.25rem 0",
+              fontFamily: "var(--font-heading)",
+              color: "var(--text-primary)",
+            }}
+          >
             {metrics.tripsAwaitingApproval}
           </p>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.25rem" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: "0.25rem",
+            }}
+          >
             <p className="card-meta" style={{ margin: 0, fontSize: "0.75rem" }}>
-              <strong>Rule:</strong> {metrics.definitions.tripsAwaitingApproval.formulaSummary}
+              <strong>Rule:</strong>{" "}
+              {metrics.definitions.tripsAwaitingApproval.formulaSummary}
             </p>
-            <Link href="/approvals" className="btn btn-sm btn-outline" style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}>
+            <Link
+              href="/approvals"
+              className="btn btn-sm btn-outline"
+              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+            >
               Review →
             </Link>
           </div>
@@ -405,23 +266,47 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
               <StatusBadge descriptor={getApprovalStatusDescriptor("approved")} />
             </Link>
           </div>
-          <p style={{ fontSize: "2.25rem", fontWeight: 700, margin: "0.25rem 0", fontFamily: "var(--font-heading)", color: "var(--text-primary)" }}>
+          <p
+            style={{
+              fontSize: "2.25rem",
+              fontWeight: 700,
+              margin: "0.25rem 0",
+              fontFamily: "var(--font-heading)",
+              color: "var(--text-primary)",
+            }}
+          >
             {metrics.approvedTrips}
           </p>
           <p className="card-meta" style={{ margin: "0 0 0.25rem", fontSize: "0.75rem" }}>
-            Not Started: {metrics.approvedTripsBreakdown.approvedNotStarted} • In Progress: {metrics.approvedTripsBreakdown.inProgress} • Completed: {metrics.approvedTripsBreakdown.completedAllStopsCheckedOut}
+            Not Started: {metrics.approvedTripsBreakdown.approvedNotStarted} • In
+            Progress: {metrics.approvedTripsBreakdown.inProgress} • Completed:{" "}
+            {metrics.approvedTripsBreakdown.completedAllStopsCheckedOut}
           </p>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <p className="card-meta" style={{ margin: 0, fontSize: "0.75rem" }}>
-              <strong>Rule:</strong> {metrics.definitions.approvedTrips.completionRuleNote}
+              <strong>Rule:</strong>{" "}
+              {metrics.definitions.approvedTrips.completionRuleNote}
             </p>
-            <Link href="/?tripStatus=approved" className="btn btn-sm btn-outline" style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}>
+            <Link
+              href="/?tripStatus=approved"
+              className="btn btn-sm btn-outline"
+              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+            >
               Filter →
             </Link>
           </div>
         </article>
 
-        <article className="card" style={{ borderTop: "3px solid var(--status-success)" }}>
+        <article
+          className="card"
+          style={{ borderTop: "3px solid var(--status-success)" }}
+        >
           <div className="card-header">
             <h2 className="card-title" style={{ fontSize: "0.9375rem" }}>
               {metrics.definitions.completedVisits.label}
@@ -430,14 +315,32 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
               <StatusBadge descriptor={getApprovalStatusDescriptor("completed")} />
             </Link>
           </div>
-          <p style={{ fontSize: "2.25rem", fontWeight: 700, margin: "0.25rem 0", fontFamily: "var(--font-heading)", color: "var(--status-success)" }}>
+          <p
+            style={{
+              fontSize: "2.25rem",
+              fontWeight: 700,
+              margin: "0.25rem 0",
+              fontFamily: "var(--font-heading)",
+              color: "var(--status-success)",
+            }}
+          >
             {metrics.completedVisits}
           </p>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <p className="card-meta" style={{ margin: 0, fontSize: "0.75rem" }}>
               <strong>Rule:</strong> {metrics.definitions.completedVisits.formulaSummary}
             </p>
-            <Link href="/?visitStatus=submitted" className="btn btn-sm btn-outline" style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}>
+            <Link
+              href="/?visitStatus=submitted"
+              className="btn btn-sm btn-outline"
+              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+            >
               Filter →
             </Link>
           </div>
@@ -452,14 +355,32 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
               <StatusBadge descriptor={getApprovalStatusDescriptor("in_progress")} />
             </Link>
           </div>
-          <p style={{ fontSize: "2.25rem", fontWeight: 700, margin: "0.25rem 0", fontFamily: "var(--font-heading)", color: "var(--text-primary)" }}>
+          <p
+            style={{
+              fontSize: "2.25rem",
+              fontWeight: 700,
+              margin: "0.25rem 0",
+              fontFamily: "var(--font-heading)",
+              color: "var(--text-primary)",
+            }}
+          >
             {metrics.pendingVisits}
           </p>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <p className="card-meta" style={{ margin: 0, fontSize: "0.75rem" }}>
               <strong>Rule:</strong> {metrics.definitions.pendingVisits.formulaSummary}
             </p>
-            <Link href="/?visitStatus=in_progress" className="btn btn-sm btn-outline" style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}>
+            <Link
+              href="/?visitStatus=in_progress"
+              className="btn btn-sm btn-outline"
+              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+            >
               Filter →
             </Link>
           </div>
@@ -471,17 +392,38 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
               {metrics.definitions.exceptionsRequiringAttention.label}
             </h2>
             <Link href="/?onlyExceptions=true" style={{ textDecoration: "none" }}>
-              <StatusBadge descriptor={getApprovalStatusDescriptor("changes_requested")} />
+              <StatusBadge
+                descriptor={getApprovalStatusDescriptor("changes_requested")}
+              />
             </Link>
           </div>
-          <p style={{ fontSize: "2.25rem", fontWeight: 700, margin: "0.25rem 0", fontFamily: "var(--font-heading)", color: "var(--status-danger)" }}>
+          <p
+            style={{
+              fontSize: "2.25rem",
+              fontWeight: 700,
+              margin: "0.25rem 0",
+              fontFamily: "var(--font-heading)",
+              color: "var(--status-danger)",
+            }}
+          >
             {metrics.exceptionsRequiringAttention}
           </p>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <p className="card-meta" style={{ margin: 0, fontSize: "0.75rem" }}>
-              <strong>Rule:</strong> {metrics.definitions.exceptionsRequiringAttention.formulaSummary}
+              <strong>Rule:</strong>{" "}
+              {metrics.definitions.exceptionsRequiringAttention.formulaSummary}
             </p>
-            <Link href="/?onlyExceptions=true" className="btn btn-sm btn-outline" style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}>
+            <Link
+              href="/?onlyExceptions=true"
+              className="btn btn-sm btn-outline"
+              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+            >
               Exceptions →
             </Link>
           </div>
@@ -489,8 +431,14 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
 
         <article className="card" style={{ borderTop: "3px solid var(--border-strong)" }}>
           <div className="card-header">
-            <h2 className="card-title" style={{ fontSize: "0.9375rem" }}>Trips by Status</h2>
-            <Link href="/reports" className="btn btn-sm btn-outline" style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>
+            <h2 className="card-title" style={{ fontSize: "0.9375rem" }}>
+              Trips by Status
+            </h2>
+            <Link
+              href="/reports"
+              className="btn btn-sm btn-outline"
+              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
+            >
               Reports →
             </Link>
           </div>
@@ -506,21 +454,37 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
               fontSize: "0.8125rem",
             }}
           >
-            <span className="card-meta">Submitted: <strong>{metrics.tripsByStatus.submitted}</strong></span>
+            <span className="card-meta">
+              Submitted: <strong>{metrics.tripsByStatus.submitted}</strong>
+            </span>
             <span className="card-meta">•</span>
-            <span className="card-meta">Approved: <strong>{metrics.tripsByStatus.approved}</strong></span>
+            <span className="card-meta">
+              Approved: <strong>{metrics.tripsByStatus.approved}</strong>
+            </span>
             <span className="card-meta">•</span>
-            <span className="card-meta">In Progress: <strong>{metrics.tripsByStatus.in_progress}</strong></span>
+            <span className="card-meta">
+              In Progress: <strong>{metrics.tripsByStatus.in_progress}</strong>
+            </span>
             <span className="card-meta">•</span>
-            <span className="card-meta">Completed: <strong>{metrics.tripsByStatus.completed}</strong></span>
+            <span className="card-meta">
+              Completed: <strong>{metrics.tripsByStatus.completed}</strong>
+            </span>
             <span className="card-meta">•</span>
-            <span className="card-meta">Draft: <strong>{metrics.tripsByStatus.draft}</strong></span>
+            <span className="card-meta">
+              Draft: <strong>{metrics.tripsByStatus.draft}</strong>
+            </span>
           </div>
         </article>
       </section>
 
-      {/* Interactive Manager Dashboard Client (Active Itineraries, Approvals Queue, Store Feed & Timeline) */}
-      <ManagerDashboardClient isDemoData={isDemoData} />
+      {/* Database-Driven Manager Operations Telemetry */}
+      <ManagerDashboardClient
+        pendingApprovals={pendingApprovals}
+        inProgressTrips={inProgressTrips}
+        recentVisits={recentVisits}
+        timelineEvents={recentAuditEvents}
+        activeOrgId={activeOrgId}
+      />
 
       {/* Filter and CSV Export Section */}
       <section className="card" aria-labelledby="dashboard-filters-heading">
@@ -530,7 +494,8 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
               Filter Authorized Results &amp; Export CSV
             </h2>
             <p className="card-meta">
-              {metrics.timezoneBoundaryNote} Reference Date (UTC): <code>{metrics.referenceDateUtc}</code>
+              {metrics.timezoneBoundaryNote} Reference Date (UTC):{" "}
+              <code>{metrics.referenceDateUtc}</code>
             </p>
           </div>
           {exportHref ? (
@@ -543,7 +508,12 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
         <form
           method="get"
           action="/"
-          style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "0.5rem" }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+            marginTop: "0.5rem",
+          }}
         >
           <div className="card-grid">
             <div className="form-group">
@@ -665,7 +635,8 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
           </span>
         </div>
         <p className="card-meta" style={{ margin: "0 0 0.75rem" }}>
-          Location is displayed strictly as a point-in-time check-in/out record, not live tracking. Device coordinates are unverified device-reported values.
+          Location is displayed strictly as a point-in-time check-in/out record, not live
+          tracking. Device coordinates are unverified device-reported values.
         </p>
 
         {items.length === 0 ? (
@@ -680,94 +651,100 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Trip &amp; Stop</th>
-                  <th>Trip Status</th>
-                  <th>Dates (UTC)</th>
-                  <th>Representative</th>
-                  <th>Check-In (UTC)</th>
-                  <th>Check-Out (UTC)</th>
-                  <th>Checklist</th>
-                  <th>Evidence</th>
-                  <th>Status / Flag</th>
-                  <th>Actions</th>
+                  <th scope="col">Trip</th>
+                  <th scope="col">Stop</th>
+                  <th scope="col">Store / Territory</th>
+                  <th scope="col">Planned At (UTC)</th>
+                  <th scope="col">Check-In / Out</th>
+                  <th scope="col">Checklist</th>
+                  <th scope="col">Evidence</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((row) => (
-                  <tr key={row.tripStopId}>
+                  <tr
+                    key={row.tripStopId}
+                    style={{
+                      background: row.requiresAttention
+                        ? "rgba(239, 68, 68, 0.04)"
+                        : undefined,
+                    }}
+                  >
                     <td>
-                      <div>
-                        <strong>Stop #{row.sequenceNumber}: {row.storeName}</strong>
-                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{row.tripTitle}</div>
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        <strong style={{ fontSize: "0.875rem" }}>{row.tripTitle}</strong>
+                        <span className="card-meta" style={{ fontSize: "0.75rem" }}>
+                          Rep: {row.ownerUserId}
+                        </span>
+                      </div>
+                    </td>
+                    <td>Stop #{row.sequenceNumber}</td>
+                    <td>
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        <span>{row.storeName}</span>
+                        <span className="card-meta" style={{ fontSize: "0.75rem" }}>
+                          {row.storeRegion}
+                        </span>
+                      </div>
+                    </td>
+                    <td>{row.plannedAt}</td>
+                    <td>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          fontSize: "0.75rem",
+                        }}
+                      >
+                        <span>In: {row.checkedInAt ?? "—"}</span>
+                        <span>Out: {row.checkedOutAt ?? "—"}</span>
                       </div>
                     </td>
                     <td>
-                      <StatusBadge descriptor={getApprovalStatusDescriptor(row.tripStatus)} />
+                      {row.requiredChecklistCompletedCount} /{" "}
+                      {row.requiredChecklistTotalCount}
+                      {row.flaggedChecklistCount > 0 ? (
+                        <span
+                          style={{
+                            color: "var(--status-danger)",
+                            marginLeft: "0.25rem",
+                            fontWeight: 700,
+                          }}
+                        >
+                          ({row.flaggedChecklistCount} flagged)
+                        </span>
+                      ) : null}
                     </td>
-                    <td style={{ fontSize: "0.8125rem" }}>
-                      {row.tripStartDate} to {row.tripEndDate}
-                    </td>
-                    <td style={{ fontSize: "0.8125rem", fontWeight: 500 }}>
-                      {row.ownerUserId}
-                    </td>
-                    <td style={{ fontSize: "0.8125rem" }}>
-                      {row.checkedInAt ?? "—"}
-                    </td>
-                    <td style={{ fontSize: "0.8125rem" }}>
-                      {row.checkedOutAt ?? "—"}
-                    </td>
+                    <td>{row.evidenceCount} photos</td>
                     <td>
                       <span
                         style={{
                           fontSize: "0.75rem",
                           fontWeight: 600,
-                          color: row.requiredChecklistCompletedCount === row.requiredChecklistTotalCount ? "var(--status-success)" : "var(--text-secondary)",
+                          textTransform: "capitalize",
+                          padding: "0.125rem 0.5rem",
+                          borderRadius: "var(--radius-full)",
+                          background: row.requiresAttention
+                            ? "var(--status-danger-bg)"
+                            : "var(--status-info-bg)",
+                          color: row.requiresAttention
+                            ? "var(--status-danger-text)"
+                            : "var(--brand-primary)",
                         }}
                       >
-                        {row.requiredChecklistCompletedCount}/{row.requiredChecklistTotalCount}
+                        {row.actualVisitStatus ?? row.plannedStopStatus}
                       </span>
                     </td>
                     <td>
-                      <span style={{ fontSize: "0.75rem" }}>{row.evidenceCount} files</span>
-                    </td>
-                    <td>
-                      {row.requiresAttention ? (
-                        <span
-                          style={{
-                            fontSize: "0.75rem",
-                            fontWeight: 700,
-                            color: "var(--status-danger)",
-                            background: "var(--status-danger-bg)",
-                            padding: "0.125rem 0.375rem",
-                            borderRadius: "var(--radius-sm)",
-                            border: "1px solid var(--status-danger-border)",
-                          }}
-                        >
-                          Attention
-                        </span>
-                      ) : (
-                        <span
-                          style={{
-                            fontSize: "0.75rem",
-                            color: "var(--status-success)",
-                            fontWeight: 600,
-                          }}
-                        >
-                          Normal
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: "0.375rem" }}>
-                        <Link href={`/trips/${row.tripId}`} className="btn btn-sm btn-secondary" style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}>
-                          Trip
-                        </Link>
-                        {row.actualVisitId ? (
-                          <Link href={`/visits/${row.actualVisitId}`} className="btn btn-sm btn-outline" style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}>
-                            Visit
-                          </Link>
-                        ) : null}
-                      </div>
+                      <Link
+                        href={`/trips/${row.tripId}`}
+                        className="btn btn-sm btn-secondary"
+                        style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
+                      >
+                        Trip →
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -777,18 +754,9 @@ export default async function HomePage(props: HomePageProps): Promise<ReactNode>
         )}
 
         {nextCursor ? (
-          <div style={{ marginTop: "1rem" }}>
+          <div style={{ padding: "1rem 0 0", textAlign: "center" }}>
             <Link
-              href={`/?${new URLSearchParams({
-                ...(startDateFrom ? { startDateFrom } : {}),
-                ...(startDateTo ? { startDateTo } : {}),
-                ...(employeeUserId ? { employeeUserId } : {}),
-                ...(tripStatus ? { tripStatus } : {}),
-                ...(visitStatus ? { visitStatus } : {}),
-                ...(storeId ? { storeId } : {}),
-                ...(onlyExceptions ? { onlyExceptions } : {}),
-                cursor: nextCursor,
-              }).toString()}`}
+              href={`/?cursor=${encodeURIComponent(nextCursor)}`}
               className="btn btn-secondary"
             >
               Load Next Page

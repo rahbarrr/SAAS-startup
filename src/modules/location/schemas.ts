@@ -27,7 +27,12 @@ export const listBreadcrumbsQuerySchema = z.object({
 export type ListBreadcrumbsQuery = z.infer<typeof listBreadcrumbsQuerySchema>;
 
 export const purgeBreadcrumbsInputSchema = z.object({
-  retentionDays: z.coerce.number().int().min(7, "Minimum retention is 7 days").max(365).default(30),
+  retentionDays: z.coerce
+    .number()
+    .int()
+    .min(7, "Minimum retention is 7 days")
+    .max(365)
+    .default(30),
 });
 
 export type PurgeBreadcrumbsInput = z.infer<typeof purgeBreadcrumbsInputSchema>;

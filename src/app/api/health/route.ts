@@ -49,10 +49,7 @@ export async function GET(request?: Request): Promise<NextResponse<HealthCheckRe
     const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
       ? createAdminServerSupabaseClient()
       : await createUserServerSupabaseClient();
-    const { error } = await supabase
-      .from("organizations")
-      .select("id")
-      .limit(1);
+    const { error } = await supabase.from("organizations").select("id").limit(1);
 
     dbLatencyMs = Date.now() - startDbCheck;
     if (error) {

@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  buildManagerReportCsv,
-  sanitizeAndQuoteCsvText,
-} from "@/modules/reporting/csv";
+import { buildManagerReportCsv, sanitizeAndQuoteCsvText } from "@/modules/reporting/csv";
 import type {
   OrgOperationalDataset,
   ReportingRepository,
@@ -25,9 +22,7 @@ class MockTenancyRepo implements TenancyRepository {
     userId: string,
     orgId: string
   ): Promise<OrganizationMembership | null> {
-    return (
-      this.memberships.find((m) => m.userId === userId && m.orgId === orgId) ?? null
-    );
+    return this.memberships.find((m) => m.userId === userId && m.orgId === orgId) ?? null;
   }
 
   async listUserOrganizations(userId: string): Promise<UserOrganizationSummary[]> {

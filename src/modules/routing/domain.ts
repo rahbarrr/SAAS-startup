@@ -10,9 +10,7 @@ export interface LatLng {
   longitude: number;
 }
 
-export type DistanceMeasurementType =
-  | "straight_line_haversine"
-  | "road_network_driving";
+export type DistanceMeasurementType = "straight_line_haversine" | "road_network_driving";
 
 export const HAVERSINE_DISCLAIMER =
   "Distance and duration are calculated as a straight-line (geodesic haversine) estimate. Actual road geometry, one-way streets, terrain, and traffic conditions are not included.";

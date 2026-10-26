@@ -34,7 +34,9 @@ export function AuditLogViewerClient({
   const [actorIdFilter, setActorIdFilter] = useState<string>("");
 
   // Inspect changes modal
-  const [inspectingEvent, setInspectingEvent] = useState<OrganizationAuditEvent | null>(null);
+  const [inspectingEvent, setInspectingEvent] = useState<OrganizationAuditEvent | null>(
+    null
+  );
 
   const fetchLogs = useCallback(
     async (cursor?: string | null) => {
@@ -113,7 +115,11 @@ export function AuditLogViewerClient({
     if (action.includes("approved") || action.includes("created")) {
       return { bg: "rgba(5, 150, 105, 0.12)", color: "var(--success-green, #059669)" };
     }
-    if (action.includes("rejected") || action.includes("revoked") || action.includes("deleted")) {
+    if (
+      action.includes("rejected") ||
+      action.includes("revoked") ||
+      action.includes("deleted")
+    ) {
       return { bg: "rgba(239, 68, 68, 0.12)", color: "var(--danger-red, #ef4444)" };
     }
     if (action.includes("export") || action.includes("submitted")) {
@@ -141,11 +147,18 @@ export function AuditLogViewerClient({
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <span style={{ fontSize: "1.25rem" }}>🛡️</span>
           <div>
-            <div style={{ fontWeight: 600, color: "var(--brand-dark)", fontSize: "0.875rem" }}>
+            <div
+              style={{
+                fontWeight: 600,
+                color: "var(--brand-dark)",
+                fontSize: "0.875rem",
+              }}
+            >
               Enterprise Immutable Audit Trail
             </div>
             <div style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
-              Protected by PostgreSQL append-only triggers and tenant RLS. Historical records cannot be modified or deleted.
+              Protected by PostgreSQL append-only triggers and tenant RLS. Historical
+              records cannot be modified or deleted.
             </div>
           </div>
         </div>
@@ -187,7 +200,9 @@ export function AuditLogViewerClient({
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-          <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}>
+          <label
+            style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}
+          >
             Action Type
           </label>
           <select
@@ -211,7 +226,9 @@ export function AuditLogViewerClient({
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-          <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}>
+          <label
+            style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}
+          >
             Entity Type
           </label>
           <select
@@ -231,7 +248,9 @@ export function AuditLogViewerClient({
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-          <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}>
+          <label
+            style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}
+          >
             From Date (UTC)
           </label>
           <input
@@ -244,7 +263,9 @@ export function AuditLogViewerClient({
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-          <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}>
+          <label
+            style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}
+          >
             To Date (UTC)
           </label>
           <input
@@ -256,8 +277,18 @@ export function AuditLogViewerClient({
           />
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", flex: 1, minWidth: "180px" }}>
-          <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.25rem",
+            flex: 1,
+            minWidth: "180px",
+          }}
+        >
+          <label
+            style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}
+          >
             Actor User ID
           </label>
           <input
@@ -308,8 +339,17 @@ export function AuditLogViewerClient({
                   const badgeStyle = getActionBadgeColor(ev.actionType);
                   return (
                     <tr key={ev.id}>
-                      <td style={{ padding: "0.75rem 1rem", fontSize: "0.8125rem", whiteSpace: "nowrap" }}>
-                        {new Date(ev.createdAt).toISOString().replace("T", " ").slice(0, 19)}
+                      <td
+                        style={{
+                          padding: "0.75rem 1rem",
+                          fontSize: "0.8125rem",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {new Date(ev.createdAt)
+                          .toISOString()
+                          .replace("T", " ")
+                          .slice(0, 19)}
                       </td>
                       <td style={{ padding: "0.75rem 1rem" }}>
                         <span
@@ -338,7 +378,13 @@ export function AuditLogViewerClient({
                           {ev.entityId.slice(0, 8)}…
                         </span>
                       </td>
-                      <td style={{ padding: "0.75rem 1rem", fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
+                      <td
+                        style={{
+                          padding: "0.75rem 1rem",
+                          fontSize: "0.8125rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
                         {ev.reason ?? "—"}
                       </td>
                       <td style={{ padding: "0.75rem 1rem", textAlign: "right" }}>
@@ -360,7 +406,13 @@ export function AuditLogViewerClient({
         </div>
 
         {nextCursor ? (
-          <div style={{ padding: "1rem", textAlign: "center", borderTop: "1px solid var(--border-subtle)" }}>
+          <div
+            style={{
+              padding: "1rem",
+              textAlign: "center",
+              borderTop: "1px solid var(--border-subtle)",
+            }}
+          >
             <button
               type="button"
               onClick={() => void fetchLogs(nextCursor)}
@@ -380,12 +432,27 @@ export function AuditLogViewerClient({
           onClose={() => setInspectingEvent(null)}
           title={`Audit Event: ${inspectingEvent.actionType}`}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", fontSize: "0.875rem" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: "0.5rem" }}>
-              <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>Event ID:</span>
-              <span style={{ fontFamily: "monospace", fontSize: "0.8125rem" }}>{inspectingEvent.id}</span>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+              fontSize: "0.875rem",
+            }}
+          >
+            <div
+              style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: "0.5rem" }}
+            >
+              <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>
+                Event ID:
+              </span>
+              <span style={{ fontFamily: "monospace", fontSize: "0.8125rem" }}>
+                {inspectingEvent.id}
+              </span>
 
-              <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>Timestamp:</span>
+              <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>
+                Timestamp:
+              </span>
               <span>{inspectingEvent.createdAt} (UTC)</span>
 
               <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>Entity:</span>
@@ -395,26 +462,39 @@ export function AuditLogViewerClient({
 
               <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>Actor:</span>
               <span>
-                {inspectingEvent.actorUserId ?? "System"} (Role: {inspectingEvent.actorRole ?? "system"})
+                {inspectingEvent.actorUserId ?? "System"} (Role:{" "}
+                {inspectingEvent.actorRole ?? "system"})
               </span>
 
               {inspectingEvent.correlationId ? (
                 <>
-                  <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>Correlation:</span>
-                  <span style={{ fontFamily: "monospace" }}>{inspectingEvent.correlationId}</span>
+                  <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>
+                    Correlation:
+                  </span>
+                  <span style={{ fontFamily: "monospace" }}>
+                    {inspectingEvent.correlationId}
+                  </span>
                 </>
               ) : null}
 
               {inspectingEvent.reason ? (
                 <>
-                  <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>Reason:</span>
+                  <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>
+                    Reason:
+                  </span>
                   <span>{inspectingEvent.reason}</span>
                 </>
               ) : null}
             </div>
 
             <div>
-              <div style={{ fontWeight: 600, color: "var(--brand-dark)", marginBottom: "0.25rem" }}>
+              <div
+                style={{
+                  fontWeight: 600,
+                  color: "var(--brand-dark)",
+                  marginBottom: "0.25rem",
+                }}
+              >
                 Recorded State Changes (Sanitized):
               </div>
               <pre

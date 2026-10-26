@@ -81,7 +81,7 @@ class MockAuditRepo implements AuditRepository {
 
     const items = filtered.slice(startIndex, startIndex + limit);
     const nextCursor =
-      startIndex + limit < filtered.length ? items[items.length - 1]?.id ?? null : null;
+      startIndex + limit < filtered.length ? (items[items.length - 1]?.id ?? null) : null;
 
     return {
       items,
@@ -98,9 +98,12 @@ class MockAuditRepo implements AuditRepository {
     filter: AuditExportFilter
   ): Promise<OrganizationAuditEvent[]> {
     let filtered = this.events.filter((e) => e.orgId === orgId);
-    if (filter.actionType) filtered = filtered.filter((e) => e.actionType === filter.actionType);
-    if (filter.entityType) filtered = filtered.filter((e) => e.entityType === filter.entityType);
-    if (filter.actorUserId) filtered = filtered.filter((e) => e.actorUserId === filter.actorUserId);
+    if (filter.actionType)
+      filtered = filtered.filter((e) => e.actionType === filter.actionType);
+    if (filter.entityType)
+      filtered = filtered.filter((e) => e.entityType === filter.entityType);
+    if (filter.actorUserId)
+      filtered = filtered.filter((e) => e.actorUserId === filter.actorUserId);
     if (filter.startDateFrom) {
       const from = filter.startDateFrom;
       filtered = filtered.filter((e) => e.createdAt >= from);
@@ -122,9 +125,7 @@ class MockTenancyRepo implements TenancyRepository {
     userId: string,
     orgId: string
   ): Promise<OrganizationMembership | null> {
-    return (
-      this.memberships.find((m) => m.userId === userId && m.orgId === orgId) ?? null
-    );
+    return this.memberships.find((m) => m.userId === userId && m.orgId === orgId) ?? null;
   }
 
   async listUserOrganizations(userId: string): Promise<UserOrganizationSummary[]> {
@@ -221,7 +222,7 @@ describe("Workstream 1 & 2: Immutable Enterprise Audit Trail and Secure Export",
 
   describe("CSV Formula Injection Protection (OWASP / RFC 4180)", () => {
     it("neutralizes formulas starting with '=', '+', '-', '@', tab, and carriage return", () => {
-      expect(sanitizeCsvCell("=CMD('calc')")).toBe('"\'=CMD(\'calc\')"');
+      expect(sanitizeCsvCell("=CMD('calc')")).toBe("\"'=CMD('calc')\"");
       expect(sanitizeCsvCell("+1234567")).toBe('"\'\x2b1234567"');
       expect(sanitizeCsvCell("-2+5")).toBe('"\'\x2d2+5"');
       expect(sanitizeCsvCell("@SUM(A1:A10)")).toBe('"\'@SUM(A1:A10)"');
@@ -328,7 +329,12 @@ describe("Workstream 1 & 2: Immutable Enterprise Audit Trail and Secure Export",
       await recordAuditEventForOrg({
         user: adminUser,
         candidateOrgId: orgId,
-        input: { orgId, actionType: "visit.checked_in", entityType: "visit", entityId: "v-1" },
+        input: {
+          orgId,
+          actionType: "visit.checked_in",
+          entityType: "visit",
+          entityId: "v-1",
+        },
         tenancyRepository: tenancyRepo,
         auditRepository: auditRepo,
       });
@@ -354,7 +360,12 @@ describe("Workstream 1 & 2: Immutable Enterprise Audit Trail and Secure Export",
       await recordAuditEventForOrg({
         user: adminUser,
         candidateOrgId: orgId,
-        input: { orgId, actionType: "trip.approved", entityType: "trip", entityId: "t-1" },
+        input: {
+          orgId,
+          actionType: "trip.approved",
+          entityType: "trip",
+          entityId: "t-1",
+        },
         tenancyRepository: tenancyRepo,
         auditRepository: auditRepo,
       });
@@ -372,7 +383,9 @@ describe("Workstream 1 & 2: Immutable Enterprise Audit Trail and Secure Export",
       expect(exportResult.content).toContain("trip.approved");
 
       // Verify that the export itself was audited
-      const exportAuditEvent = auditRepo.events.find((e) => e.actionType === "audit.exported");
+      const exportAuditEvent = auditRepo.events.find(
+        (e) => e.actionType === "audit.exported"
+      );
       expect(exportAuditEvent).toBeDefined();
       expect(exportAuditEvent?.actorUserId).toBe(adminUser.id);
       expect(exportAuditEvent?.entityType).toBe("audit_export");

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, type ReactNode, useState } from "react";
+import { type FormEvent, type ReactNode, useMemo, useState } from "react";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { createInFlightActionGuard } from "@/lib/ux/formatting-and-resilience";
 import type { Store } from "@/modules/stores/domain";
@@ -10,19 +10,39 @@ export interface StoresDirectoryClientProps {
   activeOrgId: string;
   canWrite: boolean;
   initialStores: readonly Store[];
-  isDemo?: boolean;
 }
 
 export function StoresDirectoryClient({
   activeOrgId,
   canWrite,
   initialStores,
-  isDemo = false,
 }: StoresDirectoryClientProps): ReactNode {
   const [stores, setStores] = useState<Store[]>([...initialStores]);
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+
+  const dynamicClusters = useMemo(() => {
+    const clusterMap = new Map<string, number>();
+    for (const store of stores) {
+      if (store.region) {
+        clusterMap.set(store.region, (clusterMap.get(store.region) ?? 0) + 1);
+      }
+    }
+    const colors = [
+      "var(--brand-primary)",
+      "var(--brand-dark)",
+      "var(--brand-accent)",
+      "var(--success-green)",
+      "#8B5CF6",
+      "#F59E0B",
+    ];
+    return Array.from(clusterMap.entries()).map(([clusterName, doors], idx) => ({
+      name: clusterName,
+      doors,
+      color: colors[idx % colors.length],
+    }));
+  }, [stores]);
 
   // Form fields
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -159,34 +179,6 @@ export function StoresDirectoryClient({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      {isDemo && (
-        <div
-          role="status"
-          style={{
-            padding: "0.75rem 1rem",
-            backgroundColor: "rgba(27, 53, 128, 0.06)",
-            border: "1px solid rgba(27, 53, 128, 0.18)",
-            borderRadius: "var(--radius-md)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            fontSize: "0.875rem",
-            color: "var(--brand-primary)",
-          }}
-        >
-          <span>
-            <strong>Interactive Demo Preview:</strong> Showing synthetic stores and territory data. Sign in with a registered workspace for live multi-tenant persistence.
-          </span>
-          <Link
-            href="/login"
-            className="btn btn-secondary"
-            style={{ fontSize: "0.75rem", padding: "0.25rem 0.625rem" }}
-          >
-            Sign In
-          </Link>
-        </div>
-      )}
-
       <section aria-labelledby="stores-heading">
         <div className="card-header">
           <div>
@@ -542,9 +534,23 @@ export function StoresDirectoryClient({
         }}
         aria-label="Territory Clusters Overview"
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "0.75rem",
+          }}
+        >
           <div>
-            <h3 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--brand-dark)", margin: "0 0 0.2rem" }}>
+            <h3
+              style={{
+                fontSize: "0.9375rem",
+                fontWeight: 700,
+                color: "var(--brand-dark)",
+                margin: "0 0 0.2rem",
+              }}
+            >
               Regional Territory Clusters
             </h3>
             <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", margin: 0 }}>
@@ -569,68 +575,71 @@ export function StoresDirectoryClient({
           ) : null}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.75rem" }}>
-          {[
-            { name: "Sector 4 / Downtown", rep: "Elena Rostova", doors: 2, color: "var(--brand-primary)" },
-            { name: "Downtown Central", rep: "Elena Rostova", doors: 1, color: "var(--brand-dark)" },
-            { name: "North Bay Plaza", rep: "David Chen", doors: 1, color: "var(--brand-accent)" },
-            { name: "West End Corridor", rep: "Carlos Gomez", doors: 1, color: "var(--success-green)" },
-            { name: "Eastside Commercial", rep: "Aisha Patel", doors: 1, color: "#8B5CF6" },
-          ].map((cluster) => {
-            const isSelected = regionFilter === cluster.name;
-            return (
-              <button
-                key={cluster.name}
-                type="button"
-                onClick={() => setRegionFilter(isSelected ? "" : cluster.name)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "0.625rem 0.875rem",
-                  borderRadius: "var(--radius-md)",
-                  border: isSelected ? "2px solid var(--brand-primary)" : "1px solid var(--border-subtle)",
-                  background: isSelected ? "rgba(27, 53, 128, 0.06)" : "var(--surface)",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <span
-                    style={{
-                      width: "10px",
-                      height: "10px",
-                      borderRadius: "50%",
-                      backgroundColor: cluster.color,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <div>
-                    <div style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--brand-dark)" }}>
-                      {cluster.name}
-                    </div>
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                      Lead: {cluster.rep}
-                    </div>
-                  </div>
-                </div>
-                <span
+        {dynamicClusters.length === 0 ? (
+          <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: 0 }}>
+            No territory clusters established yet. Add stores with regional identifiers to
+            group them.
+          </p>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "0.75rem",
+            }}
+          >
+            {dynamicClusters.map((cluster) => {
+              const isSelected = regionFilter === cluster.name;
+              return (
+                <button
+                  key={cluster.name}
+                  type="button"
+                  onClick={() => setRegionFilter(isSelected ? "" : cluster.name)}
                   style={{
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                    padding: "0.15rem 0.4rem",
-                    borderRadius: "9999px",
-                    background: "var(--bg-canvas)",
-                    color: "var(--text-secondary)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "0.625rem 0.875rem",
+                    borderRadius: "var(--radius-md)",
+                    border: isSelected
+                      ? "2px solid var(--brand-primary)"
+                      : "1px solid var(--border-subtle)",
+                    background: isSelected ? "rgba(27, 53, 128, 0.06)" : "var(--surface)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    transition: "all 0.15s ease",
                   }}
                 >
-                  {cluster.doors} doors
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <span
+                      style={{
+                        width: "10px",
+                        height: "10px",
+                        borderRadius: "50%",
+                        backgroundColor: cluster.color,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "0.8125rem",
+                          fontWeight: 600,
+                          color: "var(--brand-dark)",
+                        }}
+                      >
+                        {cluster.name}
+                      </div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                        {cluster.doors} {cluster.doors === 1 ? "door" : "doors"}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {visibleStores.length === 0 ? (
@@ -645,17 +654,6 @@ export function StoresDirectoryClient({
       ) : (
         <div className="card-grid">
           {visibleStores.map((store) => {
-            const assignedRep =
-              store.region.includes("Downtown") || store.region.includes("Sector 4")
-                ? "Elena Rostova"
-                : store.region.includes("North")
-                ? "David Chen"
-                : store.region.includes("West")
-                ? "Carlos Gomez"
-                : store.region.includes("Eastside")
-                ? "Aisha Patel"
-                : "Elena Rostova";
-
             return (
               <article
                 key={store.id}
@@ -698,7 +696,7 @@ export function StoresDirectoryClient({
 
                 <p className="card-meta">{store.addressLine1}</p>
 
-                {/* Assigned Representative Badge */}
+                {/* Regional Territory Tag */}
                 <div style={{ margin: "0.375rem 0" }}>
                   <span
                     style={{
@@ -713,10 +711,27 @@ export function StoresDirectoryClient({
                       color: "var(--brand-primary)",
                     }}
                   >
-                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <svg
+                      width="12"
+                      height="12"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
                     </svg>
-                    Rep: {assignedRep}
+                    Territory: {store.region}
                   </span>
                 </div>
 

@@ -44,9 +44,7 @@ export function mapAuditEventRow(
 export class SupabaseAuditRepository implements AuditRepository {
   constructor(private readonly supabase: SupabaseClient) {}
 
-  async insertAuditEvent(
-    input: InsertAuditEventInput
-  ): Promise<OrganizationAuditEvent> {
+  async insertAuditEvent(input: InsertAuditEventInput): Promise<OrganizationAuditEvent> {
     const { data, error } = await this.supabase
       .from("organization_audit_events")
       .insert({

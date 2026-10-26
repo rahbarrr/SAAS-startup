@@ -589,8 +589,8 @@ export async function reviewVisitAiReportDraftForOrg(params: {
       input.reviewStatus === "approved"
         ? "ai.visit_report_approved"
         : input.reviewStatus === "rejected"
-        ? "ai.visit_report_rejected"
-        : "trip.updated";
+          ? "ai.visit_report_rejected"
+          : "trip.updated";
 
     await params.auditRepository.insertAuditEvent({
       orgId: context.orgId,

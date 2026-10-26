@@ -72,7 +72,8 @@ export class UnconfiguredWebPushSender implements WebPushSender {
       sent: false,
       statusCode: 501,
       unsubscribed: false,
-      error: "VAPID server keys (NEXT_PUBLIC_VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY) not configured.",
+      error:
+        "VAPID server keys (NEXT_PUBLIC_VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY) not configured.",
     };
   }
 }
@@ -114,9 +115,7 @@ export function buildSafeWebPushPayload(params: {
 }): WebPushPayload {
   // Truncate message for standard mobile lock-screen banners
   const truncatedBody =
-    params.message.length > 120
-      ? `${params.message.slice(0, 117)}…`
-      : params.message;
+    params.message.length > 120 ? `${params.message.slice(0, 117)}…` : params.message;
 
   return {
     title: params.title,
@@ -144,7 +143,9 @@ export async function registerWebPushSubscriptionForOrg(params: {
   requireOrgPermission(context, "trips:read_own");
 
   if (!params.input.endpoint || !params.input.keys?.p256dh || !params.input.keys?.auth) {
-    throw new Error("Invalid push subscription: endpoint and authentication keys are required.");
+    throw new Error(
+      "Invalid push subscription: endpoint and authentication keys are required."
+    );
   }
 
   return params.pushRepository.upsertSubscription({

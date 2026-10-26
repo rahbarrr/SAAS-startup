@@ -39,9 +39,7 @@ class MockTenancyRepo implements TenancyRepository {
     userId: string,
     orgId: string
   ): Promise<OrganizationMembership | null> {
-    return (
-      this.memberships.find((m) => m.userId === userId && m.orgId === orgId) ?? null
-    );
+    return this.memberships.find((m) => m.userId === userId && m.orgId === orgId) ?? null;
   }
 
   async listUserOrganizations(userId: string): Promise<UserOrganizationSummary[]> {
@@ -293,7 +291,9 @@ describe("Workstream 3: Territory & Field Team Analytics", () => {
 
     expect(analytics.territoryMetrics).toHaveLength(2);
 
-    const northTerritory = analytics.territoryMetrics.find((t) => t.territory === "North");
+    const northTerritory = analytics.territoryMetrics.find(
+      (t) => t.territory === "North"
+    );
     expect(northTerritory).toBeDefined();
     expect(northTerritory?.storeCount).toBe(2);
     expect(northTerritory?.plannedVisits).toBe(2);
@@ -340,13 +340,17 @@ describe("Workstream 3: Territory & Field Team Analytics", () => {
 
     expect(analytics.storeFrequencies).toHaveLength(3);
 
-    const visitedStore = analytics.storeFrequencies.find((s) => s.storeId === "store-north-1");
+    const visitedStore = analytics.storeFrequencies.find(
+      (s) => s.storeId === "store-north-1"
+    );
     expect(visitedStore?.completedVisitsCount).toBe(1);
     expect(visitedStore?.plannedVisitsCount).toBe(1);
     expect(visitedStore?.completionRate).toBe(100);
     expect(visitedStore?.lastVisitedAt).toBe("2026-10-20T10:15:00.000Z");
 
-    const unvisitedStore = analytics.storeFrequencies.find((s) => s.storeId === "store-south-1");
+    const unvisitedStore = analytics.storeFrequencies.find(
+      (s) => s.storeId === "store-south-1"
+    );
     expect(unvisitedStore?.completedVisitsCount).toBe(0);
     expect(unvisitedStore?.lastVisitedAt).toBeNull();
   });

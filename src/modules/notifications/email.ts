@@ -71,16 +71,20 @@ export function buildSafeEmailContent(notification: InAppNotification): {
  */
 export class UnconfiguredEmailProvider implements EmailDeliveryProvider {
   async sendEmail(options: EmailDeliveryOptions): Promise<EmailDeliveryResult> {
-    logger.info("Email delivery skipped: external email provider not configured in environment", {
-      idempotencyKey: options.idempotencyKey,
-      subject: options.subject,
-    });
+    logger.info(
+      "Email delivery skipped: external email provider not configured in environment",
+      {
+        idempotencyKey: options.idempotencyKey,
+        subject: options.subject,
+      }
+    );
 
     return {
       provider: "unconfigured",
       delivered: false,
       messageId: null,
-      error: "No email provider configured (RESEND_API_KEY / SMTP not set). In-app notification persisted.",
+      error:
+        "No email provider configured (RESEND_API_KEY / SMTP not set). In-app notification persisted.",
       attemptedAt: new Date().toISOString(),
     };
   }

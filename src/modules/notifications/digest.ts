@@ -126,7 +126,10 @@ export function buildSafeDigestEmailContent(
             : `<ul style="font-size: 13px; color: #374151; padding-left: 20px;">
                 ${summary.pendingApprovals
                   .slice(0, 5)
-                  .map((p) => `<li><strong>${p.title}</strong> (Trip ID: ${p.tripId.slice(0, 8)})</li>`)
+                  .map(
+                    (p) =>
+                      `<li><strong>${p.title}</strong> (Trip ID: ${p.tripId.slice(0, 8)})</li>`
+                  )
                   .join("")}
               </ul>`
         }
@@ -142,7 +145,9 @@ export function buildSafeDigestEmailContent(
             : `<ul style="font-size: 13px; color: #b91c1c; padding-left: 20px;">
                 ${summary.overdueVisits
                   .slice(0, 5)
-                  .map((v) => `<li>${v.storeName} — Target: ${v.plannedAt.slice(0, 10)}</li>`)
+                  .map(
+                    (v) => `<li>${v.storeName} — Target: ${v.plannedAt.slice(0, 10)}</li>`
+                  )
                   .join("")}
               </ul>`
         }
@@ -175,7 +180,9 @@ export async function generateAndDispatchDailyManagerDigestForOrg(params: {
   const emailProvider = params.emailProvider ?? new UnconfiguredEmailProvider();
 
   // 1. Fetch organization operational dataset
-  const dataset = await params.reportingRepository.loadOrgOperationalDataset(params.orgId);
+  const dataset = await params.reportingRepository.loadOrgOperationalDataset(
+    params.orgId
+  );
 
   // 2. Compute pending trip approvals
   const pendingApprovals: DigestPendingApproval[] = dataset.trips
@@ -246,7 +253,8 @@ export async function generateAndDispatchDailyManagerDigestForOrg(params: {
 
     eligibleRecipients = managerMembers.map((m) => ({
       userId: m.userId,
-      email: profileMap[m.userId]?.email ?? `user-${m.userId.slice(0, 8)}@fieldtrack.internal`,
+      email:
+        profileMap[m.userId]?.email ?? `user-${m.userId.slice(0, 8)}@fieldtrack.internal`,
       role: m.role as "manager" | "admin",
     }));
   }

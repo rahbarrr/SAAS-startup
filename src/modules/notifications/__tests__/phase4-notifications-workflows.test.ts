@@ -34,9 +34,7 @@ class MockTenancyRepo implements TenancyRepository {
     userId: string,
     orgId: string
   ): Promise<OrganizationMembership | null> {
-    return (
-      this.memberships.find((m) => m.userId === userId && m.orgId === orgId) ?? null
-    );
+    return this.memberships.find((m) => m.userId === userId && m.orgId === orgId) ?? null;
   }
 
   async listUserOrganizations(userId: string): Promise<UserOrganizationSummary[]> {

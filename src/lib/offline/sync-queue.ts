@@ -16,8 +16,7 @@ export const OFFLINE_SUPPORTED_OPERATIONS = [
   "checkout_visit",
 ] as const;
 
-export type OfflineSupportedOperationType =
-  (typeof OFFLINE_SUPPORTED_OPERATIONS)[number];
+export type OfflineSupportedOperationType = (typeof OFFLINE_SUPPORTED_OPERATIONS)[number];
 
 export const NON_OFFLINE_OPERATIONS = [
   "trip_approval",
@@ -30,11 +29,7 @@ export const NON_OFFLINE_OPERATIONS = [
 export type NonOfflineOperationType = (typeof NON_OFFLINE_OPERATIONS)[number];
 
 export type QueuedOperationStatus =
-  | "pending"
-  | "in_flight"
-  | "synced"
-  | "failed"
-  | "conflict";
+  "pending" | "in_flight" | "synced" | "failed" | "conflict";
 
 export interface ConflictDetails {
   serverUpdatedAt: string;
@@ -86,9 +81,7 @@ export interface ProcessSyncResult {
   operations: QueuedOfflineOperation[];
 }
 
-export type SyncExecutorFn = (
-  op: QueuedOfflineOperation
-) => Promise<
+export type SyncExecutorFn = (op: QueuedOfflineOperation) => Promise<
   | { success: true; serverResponse?: Record<string, unknown> }
   | {
       success: false;
@@ -427,7 +420,8 @@ export async function processOfflineSyncQueue(params: {
   });
 
   const pendingOps = queue.filter(
-    (op) => op.status === "pending" || (op.status === "failed" && op.retryCount < op.maxRetries)
+    (op) =>
+      op.status === "pending" || (op.status === "failed" && op.retryCount < op.maxRetries)
   );
 
   let syncedCount = 0;
@@ -469,7 +463,8 @@ export async function processOfflineSyncQueue(params: {
           updates: {
             status: "pending",
             requiresReauth: true,
-            lastError: result.errorMessage || "Session expired. Please log in again to sync.",
+            lastError:
+              result.errorMessage || "Session expired. Please log in again to sync.",
           },
           storage: params.storage,
         });
@@ -547,7 +542,8 @@ export async function processOfflineSyncQueue(params: {
         failedCount++;
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Unexpected synchronization error";
+      const errorMsg =
+        err instanceof Error ? err.message : "Unexpected synchronization error";
       const nextRetry = op.retryCount + 1;
       updateQueuedOperation({
         orgId: params.orgId,

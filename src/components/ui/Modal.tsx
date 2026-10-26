@@ -57,7 +57,13 @@ export function Modal({
             className="icon-btn"
             onClick={onClose}
             aria-label="Close modal dialog"
-            style={{ width: "2rem", height: "2rem", minHeight: "2rem", minWidth: "2rem", padding: 0 }}
+            style={{
+              width: "2rem",
+              height: "2rem",
+              minHeight: "2rem",
+              minWidth: "2rem",
+              padding: 0,
+            }}
           >
             ✕
           </button>

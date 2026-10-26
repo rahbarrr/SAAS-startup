@@ -24,7 +24,6 @@ export interface TripDetailClientProps {
   userRole: OrgRole;
   storesMap: Record<string, { name: string; city: string; region: string }>;
   visitsMap?: Record<string, { id: string; status: string }>;
-  isDemo?: boolean;
 }
 
 export function TripDetailClient({
@@ -34,7 +33,6 @@ export function TripDetailClient({
   userRole,
   storesMap,
   visitsMap,
-  isDemo = false,
 }: TripDetailClientProps): ReactNode {
   const router = useRouter();
   const [detail, setDetail] = useState<TripDetail>(initialDetail);
@@ -55,7 +53,9 @@ export function TripDetailClient({
 
   // Route optimization and AI Planning state
   const [isOptimizing, setIsOptimizing] = useState(false);
-  const [routeProposal, setRouteProposal] = useState<RouteOptimizationProposal | null>(null);
+  const [routeProposal, setRouteProposal] = useState<RouteOptimizationProposal | null>(
+    null
+  );
   const [isApplyingRoute, setIsApplyingRoute] = useState(false);
   const [isAiPlanningOpen, setIsAiPlanningOpen] = useState(false);
 
@@ -104,7 +104,9 @@ export function TripDetailClient({
 
       const payload = await res.json();
       if (!res.ok || payload.error) {
-        throw new Error(payload.error?.message || "Failed to record location breadcrumb.");
+        throw new Error(
+          payload.error?.message || "Failed to record location breadcrumb."
+        );
       }
 
       setLastCapturedPoint({
@@ -131,7 +133,6 @@ export function TripDetailClient({
     setConfirmation("Active trip tracking stopped.");
   }
 
-
   async function handleOpenRouteOptimizer() {
     setError(null);
     setIsOptimizing(true);
@@ -149,7 +150,9 @@ export function TripDetailClient({
         error?: { message: string };
       };
       if (!res.ok || payload.error || !payload.data) {
-        throw new Error(payload.error?.message || "Failed to generate route optimization proposal.");
+        throw new Error(
+          payload.error?.message || "Failed to generate route optimization proposal."
+        );
       }
       setRouteProposal(payload.data);
     } catch (err) {
@@ -341,34 +344,6 @@ export function TripDetailClient({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      {isDemo && (
-        <div
-          role="status"
-          style={{
-            padding: "0.75rem 1rem",
-            backgroundColor: "rgba(27, 53, 128, 0.06)",
-            border: "1px solid rgba(27, 53, 128, 0.18)",
-            borderRadius: "var(--radius-md)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            fontSize: "0.875rem",
-            color: "var(--brand-primary)",
-          }}
-        >
-          <span>
-            <strong>Interactive Demo Preview:</strong> Showing synthetic trip and itinerary data. Sign in with a registered workspace for live multi-tenant persistence.
-          </span>
-          <Link
-            href="/login"
-            className="btn btn-secondary"
-            style={{ fontSize: "0.75rem", padding: "0.25rem 0.625rem" }}
-          >
-            Sign In
-          </Link>
-        </div>
-      )}
-
       <section aria-labelledby="trip-detail-heading">
         <div className="card-header">
           <div>
@@ -453,7 +428,14 @@ export function TripDetailClient({
               <h2 id="trip-stops-heading" style={{ margin: 0, fontSize: "1.125rem" }}>
                 Planned Store Stops ({detail.stops.length})
               </h2>
-              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "0.5rem",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setIsAiPlanningOpen(true)}
@@ -784,7 +766,10 @@ export function TripDetailClient({
                   marginBottom: "0.5rem",
                 }}
               >
-                <h2 id="location-tracking-heading" style={{ margin: 0, fontSize: "1.125rem" }}>
+                <h2
+                  id="location-tracking-heading"
+                  style={{ margin: 0, fontSize: "1.125rem" }}
+                >
                   📍 Active Trip Tracking
                 </h2>
                 {isTrackingActive ? (
@@ -820,8 +805,8 @@ export function TripDetailClient({
                   marginBottom: "0.75rem",
                 }}
               >
-                Privacy-aware location telemetry: Breadcrumbs are recorded strictly while this
-                work trip is in-progress and this browser tab is active.
+                Privacy-aware location telemetry: Breadcrumbs are recorded strictly while
+                this work trip is in-progress and this browser tab is active.
               </p>
 
               {locationError ? (
@@ -855,8 +840,8 @@ export function TripDetailClient({
                   }}
                 >
                   <div>
-                    <strong>Last Checkpoint:</strong>{" "}
-                    {lastCapturedPoint.lat.toFixed(4)}, {lastCapturedPoint.lng.toFixed(4)}
+                    <strong>Last Checkpoint:</strong> {lastCapturedPoint.lat.toFixed(4)},{" "}
+                    {lastCapturedPoint.lng.toFixed(4)}
                   </div>
                   <div style={{ color: "var(--text-muted)" }}>
                     Accuracy: ±{Math.round(lastCapturedPoint.accuracy)}m • Recorded:{" "}
@@ -874,7 +859,9 @@ export function TripDetailClient({
                     className="btn btn-primary"
                     style={{ width: "100%", fontSize: "0.8125rem" }}
                   >
-                    {isRecordingLocation ? "Requesting GPS Fix…" : "Enable Active Trip Tracking"}
+                    {isRecordingLocation
+                      ? "Requesting GPS Fix…"
+                      : "Enable Active Trip Tracking"}
                   </button>
                 ) : (
                   <>
@@ -911,9 +898,9 @@ export function TripDetailClient({
                   lineHeight: 1.4,
                 }}
               >
-                ⚠️ <strong>Web Browser Limitation:</strong> Background GPS tracking when the
-                browser is closed or suspended is not supported on iOS Safari / Android
-                browsers without a future native application.
+                ⚠️ <strong>Web Browser Limitation:</strong> Background GPS tracking when
+                the browser is closed or suspended is not supported on iOS Safari /
+                Android browsers without a future native application.
               </div>
             </section>
           ) : null}

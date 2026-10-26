@@ -57,10 +57,15 @@ export default function SignUpPage(): ReactNode {
             marginBottom: "0.5rem",
           }}
         >
-          <div className="brand-icon-box" style={{ width: "2.5rem", height: "2.5rem", fontSize: "1.25rem" }}>
+          <div
+            className="brand-icon-box"
+            style={{ width: "2.5rem", height: "2.5rem", fontSize: "1.25rem" }}
+          >
             F
           </div>
-          <span style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-dark)" }}>
+          <span
+            style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-dark)" }}
+          >
             FieldTrack
           </span>
         </Link>
@@ -138,7 +143,12 @@ export default function SignUpPage(): ReactNode {
           <div>
             <label
               htmlFor="signup-name"
-              style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}
+              style={{
+                display: "block",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                marginBottom: "0.375rem",
+              }}
             >
               Full Name
             </label>
@@ -149,7 +159,7 @@ export default function SignUpPage(): ReactNode {
               autoComplete="name"
               required
               minLength={2}
-              placeholder="e.g. Marcus Vance"
+              placeholder="e.g. Jane Doe"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               className="input-field"
@@ -163,7 +173,12 @@ export default function SignUpPage(): ReactNode {
           <div>
             <label
               htmlFor="signup-email"
-              style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}
+              style={{
+                display: "block",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                marginBottom: "0.375rem",
+              }}
             >
               Work Email
             </label>
@@ -187,7 +202,12 @@ export default function SignUpPage(): ReactNode {
           <div>
             <label
               htmlFor="signup-password"
-              style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}
+              style={{
+                display: "block",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                marginBottom: "0.375rem",
+              }}
             >
               Password (minimum 8 characters)
             </label>
@@ -236,7 +256,11 @@ export default function SignUpPage(): ReactNode {
             type="submit"
             disabled={isPending}
             className="btn btn-primary"
-            style={{ width: "100%", marginTop: "0.5rem", minHeight: "var(--touch-target-min)" }}
+            style={{
+              width: "100%",
+              marginTop: "0.5rem",
+              minHeight: "var(--touch-target-min)",
+            }}
           >
             {isPending ? "Creating account…" : "Create FieldTrack Account"}
           </button>
@@ -255,7 +279,11 @@ export default function SignUpPage(): ReactNode {
           Already have an account?{" "}
           <Link
             href="/login"
-            style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}
+            style={{
+              color: "var(--brand-primary)",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
           >
             Sign in
           </Link>

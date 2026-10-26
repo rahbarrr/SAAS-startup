@@ -80,10 +80,7 @@ function resolveStorage(customStorage?: StorageLike): StorageLike | null {
   return null;
 }
 
-export function saveCachedTrip(
-  trip: CachedTrip,
-  customStorage?: StorageLike
-): boolean {
+export function saveCachedTrip(trip: CachedTrip, customStorage?: StorageLike): boolean {
   const store = resolveStorage(customStorage);
   if (!store) return false;
 
@@ -122,7 +119,8 @@ export function loadCachedTrip(params: {
       return null;
     }
 
-    const age = (params.now ?? new Date()).getTime() - new Date(parsed.cachedAt).getTime();
+    const age =
+      (params.now ?? new Date()).getTime() - new Date(parsed.cachedAt).getTime();
     if (isNaN(age) || age > MAX_CACHE_AGE_MS) {
       store.removeItem(key);
       return null;
@@ -177,7 +175,8 @@ export function loadCachedVisit(params: {
       return null;
     }
 
-    const age = (params.now ?? new Date()).getTime() - new Date(parsed.cachedAt).getTime();
+    const age =
+      (params.now ?? new Date()).getTime() - new Date(parsed.cachedAt).getTime();
     if (isNaN(age) || age > MAX_CACHE_AGE_MS) {
       store.removeItem(key);
       return null;
@@ -190,10 +189,7 @@ export function loadCachedVisit(params: {
   }
 }
 
-export function clearCachedDataForOrg(
-  orgId: string,
-  customStorage?: StorageLike
-): void {
+export function clearCachedDataForOrg(orgId: string, customStorage?: StorageLike): void {
   const store = resolveStorage(customStorage);
   if (!store) return;
 

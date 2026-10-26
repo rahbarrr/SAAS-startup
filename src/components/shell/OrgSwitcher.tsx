@@ -98,7 +98,7 @@ export function OrgSwitcher({
           className="org-pill"
           aria-label={`Active organization: ${activeOrgName}, role: ${ROLE_LABELS[activeRole]}`}
         >
-          <span>{activeOrgName}</span>
+          <span>{activeOrgName || "No Workspace"}</span>
           <span aria-hidden="true">•</span>
           <span>{ROLE_LABELS[activeRole]}</span>
         </div>

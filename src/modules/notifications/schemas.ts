@@ -21,4 +21,3 @@ export const markNotificationReadInputSchema = z.union([
 ]);
 
 export type MarkNotificationReadInput = z.infer<typeof markNotificationReadInputSchema>;
-

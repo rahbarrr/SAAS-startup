@@ -92,9 +92,7 @@ class MockTenancyRepo implements TenancyRepository {
   async acceptOrgInvitationByTokenHash(): Promise<never> {
     return {} as never;
   }
-  async getProfilesByUserIds(
-    _userIds: string[]
-  ): Promise<Record<string, MemberProfile>> {
+  async getProfilesByUserIds(_userIds: string[]): Promise<Record<string, MemberProfile>> {
     return {
       "user-mgr-1": {
         id: "user-mgr-1",

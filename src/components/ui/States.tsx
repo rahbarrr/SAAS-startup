@@ -6,6 +6,7 @@ export interface EmptyStateProps {
   description: string;
   actionLabel?: string;
   actionHref?: string;
+  onAction?: () => void;
 }
 
 export function EmptyState({
@@ -13,6 +14,7 @@ export function EmptyState({
   description,
   actionLabel,
   actionHref,
+  onAction,
 }: EmptyStateProps): ReactNode {
   return (
     <section className="state-panel" aria-label={title}>
@@ -23,6 +25,12 @@ export function EmptyState({
           <Link href={actionHref} className="btn btn-primary">
             {actionLabel}
           </Link>
+        </div>
+      ) : actionLabel && onAction ? (
+        <div style={{ marginTop: "0.5rem" }}>
+          <button type="button" onClick={onAction} className="btn btn-primary">
+            {actionLabel}
+          </button>
         </div>
       ) : null}
     </section>

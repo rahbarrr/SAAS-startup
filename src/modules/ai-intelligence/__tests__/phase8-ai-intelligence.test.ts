@@ -4,19 +4,22 @@ import type {
   OrganizationAuditEvent,
 } from "@/modules/audit/domain";
 import type { AuditRepository } from "@/modules/audit/repository";
-import type { OrgOperationalDataset, ReportingRepository } from "@/modules/reporting/repository";
+import type {
+  OrgOperationalDataset,
+  ReportingRepository,
+} from "@/modules/reporting/repository";
 import type { Store } from "@/modules/stores/domain";
-import type { StoresRepository, PaginatedStoresResult } from "@/modules/stores/repository";
+import type {
+  StoresRepository,
+  PaginatedStoresResult,
+} from "@/modules/stores/repository";
 import type {
   AuthenticatedUser,
   OrganizationMembership,
   UserOrganizationSummary,
 } from "@/modules/tenancy/domain";
 import type { TenancyRepository } from "@/modules/tenancy/repository";
-import type {
-  TripStatus,
-  TripStop,
-} from "@/modules/trips/domain";
+import type { TripStatus, TripStop } from "@/modules/trips/domain";
 import type {
   ListTripsRepositoryFilter,
   PaginatedTripsResult,
@@ -40,9 +43,7 @@ import {
 class MockAuditRepo implements AuditRepository {
   public events: OrganizationAuditEvent[] = [];
 
-  async insertAuditEvent(
-    input: InsertAuditEventInput
-  ): Promise<OrganizationAuditEvent> {
+  async insertAuditEvent(input: InsertAuditEventInput): Promise<OrganizationAuditEvent> {
     const event: OrganizationAuditEvent = {
       id: `audit-${this.events.length + 1}`,
       orgId: input.orgId,
@@ -88,15 +89,33 @@ class MockTenancyRepo implements TenancyRepository {
     return [];
   }
 
-  async createOrganizationWithOwner(): Promise<never> { throw new Error("Not implemented"); }
-  async listOrgMembers(): Promise<never> { throw new Error("Not implemented"); }
-  async addOrgMember(): Promise<never> { throw new Error("Not implemented"); }
-  async createOrgInvitation(): Promise<never> { throw new Error("Not implemented"); }
-  async acceptOrgInvitation(): Promise<never> { throw new Error("Not implemented"); }
-  async acceptOrgInvitationByTokenHash(): Promise<never> { throw new Error("Not implemented"); }
-  async updateMemberRole(): Promise<never> { throw new Error("Not implemented"); }
-  async deactivateMember(): Promise<never> { throw new Error("Not implemented"); }
-  async assignManager(): Promise<never> { throw new Error("Not implemented"); }
+  async createOrganizationWithOwner(): Promise<never> {
+    throw new Error("Not implemented");
+  }
+  async listOrgMembers(): Promise<never> {
+    throw new Error("Not implemented");
+  }
+  async addOrgMember(): Promise<never> {
+    throw new Error("Not implemented");
+  }
+  async createOrgInvitation(): Promise<never> {
+    throw new Error("Not implemented");
+  }
+  async acceptOrgInvitation(): Promise<never> {
+    throw new Error("Not implemented");
+  }
+  async acceptOrgInvitationByTokenHash(): Promise<never> {
+    throw new Error("Not implemented");
+  }
+  async updateMemberRole(): Promise<never> {
+    throw new Error("Not implemented");
+  }
+  async deactivateMember(): Promise<never> {
+    throw new Error("Not implemented");
+  }
+  async assignManager(): Promise<never> {
+    throw new Error("Not implemented");
+  }
 }
 
 class MockStoresRepo implements StoresRepository {
@@ -110,10 +129,7 @@ class MockStoresRepo implements StoresRepository {
     return this.stores.filter((s) => s.orgId === orgId && storeIds.includes(s.id));
   }
 
-  async listStores(
-    orgId: string,
-    _query: unknown
-  ): Promise<PaginatedStoresResult> {
+  async listStores(orgId: string, _query: unknown): Promise<PaginatedStoresResult> {
     const items = this.stores.filter((s) => s.orgId === orgId);
     return {
       items,
@@ -125,8 +141,12 @@ class MockStoresRepo implements StoresRepository {
     };
   }
 
-  async createStore(): Promise<never> { throw new Error("Not implemented"); }
-  async updateStore(): Promise<never> { throw new Error("Not implemented"); }
+  async createStore(): Promise<never> {
+    throw new Error("Not implemented");
+  }
+  async updateStore(): Promise<never> {
+    throw new Error("Not implemented");
+  }
 }
 
 interface MockTripDetailHolder {
@@ -153,19 +173,18 @@ interface MockTripDetailHolder {
 class MockTripsRepo implements TripsRepository {
   public trips: MockTripDetailHolder[] = [];
 
-  async getTripDetail(orgId: string, tripId: string): Promise<MockTripDetailHolder | null> {
-    return (
-      this.trips.find((t) => t.trip.orgId === orgId && t.trip.id === tripId) ?? null
-    );
+  async getTripDetail(
+    orgId: string,
+    tripId: string
+  ): Promise<MockTripDetailHolder | null> {
+    return this.trips.find((t) => t.trip.orgId === orgId && t.trip.id === tripId) ?? null;
   }
 
   async listTrips(
     orgId: string,
     _filter: ListTripsRepositoryFilter
   ): Promise<PaginatedTripsResult> {
-    const items = this.trips
-      .filter((t) => t.trip.orgId === orgId)
-      .map((t) => t.trip);
+    const items = this.trips.filter((t) => t.trip.orgId === orgId).map((t) => t.trip);
     return {
       items,
       pagination: {
@@ -187,7 +206,11 @@ class MockTripsRepo implements TripsRepository {
       purpose: string;
       startDate: string;
       endDate: string;
-      stops: readonly { storeId: string; sequenceNumber: number; plannedAt?: string | null }[];
+      stops: readonly {
+        storeId: string;
+        sequenceNumber: number;
+        plannedAt?: string | null;
+      }[];
     };
   }): Promise<MockTripDetailHolder> {
     const found = this.trips.find(
@@ -355,7 +378,9 @@ describe("Phase 8: AI-Powered Field Intelligence", () => {
       });
 
       expect(result.conflicts.some((c) => c.type === "overlap")).toBe(true);
-      expect(result.conflicts[0]?.sourceRecordIds).toContain("44444444-4444-4444-8444-444444444443");
+      expect(result.conflicts[0]?.sourceRecordIds).toContain(
+        "44444444-4444-4444-8444-444444444443"
+      );
     });
 
     it("handles empty data cleanly without fabricating metrics for manager daily briefing", async () => {
@@ -379,7 +404,9 @@ describe("Phase 8: AI-Powered Field Intelligence", () => {
       });
 
       expect(result.summaryHeadline).toContain("Insufficient Field Operations Data");
-      expect(result.executiveSummary).toContain("contain insufficient active trips or visits");
+      expect(result.executiveSummary).toContain(
+        "contain insufficient active trips or visits"
+      );
       expect(result.criticalExceptions).toEqual([]);
     });
   });
@@ -388,7 +415,9 @@ describe("Phase 8: AI-Powered Field Intelligence", () => {
     it("falls back to heuristic engine when primary OpenAI provider throws an error", async () => {
       const mockPrimary: AiIntelligenceProvider = {
         providerName: "mock_openai",
-        generateTripPlanningInsights: vi.fn().mockRejectedValue(new Error("OpenAI Rate Limit 429")),
+        generateTripPlanningInsights: vi
+          .fn()
+          .mockRejectedValue(new Error("OpenAI Rate Limit 429")),
         generateManagerDailyBriefing: vi.fn().mockRejectedValue(new Error("Timeout 504")),
       };
       const resilient = new ResilientAiIntelligenceProvider({
@@ -433,7 +462,9 @@ describe("Phase 8: AI-Powered Field Intelligence", () => {
         hasSufficientData: false,
       });
 
-      expect(briefingResult.summaryHeadline).toContain("Insufficient Field Operations Data");
+      expect(briefingResult.summaryHeadline).toContain(
+        "Insufficient Field Operations Data"
+      );
     });
   });
 
@@ -470,7 +501,7 @@ describe("Phase 8: AI-Powered Field Intelligence", () => {
           postalCode: "10001",
           countryCode: "US",
           latitude: 40.71,
-          longitude: -74.00,
+          longitude: -74.0,
           active: true,
           createdAt: "",
           updatedAt: "",
@@ -692,9 +723,9 @@ describe("Phase 8: AI-Powered Field Intelligence", () => {
       });
 
       expect(updated.trip.status).toBe("draft"); // Reset to draft for re-approval
-      expect(
-        auditRepo.events.some((e) => e.actionType === "ai.trip_plan_applied")
-      ).toBe(true);
+      expect(auditRepo.events.some((e) => e.actionType === "ai.trip_plan_applied")).toBe(
+        true
+      );
     });
   });
 

@@ -2,55 +2,55 @@
 
 :root {
   /* Brand Palette */
-  --brand-primary: #1B3580;
+  --brand-primary: #1b3580;
   --brand-primary-hover: #122660;
   --brand-dark: #122660;
-  --brand-accent: #F59E0B;
-  --brand-accent-hover: #D97706;
-  --brand-on-primary: #FFFFFF;
+  --brand-accent: #f59e0b;
+  --brand-accent-hover: #d97706;
+  --brand-on-primary: #ffffff;
 
   /* Surfaces & Backgrounds */
-  --bg-canvas: #F4F6FB;
-  --bg-surface: #FFFFFF;
-  --bg-subtle: #EEF2F9;
-  --bg-hover: #E7EDF8;
+  --bg-canvas: #f4f6fb;
+  --bg-surface: #ffffff;
+  --bg-subtle: #eef2f9;
+  --bg-hover: #e7edf8;
 
   /* Typography Colors */
   --text-primary: #111827;
   --text-secondary: #374151;
-  --text-muted: #6B7280;
-  --text-light: #9CA3AF;
+  --text-muted: #6b7280;
+  --text-light: #9ca3af;
 
   /* Borders & Dividers */
-  --border-default: #DDE3F0;
-  --border-strong: #B8C5DE;
-  --border-subtle: #EDF2F7;
-  --focus-ring: #1B3580;
+  --border-default: #dde3f0;
+  --border-strong: #b8c5de;
+  --border-subtle: #edf2f7;
+  --focus-ring: #1b3580;
 
   /* Status Colors */
   --status-success: #059669;
-  --status-success-bg: #ECFDF5;
-  --status-success-text: #065F46;
-  --status-success-border: #A7F3D0;
+  --status-success-bg: #ecfdf5;
+  --status-success-text: #065f46;
+  --status-success-border: #a7f3d0;
 
-  --status-warning: #D97706;
-  --status-warning-bg: #FFFBEB;
-  --status-warning-text: #92400E;
-  --status-warning-border: #FDE68A;
+  --status-warning: #d97706;
+  --status-warning-bg: #fffbeb;
+  --status-warning-text: #92400e;
+  --status-warning-border: #fde68a;
 
-  --status-danger: #DC2626;
-  --status-danger-bg: #FEF2F2;
-  --status-danger-text: #991B1B;
-  --status-danger-border: #FECACA;
+  --status-danger: #dc2626;
+  --status-danger-bg: #fef2f2;
+  --status-danger-text: #991b1b;
+  --status-danger-border: #fecaca;
 
-  --status-info: #1B3580;
-  --status-info-bg: #EFF6FF;
-  --status-info-text: #1E40AF;
-  --status-info-border: #BFDBFE;
+  --status-info: #1b3580;
+  --status-info-bg: #eff6ff;
+  --status-info-text: #1e40af;
+  --status-info-border: #bfdbfe;
 
-  --status-neutral-bg: #F3F4F6;
+  --status-neutral-bg: #f3f4f6;
   --status-neutral-text: #374151;
-  --status-neutral-border: #D1D5DB;
+  --status-neutral-border: #d1d5db;
 
   /* Layout & Measurements */
   --touch-target-min: 2.75rem; /* 44px minimum for mobile & field touch targets */
@@ -69,13 +69,17 @@
   /* Shadows */
   --shadow-xs: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
   --shadow-sm: 0 1px 3px 0 rgba(16, 24, 40, 0.08), 0 1px 2px -1px rgba(16, 24, 40, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(16, 24, 40, 0.08), 0 2px 4px -2px rgba(16, 24, 40, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(16, 24, 40, 0.08), 0 4px 6px -4px rgba(16, 24, 40, 0.04);
-  --shadow-xl: 0 20px 25px -5px rgba(16, 24, 40, 0.1), 0 8px 10px -6px rgba(16, 24, 40, 0.04);
+  --shadow-md:
+    0 4px 6px -1px rgba(16, 24, 40, 0.08), 0 2px 4px -2px rgba(16, 24, 40, 0.04);
+  --shadow-lg:
+    0 10px 15px -3px rgba(16, 24, 40, 0.08), 0 4px 6px -4px rgba(16, 24, 40, 0.04);
+  --shadow-xl:
+    0 20px 25px -5px rgba(16, 24, 40, 0.1), 0 8px 10px -6px rgba(16, 24, 40, 0.04);
 
   /* Fonts */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-heading: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading:
+    "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 *,
@@ -97,7 +101,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
 .font-heading {
   font-family: var(--font-heading);
   letter-spacing: -0.02em;
@@ -162,7 +171,9 @@ h1, h2, h3, h4, h5, h6,
   top: 0;
   height: 100vh;
   z-index: 40;
-  transition: transform 0.2s ease, width 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    width 0.2s ease;
 }
 
 .sidebar-header {
@@ -274,7 +285,7 @@ h1, h2, h3, h4, h5, h6,
 .sidebar-footer {
   padding: 0.875rem;
   border-top: 1px solid var(--border-default);
-  background: #FAFCFE;
+  background: #fafcfe;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -458,7 +469,7 @@ h1, h2, h3, h4, h5, h6,
 
 .btn-accent:hover:not(:disabled) {
   background-color: var(--brand-accent-hover);
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .btn-danger {
@@ -469,7 +480,7 @@ h1, h2, h3, h4, h5, h6,
 
 .btn-danger:hover:not(:disabled) {
   background-color: var(--status-danger);
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .btn-sm {
@@ -518,7 +529,9 @@ h1, h2, h3, h4, h5, h6,
   flex-direction: column;
   gap: 0.875rem;
   box-shadow: var(--shadow-xs);
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .card:hover {
@@ -677,7 +690,9 @@ h1, h2, h3, h4, h5, h6,
   color: var(--text-primary);
   font-family: inherit;
   font-size: 0.875rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   width: 100%;
 }
 
@@ -756,7 +771,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .data-table th {
-  background: #FAFCFE;
+  background: #fafcfe;
   padding: 0.75rem 1rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -777,7 +792,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .data-table tbody tr:hover {
-  background: #F8FAFD;
+  background: #f8fafd;
 }
 
 /* ==========================================================================
@@ -827,7 +842,7 @@ h1, h2, h3, h4, h5, h6,
 .modal-footer {
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--border-default);
-  background: #FAFCFE;
+  background: #fafcfe;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -943,7 +958,7 @@ h1, h2, h3, h4, h5, h6,
 
 .state-panel--error {
   border-color: var(--status-danger-border);
-  background: #FFFBFB;
+  background: #fffbfb;
 }
 
 .state-title {
@@ -961,15 +976,19 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .skeleton-pulse {
-  background: linear-gradient(90deg, #EEF2F9 25%, #E5EDF8 50%, #EEF2F9 75%);
+  background: linear-gradient(90deg, #eef2f9 25%, #e5edf8 50%, #eef2f9 75%);
   background-size: 200% 100%;
   animation: pulse 1.5s infinite;
   border-radius: var(--radius-sm);
 }
 
 @keyframes pulse {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ==========================================================================

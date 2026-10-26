@@ -53,10 +53,15 @@ export default function ForgotPasswordPage(): ReactNode {
             marginBottom: "0.5rem",
           }}
         >
-          <div className="brand-icon-box" style={{ width: "2.5rem", height: "2.5rem", fontSize: "1.25rem" }}>
+          <div
+            className="brand-icon-box"
+            style={{ width: "2.5rem", height: "2.5rem", fontSize: "1.25rem" }}
+          >
             F
           </div>
-          <span style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-dark)" }}>
+          <span
+            style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-dark)" }}
+          >
             FieldTrack
           </span>
         </Link>
@@ -130,7 +135,12 @@ export default function ForgotPasswordPage(): ReactNode {
           <div>
             <label
               htmlFor="forgot-email"
-              style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}
+              style={{
+                display: "block",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                marginBottom: "0.375rem",
+              }}
             >
               Work Email
             </label>
@@ -155,7 +165,11 @@ export default function ForgotPasswordPage(): ReactNode {
             type="submit"
             disabled={isPending}
             className="btn btn-primary"
-            style={{ width: "100%", marginTop: "0.5rem", minHeight: "var(--touch-target-min)" }}
+            style={{
+              width: "100%",
+              marginTop: "0.5rem",
+              minHeight: "var(--touch-target-min)",
+            }}
           >
             {isPending ? "Sending instructions…" : "Send Recovery Link"}
           </button>
@@ -174,7 +188,11 @@ export default function ForgotPasswordPage(): ReactNode {
           Remember your password?{" "}
           <Link
             href="/login"
-            style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}
+            style={{
+              color: "var(--brand-primary)",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
           >
             Back to Sign in
           </Link>

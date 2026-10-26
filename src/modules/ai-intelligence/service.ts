@@ -19,14 +19,8 @@ import type {
   BriefingWorkloadImbalance,
   ManagerDailyBriefing,
 } from "./domain";
-import {
-  type AiIntelligenceProvider,
-  ResilientAiIntelligenceProvider,
-} from "./provider";
-import {
-  applyTripPlanRecommendationSchema,
-  updateBriefingActionSchema,
-} from "./schemas";
+import { type AiIntelligenceProvider, ResilientAiIntelligenceProvider } from "./provider";
+import { applyTripPlanRecommendationSchema, updateBriefingActionSchema } from "./schemas";
 import { optimizeTripRoute } from "@/modules/routing/optimizer";
 import { resolveRouteDistanceProvider } from "@/modules/routing/provider";
 import type { RouteStopCandidate } from "@/modules/routing/domain";
@@ -108,8 +102,10 @@ export async function generateTripPlanAssistantForOrg(params: {
       city: store?.city ?? "Unknown",
       address: store?.addressLine1 ?? "Unknown address",
       coordinates:
-        store?.latitude !== null && store?.latitude !== undefined &&
-        store?.longitude !== null && store?.longitude !== undefined
+        store?.latitude !== null &&
+        store?.latitude !== undefined &&
+        store?.longitude !== null &&
+        store?.longitude !== undefined
           ? { latitude: store.latitude, longitude: store.longitude }
           : null,
       sequenceNumber: s.sequenceNumber,
@@ -143,18 +139,17 @@ export async function generateTripPlanAssistantForOrg(params: {
       };
     });
 
-  const originalSequenceItems: AiProposedStopSequenceItem[] =
-    detail.stops.map((s) => {
-      const match = candidateStops.find((c) => c.storeId === s.storeId);
-      return {
-        stopId: s.id,
-        storeId: s.storeId,
-        storeName: match?.storeName ?? s.storeId,
-        sequenceNumber: s.sequenceNumber,
-        city: match?.city ?? "",
-        hasCoordinates: Boolean(match?.latitude && match?.longitude),
-      };
-    });
+  const originalSequenceItems: AiProposedStopSequenceItem[] = detail.stops.map((s) => {
+    const match = candidateStops.find((c) => c.storeId === s.storeId);
+    return {
+      stopId: s.id,
+      storeId: s.storeId,
+      storeName: match?.storeName ?? s.storeId,
+      sequenceNumber: s.sequenceNumber,
+      city: match?.city ?? "",
+      hasCoordinates: Boolean(match?.latitude && match?.longitude),
+    };
+  });
 
   const provider = params.aiProvider ?? new ResilientAiIntelligenceProvider();
 
@@ -183,7 +178,9 @@ export async function generateTripPlanAssistantForOrg(params: {
     })),
     routeOptimization: {
       distanceSavingsMeters: optimizationProposal.distanceSavingsMeters,
-      durationSavingsMinutes: Math.round(optimizationProposal.distanceSavingsMeters / 600),
+      durationSavingsMinutes: Math.round(
+        optimizationProposal.distanceSavingsMeters / 600
+      ),
       isReordered,
       proposedOrder: proposedSequenceItems,
     },
@@ -209,7 +206,9 @@ export async function generateTripPlanAssistantForOrg(params: {
       originalSequence: originalSequenceItems,
       proposedSequence: proposedSequenceItems,
       distanceSavingsMeters: optimizationProposal.distanceSavingsMeters,
-      durationSavingsMinutes: Math.round(optimizationProposal.distanceSavingsMeters / 600),
+      durationSavingsMinutes: Math.round(
+        optimizationProposal.distanceSavingsMeters / 600
+      ),
       isReordered,
       confidenceExplanation:
         optimizationProposal.distanceType === "road_network_driving"
@@ -318,7 +317,10 @@ export async function applyTripPlanRecommendationForOrg(params: {
       entityId: tripId,
       reason: "Manager reviewed and applied AI suggested stop sequence",
       changes: {
-        stopsCount: { before: detail.stops.length, after: parsed.proposedStopOrder.length },
+        stopsCount: {
+          before: detail.stops.length,
+          after: parsed.proposedStopOrder.length,
+        },
       },
       metadata: {
         tripId,
@@ -359,7 +361,9 @@ export async function getManagerDailyBriefingForOrg(params: {
       ? (params.rawQuery as { date: string }).date
       : todayYmd;
 
-  const dataset = await params.reportingRepository.loadOrgOperationalDataset(context.orgId);
+  const dataset = await params.reportingRepository.loadOrgOperationalDataset(
+    context.orgId
+  );
 
   // 1. Trips scheduled for today
   const tripsToday = dataset.trips.filter(
@@ -412,19 +416,32 @@ export async function getManagerDailyBriefingForOrg(params: {
     });
 
   // 6. Unfinished checklists
-  const unfinishedChecklistsCount = dataset.checklistItems.filter((c) => !c.completedAt).length;
+  const unfinishedChecklistsCount = dataset.checklistItems.filter(
+    (c) => !c.completedAt
+  ).length;
 
   // 7. Workload Imbalances
-  const repsMap = new Map<string, { assignedTrips: number; plannedStops: number; completedVisits: number }>();
+  const repsMap = new Map<
+    string,
+    { assignedTrips: number; plannedStops: number; completedVisits: number }
+  >();
   for (const t of dataset.trips.filter((tr) => tr.status !== "rejected")) {
-    const existing = repsMap.get(t.ownerUserId) ?? { assignedTrips: 0, plannedStops: 0, completedVisits: 0 };
+    const existing = repsMap.get(t.ownerUserId) ?? {
+      assignedTrips: 0,
+      plannedStops: 0,
+      completedVisits: 0,
+    };
     existing.assignedTrips += 1;
     repsMap.set(t.ownerUserId, existing);
   }
   for (const s of dataset.tripStops) {
     const t = dataset.trips.find((tr) => tr.id === s.tripId);
     if (t) {
-      const existing = repsMap.get(t.ownerUserId) ?? { assignedTrips: 0, plannedStops: 0, completedVisits: 0 };
+      const existing = repsMap.get(t.ownerUserId) ?? {
+        assignedTrips: 0,
+        plannedStops: 0,
+        completedVisits: 0,
+      };
       existing.plannedStops += 1;
       if (s.status === "visited") {
         existing.completedVisits += 1;
@@ -433,28 +450,30 @@ export async function getManagerDailyBriefingForOrg(params: {
     }
   }
 
-  const repWorkloads: BriefingWorkloadImbalance[] = Array.from(repsMap.entries()).map(([repId, val]) => {
-    const outstanding = Math.max(0, val.plannedStops - val.completedVisits);
-    let status: "underutilized" | "balanced" | "overloaded" = "balanced";
-    let note = "Normal operational balance.";
-    if (outstanding > 12) {
-      status = "overloaded";
-      note = `Heavy workload: ${outstanding} pending store visits remain outstanding.`;
-    } else if (val.assignedTrips === 0) {
-      status = "underutilized";
-      note = "No active work trips currently scheduled.";
+  const repWorkloads: BriefingWorkloadImbalance[] = Array.from(repsMap.entries()).map(
+    ([repId, val]) => {
+      const outstanding = Math.max(0, val.plannedStops - val.completedVisits);
+      let status: "underutilized" | "balanced" | "overloaded" = "balanced";
+      let note = "Normal operational balance.";
+      if (outstanding > 12) {
+        status = "overloaded";
+        note = `Heavy workload: ${outstanding} pending store visits remain outstanding.`;
+      } else if (val.assignedTrips === 0) {
+        status = "underutilized";
+        note = "No active work trips currently scheduled.";
+      }
+      return {
+        repUserId: repId,
+        repName: `Rep ${repId.slice(0, 6)}`,
+        assignedTripsCount: val.assignedTrips,
+        plannedStopsCount: val.plannedStops,
+        completedVisitsCount: val.completedVisits,
+        outstandingAssignments: outstanding,
+        status,
+        note,
+      };
     }
-    return {
-      repUserId: repId,
-      repName: `Rep ${repId.slice(0, 6)}`,
-      assignedTripsCount: val.assignedTrips,
-      plannedStopsCount: val.plannedStops,
-      completedVisitsCount: val.completedVisits,
-      outstandingAssignments: outstanding,
-      status,
-      note,
-    };
-  });
+  );
 
   const completedVisitsToday = dataset.visits.filter(
     (v) => v.checkedInAt && v.checkedInAt.slice(0, 10) === targetDate

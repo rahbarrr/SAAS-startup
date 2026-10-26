@@ -1,6 +1,11 @@
 export interface AiScheduleConflict {
   id: string;
-  type: "overlap" | "tight_schedule" | "excessive_workload" | "missing_coordinates" | "missing_time";
+  type:
+    | "overlap"
+    | "tight_schedule"
+    | "excessive_workload"
+    | "missing_coordinates"
+    | "missing_time";
   description: string;
   severity: "low" | "medium" | "high";
   sourceRecordIds: string[];
