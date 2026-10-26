@@ -30,10 +30,11 @@ This checklist provides the mandatory operational procedures for deploying, conf
   - `trg_visits_lifecycle_invariants` (blocks checkout with incomplete required checklists; prevents non-owner edits).
   - `trg_enforce_org_audit_invariants` (enforces append-only immutability; blocks UPDATE/DELETE with code `42501`).
   - `trg_enforce_trip_audit_invariants` (blocks UPDATE/DELETE on trip audit trail).
-- [ ] **Storage Buckets:**
-  - Create Supabase private storage bucket: `fieldtrack-evidence`.
-  - Ensure public access is **disabled** (`public = false`).
-  - Enforce tenant-scoped object path constraint: `<organization_id>/<visit_id>/<filename>`.
+- [x] **Storage Buckets & Policies:**
+  - **Canonical Bucket:** `visit-evidence` (created in migration `20261022000002_field_operations_schema.sql` with `public = false`, 25 MiB file size limit, and restricted MIME types).
+  - **Storage Policies:** `visit_evidence_storage_insert` and `visit_evidence_storage_select` restrict access strictly to `bucket_id = 'visit-evidence'`.
+  - **Tenant Path Constraint:** Enforces `<organization_id>/<visit_id>/<random_uuid>.<ext>` with ownership and active membership checks.
+  - **Secondary Bucket Note:** If `fieldtrack-evidence` exists in the Supabase project, it is unused by the application. Once confirmed empty, it can safely be removed. Do not direct application traffic to it.
 
 ### 1.2 Environment Variables (Production & Staging)
 Ensure the following variables are configured in the Vercel / deployment environment (never committed to git):
