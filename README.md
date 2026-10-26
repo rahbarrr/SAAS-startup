@@ -85,25 +85,20 @@ All database schema and Row-Level Security (RLS) changes live as versioned SQL f
 
 - **Never auto-apply migrations during a normal application build or production deploy.**
 - **Do not use subqueries inside `CHECK` constraints.** Use composite foreign keys, unique indexes, triggers, or transactional server logic.
-- **Local / Staging application:**
-  ```bash
-  # Using Supabase CLI against local or linked staging database:
-  supabase db push
-  ```
+- **Local database changes:** For local development, start the local Supabase stack and apply migrations against that local database only. Never run a generic migration push against a cloud project without verifying the linked project reference.
+- **Production database changes:** Use the reviewed, manually triggered production database release workflow. Confirm the target project, backup reference, and forward-fix/rollback plan before approving an apply step.
 
 ---
 
-## Staging & Production Deployment
+## Production Deployment
 
-1. **Staging Verification**
-   - Apply pending migrations in `supabase/migrations/` to the **staging** database first and verify RLS policies and constraints.
-   - Run `npm run typecheck && npm run lint && npm run format:check && npm test` in CI.
-   - Deploy the Next.js build to the staging environment and verify multi-org tenant isolation, approval flows, and role boundaries (`admin`, `manager`, `field_employee`).
-
-2. **Production Deployment**
-   - Apply reviewed migrations to the production database during a controlled migration step **before** releasing application code that depends on new columns/tables.
-   - Configure `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and optional server-only OpenAI settings (`OPENAI_API_KEY`, `OPENAI_REPORT_MODEL`) in the hosting platform's encrypted environment settings.
-   - Deploy the Next.js build (`npm run build && npm run start`).
+1. **Automated quality gates**
+   - Require the GitHub CI workflow to pass: formatting, lint, typecheck, migration safety lint, unit tests, integration tests, dependency audit, and production build.
+2. **Application deployment**
+   - Vercel deploys the application from the configured Git branch. Verify the deployment commit and health endpoint before calling a release successful.
+3. **Database release**
+   - Never apply migrations during a normal application build. Use the manual `Production database release` workflow after reviewing the migration diff and taking a verified pre-release backup.
+   - Configure production environment variables only in Vercel Production. Keep service-role keys server-only.
 
 ---
 
@@ -140,6 +135,6 @@ All database schema and Row-Level Security (RLS) changes live as versioned SQL f
 ## Operations & Architecture Documentation
 
 - **Backup, Restore & Incident Response Runbook:** [docs/operations-runbook.md](docs/operations-runbook.md) (draft procedures, recovery checklists, and incident response).
-- **Staging-First Release Workflow & Deployment Checklist:** [docs/release-process.md](docs/release-process.md) (CI pipeline, migration review, environment isolation, kill switches, and rollback protocol).
+- **Release Process & Deployment Checklist:** [docs/release-process.md](docs/release-process.md) (CI gates, reviewed production migrations, kill switches, and rollback protocol).
 - **Mobile Architecture Decision Memo:** [docs/mobile-architecture-decision-memo.md](docs/mobile-architecture-decision-memo.md) (evaluation of Responsive Web/PWA vs. Expo React Native, offline store visit requirements, and native blueprint).
 - **Billing & Subscription Architecture Specification:** [docs/billing-architecture-specification.md](docs/billing-architecture-specification.md) (pre-implementation plan matrix, entitlement limits, trial lifecycle, failed payment dunning, and webhook idempotency).
