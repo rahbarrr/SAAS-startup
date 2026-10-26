@@ -9,7 +9,7 @@ Nothing in this repository automatically applies database migrations to producti
 | Local development | Build features and run automated checks | Local Supabase or isolated development project | Test data only |
 | Production | Live FieldTrack service | Production Supabase project | Real organization and customer data |
 
-Vercel may create Preview deployments for branch or pull-request review. Preview deployments are not a separately maintained staging environment. Do not attach production credentials to preview builds; if previews are used, keep their credentials and data isolated from production.
+Vercel may create Preview deployments for branch or pull-request review. Do not attach production credentials to preview builds; keep credentials and data isolated from Production.
 
 Application startup validation accepts `APP_ENV=development` locally and `APP_ENV=production` for the live site. Hosted deployments must set `EXPECTED_SUPABASE_PROJECT_REF` to match the Supabase project URL. Production configuration is rejected inside Vercel Preview deployments.
 
@@ -45,7 +45,7 @@ Structured logs use request IDs and redact tokens, email addresses, sensitive no
 ## 6. Owner-controlled production configuration
 
 1. Protect `main` by requiring the CI check and appropriate review before merging.
-2. Store production database credentials and project reference in the GitHub `production-plan` and `production` environments as required by `.github/workflows/production-db-release.yml`. Do not create or use staging credentials.
+2. Store production database credentials and project reference only in the GitHub `production-plan` and `production` environments as required by `.github/workflows/production-db-release.yml`.
 3. Configure only production values under Vercel's Production environment. Keep privileged keys server-only.
 4. Confirm redirects, private evidence storage, backups, and usage/spend caps before onboarding real customers.
 
