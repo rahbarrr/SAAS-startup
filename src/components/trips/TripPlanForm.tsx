@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, type ReactNode, useState } from "react";
+import { TripPlannerMap } from "@/components/maps";
 import { ErrorState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
 import { createInFlightActionGuard } from "@/lib/ux/formatting-and-resilience";
@@ -13,6 +14,10 @@ export interface AvailableStoreOption {
   region: string;
   city: string;
   active: boolean;
+  addressLine1?: string;
+  countryCode?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface EditableStopItem {
@@ -390,6 +395,26 @@ export function TripPlanForm({
             </button>
           </div>
 
+          {stops.length > 0 ? (
+            <div style={{ marginBottom: "1rem" }}>
+              <TripPlannerMap
+                stops={stops.map((stop, idx) => {
+                  const store = availableStores.find((s) => s.id === stop.storeId);
+                  return {
+                    id: stop.storeId,
+                    sequenceNumber: idx + 1,
+                    storeName: store?.name ?? stop.storeId,
+                    city: store?.city ?? "",
+                    region: store?.region ?? "",
+                    addressLine1: store?.addressLine1,
+                    latitude: store?.latitude ?? null,
+                    longitude: store?.longitude ?? null,
+                  };
+                })}
+              />
+            </div>
+          ) : null}
+
           {stops.length === 0 ? (
             <div
               style={{
@@ -415,6 +440,9 @@ export function TripPlanForm({
             >
               {stops.map((stop, idx) => {
                 const store = availableStores.find((s) => s.id === stop.storeId);
+                const lat = store?.latitude;
+                const lng = store?.longitude;
+                const hasCoords = typeof lat === "number" && typeof lng === "number";
                 return (
                   <li
                     key={stop.storeId}
@@ -426,16 +454,63 @@ export function TripPlanForm({
                       borderRadius: "var(--radius-md)",
                       backgroundColor: "var(--bg-subtle, #f9fafb)",
                       border: "1px solid var(--border-default, #e5e7eb)",
+                      gap: "0.5rem",
                     }}
                   >
-                    <div>
-                      <strong>Stop #{idx + 1}:</strong> {store?.name ?? stop.storeId}
-                      <span className="card-meta" style={{ marginLeft: "0.5rem" }}>
-                        ({store?.city ?? "Store"}, {store?.region ?? ""})
-                      </span>
+                    <div
+                      style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}
+                    >
+                      <div>
+                        <strong>Stop #{idx + 1}:</strong> {store?.name ?? stop.storeId}
+                        <span className="card-meta" style={{ marginLeft: "0.5rem" }}>
+                          ({store?.city ?? "Store"}, {store?.region ?? ""})
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {store?.addressLine1 ? (
+                          <span className="card-meta" style={{ fontSize: "0.75rem" }}>
+                            {store.addressLine1}
+                          </span>
+                        ) : null}
+                        {hasCoords ? (
+                          <span
+                            style={{
+                              fontSize: "0.6875rem",
+                              fontWeight: 600,
+                              color: "var(--color-success-text, #166534)",
+                              backgroundColor: "var(--color-success-subtle, #ecfdf5)",
+                              padding: "0.1rem 0.4rem",
+                              borderRadius: "9999px",
+                            }}
+                          >
+                            ✓ ({lat.toFixed(4)}, {lng.toFixed(4)})
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              fontSize: "0.6875rem",
+                              fontWeight: 600,
+                              color: "var(--status-warning-text, #92400e)",
+                              backgroundColor: "var(--status-warning-bg, #fffbeb)",
+                              border: "1px solid var(--status-warning-border, #fef3c7)",
+                              padding: "0.1rem 0.4rem",
+                              borderRadius: "9999px",
+                            }}
+                          >
+                            ⚠️ Missing Coordinates
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    <div style={{ display: "flex", gap: "0.25rem" }}>
+                    <div style={{ display: "flex", gap: "0.25rem", flexShrink: 0 }}>
                       <button
                         type="button"
                         onClick={() => handleMoveStop(idx, -1)}

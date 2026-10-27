@@ -20,7 +20,18 @@ export default async function TripDetailPage(
   const { user, activeOrgId, role, tenancyRepository, supabase } = context;
 
   let tripDetail: TripDetail | null = null;
-  const storesMap: Record<string, { name: string; city: string; region: string }> = {};
+  const storesMap: Record<
+    string,
+    {
+      name: string;
+      city: string;
+      region: string;
+      addressLine1?: string;
+      countryCode?: string;
+      latitude?: number | null;
+      longitude?: number | null;
+    }
+  > = {};
   const visitsMap: Record<string, { id: string; status: string }> = {};
   let errorMessage: string | null = null;
 
@@ -39,7 +50,15 @@ export default async function TripDetailPage(
       const storesRepository = new SupabaseStoresRepository(supabase);
       const stores = await storesRepository.getStoresByIds(activeOrgId, storeIds);
       for (const s of stores) {
-        storesMap[s.id] = { name: s.name, city: s.city, region: s.region };
+        storesMap[s.id] = {
+          name: s.name,
+          city: s.city,
+          region: s.region,
+          addressLine1: s.addressLine1,
+          countryCode: s.countryCode,
+          latitude: s.latitude,
+          longitude: s.longitude,
+        };
       }
     }
 

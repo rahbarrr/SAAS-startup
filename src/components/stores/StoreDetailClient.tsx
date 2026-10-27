@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { type FormEvent, type ReactNode, useState } from "react";
 import { ErrorState } from "@/components/ui/States";
+import {
+  LocationPickerMap,
+  type PlaceSelectionResult,
+  PlacesAutocompleteInput,
+} from "@/components/maps";
 import { createInFlightActionGuard } from "@/lib/ux/formatting-and-resilience";
 import type { Store } from "@/modules/stores/domain";
 
@@ -25,18 +30,33 @@ export function StoreDetailClient({
   const [city, setCity] = useState(store.city);
   const [stateProvince, setStateProvince] = useState(store.stateProvince ?? "");
   const [postalCode, setPostalCode] = useState(store.postalCode ?? "");
+  const [countryCode, setCountryCode] = useState(store.countryCode || "US");
   const [latitude, setLatitude] = useState(
     store.latitude !== null ? String(store.latitude) : ""
   );
   const [longitude, setLongitude] = useState(
     store.longitude !== null ? String(store.longitude) : ""
   );
+  const [placesSearch, setPlacesSearch] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<string | null>(null);
 
   const actionGuard = createInFlightActionGuard();
+
+  function handlePlaceSelect(place: PlaceSelectionResult) {
+    if (place.name && (!name || name === "Store")) setName(place.name);
+    if (place.addressLine1) setAddressLine1(place.addressLine1);
+    if (place.city) setCity(place.city);
+    if (place.stateProvince) setStateProvince(place.stateProvince);
+    if (place.postalCode) setPostalCode(place.postalCode);
+    if (place.countryCode) setCountryCode(place.countryCode);
+    if (place.latitude !== null) setLatitude(place.latitude.toString());
+    if (place.longitude !== null) setLongitude(place.longitude.toString());
+    setPlacesSearch(place.formattedAddress);
+    setConfirmation(`Location updated from Google Places: ${place.formattedAddress}`);
+  }
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,6 +65,12 @@ export function StoreDetailClient({
 
     if (!name.trim() || !region.trim() || !addressLine1.trim() || !city.trim()) {
       setError("Store name, region, street address, and city are required.");
+      return;
+    }
+
+    const cleanCountry = countryCode.trim().toUpperCase() || "US";
+    if (!/^[A-Z]{2}$/.test(cleanCountry)) {
+      setError("Country code must be a 2-letter ISO code (e.g. US, CA, GB).");
       return;
     }
 
@@ -90,6 +116,7 @@ export function StoreDetailClient({
           city: city.trim(),
           stateProvince: stateProvince.trim() || null,
           postalCode: postalCode.trim() || null,
+          countryCode: cleanCountry,
           latitude: parsedLat,
           longitude: parsedLng,
         }),
@@ -234,6 +261,31 @@ export function StoreDetailClient({
         >
           <h2 style={{ margin: 0, fontSize: "1.125rem" }}>Location Details</h2>
 
+          {canWrite ? (
+            <div>
+              <label
+                htmlFor="edit-places-search"
+                style={{ display: "block", fontWeight: 600, marginBottom: "0.25rem" }}
+              >
+                Search Address via Google Places
+              </label>
+              <PlacesAutocompleteInput
+                id="edit-places-search"
+                value={placesSearch}
+                onChange={setPlacesSearch}
+                onPlaceSelect={handlePlaceSelect}
+                placeholder="Search and update address from Google Places…"
+              />
+              <span
+                className="card-meta"
+                style={{ fontSize: "0.75rem", display: "block", marginTop: "0.25rem" }}
+              >
+                Selecting a place automatically updates name, address, country, and
+                coordinates.
+              </span>
+            </div>
+          ) : null}
+
           <div>
             <label
               htmlFor="edit-name"
@@ -328,7 +380,10 @@ export function StoreDetailClient({
             />
           </div>
 
-          <div className="card-grid">
+          <div
+            className="card-grid"
+            style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}
+          >
             <div>
               <label
                 htmlFor="edit-state"
@@ -372,6 +427,59 @@ export function StoreDetailClient({
                 }}
               />
             </div>
+
+            <div>
+              <label
+                htmlFor="edit-country"
+                style={{ display: "block", fontWeight: 600, marginBottom: "0.25rem" }}
+              >
+                Country (ISO) *
+              </label>
+              <input
+                id="edit-country"
+                type="text"
+                required
+                maxLength={2}
+                disabled={!canWrite}
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value.toUpperCase())}
+                placeholder="US"
+                style={{
+                  width: "100%",
+                  padding: "0.5rem 0.75rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-strong)",
+                }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontWeight: 600, marginBottom: "0.25rem" }}>
+              Interactive Location Picker
+            </label>
+            <LocationPickerMap
+              latitude={
+                latitude.trim() && !Number.isNaN(Number(latitude))
+                  ? Number(latitude)
+                  : null
+              }
+              longitude={
+                longitude.trim() && !Number.isNaN(Number(longitude))
+                  ? Number(longitude)
+                  : null
+              }
+              onChange={(coords) => {
+                if (!canWrite) return;
+                if (coords) {
+                  setLatitude(coords.latitude.toString());
+                  setLongitude(coords.longitude.toString());
+                } else {
+                  setLatitude("");
+                  setLongitude("");
+                }
+              }}
+            />
           </div>
 
           <div className="card-grid">

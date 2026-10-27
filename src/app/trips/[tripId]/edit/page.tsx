@@ -23,6 +23,10 @@ export default async function EditTripPage(props: EditTripPageProps): Promise<Re
     region: string;
     city: string;
     active: boolean;
+    addressLine1?: string;
+    countryCode?: string;
+    latitude?: number | null;
+    longitude?: number | null;
   }[] = [];
   let tripDetail: Awaited<ReturnType<typeof getTripDetailForOrg>> | null = null;
   let errorMessage: string | null = null;
@@ -52,6 +56,10 @@ export default async function EditTripPage(props: EditTripPageProps): Promise<Re
       region: s.region,
       city: s.city,
       active: s.active,
+      addressLine1: s.addressLine1,
+      countryCode: s.countryCode,
+      latitude: s.latitude,
+      longitude: s.longitude,
     }));
   } catch (err) {
     errorMessage =

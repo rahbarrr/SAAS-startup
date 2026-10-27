@@ -15,6 +15,10 @@ export default async function NewTripPage(): Promise<ReactNode> {
     region: string;
     city: string;
     active: boolean;
+    addressLine1?: string;
+    countryCode?: string;
+    latitude?: number | null;
+    longitude?: number | null;
   }[] = [];
   let errorMessage: string | null = null;
 
@@ -34,6 +38,10 @@ export default async function NewTripPage(): Promise<ReactNode> {
       region: s.region,
       city: s.city,
       active: s.active,
+      addressLine1: s.addressLine1,
+      countryCode: s.countryCode,
+      latitude: s.latitude,
+      longitude: s.longitude,
     }));
   } catch (err) {
     errorMessage =

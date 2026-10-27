@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { type FormEvent, type ReactNode, useMemo, useState } from "react";
 import { EmptyState, ErrorState } from "@/components/ui/States";
+import {
+  LocationPickerMap,
+  type PlaceSelectionResult,
+  PlacesAutocompleteInput,
+} from "@/components/maps";
 import { createInFlightActionGuard } from "@/lib/ux/formatting-and-resilience";
 import type { Store } from "@/modules/stores/domain";
 
@@ -52,14 +57,29 @@ export function StoresDirectoryClient({
   const [city, setCity] = useState("");
   const [stateProvince, setStateProvince] = useState("");
   const [postalCode, setPostalCode] = useState("");
+  const [countryCode, setCountryCode] = useState("US");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
+  const [placesSearch, setPlacesSearch] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<string | null>(null);
 
   const actionGuard = createInFlightActionGuard();
+
+  function handlePlaceSelect(place: PlaceSelectionResult) {
+    if (place.name && (!name || name === "Store")) setName(place.name);
+    if (place.addressLine1) setAddressLine1(place.addressLine1);
+    if (place.city) setCity(place.city);
+    if (place.stateProvince) setStateProvince(place.stateProvince);
+    if (place.postalCode) setPostalCode(place.postalCode);
+    if (place.countryCode) setCountryCode(place.countryCode);
+    if (place.latitude !== null) setLatitude(place.latitude.toString());
+    if (place.longitude !== null) setLongitude(place.longitude.toString());
+    setPlacesSearch(place.formattedAddress);
+    setConfirmation(`Location selected from Google Places: ${place.formattedAddress}`);
+  }
 
   async function handleCreateStore(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -68,6 +88,12 @@ export function StoresDirectoryClient({
 
     if (!name.trim() || !region.trim() || !addressLine1.trim() || !city.trim()) {
       setError("Name, region, street address, and city are required.");
+      return;
+    }
+
+    const cleanCountry = countryCode.trim().toUpperCase() || "US";
+    if (!/^[A-Z]{2}$/.test(cleanCountry)) {
+      setError("Country code must be a 2-letter ISO code (e.g. US, CA, GB).");
       return;
     }
 
@@ -115,7 +141,7 @@ export function StoresDirectoryClient({
           city: city.trim(),
           stateProvince: stateProvince.trim() || null,
           postalCode: postalCode.trim() || null,
-          countryCode: "US",
+          countryCode: cleanCountry,
           latitude: parsedLat,
           longitude: parsedLng,
         }),
@@ -140,8 +166,10 @@ export function StoresDirectoryClient({
       setCity("");
       setStateProvince("");
       setPostalCode("");
+      setCountryCode("US");
       setLatitude("");
       setLongitude("");
+      setPlacesSearch("");
       setShowCreateForm(false);
       setConfirmation(`Store "${newStore.name}" successfully created.`);
     } catch (err) {
@@ -237,6 +265,29 @@ export function StoresDirectoryClient({
             onSubmit={handleCreateStore}
             style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
           >
+            <div>
+              <label
+                htmlFor="places-search"
+                style={{ display: "block", fontWeight: 600, marginBottom: "0.25rem" }}
+              >
+                Search Address via Google Places
+              </label>
+              <PlacesAutocompleteInput
+                id="places-search"
+                value={placesSearch}
+                onChange={setPlacesSearch}
+                onPlaceSelect={handlePlaceSelect}
+                placeholder="Search supermarket, retail chain, or street address…"
+              />
+              <span
+                className="card-meta"
+                style={{ fontSize: "0.75rem", display: "block", marginTop: "0.25rem" }}
+              >
+                Selecting a place automatically populates name, address, country, and
+                coordinates.
+              </span>
+            </div>
+
             <div className="card-grid">
               <div>
                 <label
@@ -333,7 +384,10 @@ export function StoresDirectoryClient({
               </div>
             </div>
 
-            <div className="card-grid">
+            <div
+              className="card-grid"
+              style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}
+            >
               <div>
                 <label
                   htmlFor="store-state"
@@ -377,6 +431,59 @@ export function StoresDirectoryClient({
                   }}
                 />
               </div>
+
+              <div>
+                <label
+                  htmlFor="store-country"
+                  style={{ display: "block", fontWeight: 600, marginBottom: "0.25rem" }}
+                >
+                  Country (ISO) *
+                </label>
+                <input
+                  id="store-country"
+                  type="text"
+                  required
+                  maxLength={2}
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value.toUpperCase())}
+                  placeholder="US"
+                  style={{
+                    width: "100%",
+                    padding: "0.5rem 0.75rem",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--border-strong)",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                style={{ display: "block", fontWeight: 600, marginBottom: "0.25rem" }}
+              >
+                Interactive Location Picker
+              </label>
+              <LocationPickerMap
+                latitude={
+                  latitude.trim() && !Number.isNaN(Number(latitude))
+                    ? Number(latitude)
+                    : null
+                }
+                longitude={
+                  longitude.trim() && !Number.isNaN(Number(longitude))
+                    ? Number(longitude)
+                    : null
+                }
+                onChange={(coords) => {
+                  if (coords) {
+                    setLatitude(coords.latitude.toString());
+                    setLongitude(coords.longitude.toString());
+                  } else {
+                    setLatitude("");
+                    setLongitude("");
+                  }
+                }}
+              />
             </div>
 
             <div className="card-grid">

@@ -203,6 +203,21 @@ export class ResilientRoadRoutingProvider implements RouteDistanceProvider {
   }
 }
 
+import { GoogleRoutesDistanceProvider } from "./google-provider";
+
+export class UnconfiguredGoogleRoutingFallbackProvider implements RouteDistanceProvider {
+  readonly providerName = "haversine";
+  private readonly fallback = new HaversineDistanceProvider();
+
+  async calculateDistance(from: LatLng, to: LatLng): Promise<DistanceCalculationResult> {
+    const res = await this.fallback.calculateDistance(from, to);
+    return {
+      ...res,
+      disclaimer: `${HAVERSINE_DISCLAIMER} (Notice: ROUTING_PROVIDER is 'google' but GOOGLE_MAPS_ROUTES_API_KEY is not configured. Straight-line Haversine fallback used.)`,
+    };
+  }
+}
+
 /**
  * Resolves the appropriate distance provider based on environment configuration.
  * Retains Haversine straight-line calculation if no provider is configured.
@@ -212,6 +227,18 @@ export function resolveRouteDistanceProvider(): RouteDistanceProvider {
     typeof process !== "undefined"
       ? process.env.ROUTING_PROVIDER?.toLowerCase()?.trim()
       : undefined;
+
+  if (providerType === "google") {
+    const key =
+      typeof process !== "undefined"
+        ? process.env.GOOGLE_MAPS_ROUTES_API_KEY?.trim()
+        : undefined;
+    if (key) {
+      const googleRouter = new GoogleRoutesDistanceProvider({ apiKey: key });
+      return new ResilientRoadRoutingProvider(googleRouter);
+    }
+    return new UnconfiguredGoogleRoutingFallbackProvider();
+  }
 
   if (providerType === "osrm") {
     const osrm = new OsrmRoadNetworkProvider();

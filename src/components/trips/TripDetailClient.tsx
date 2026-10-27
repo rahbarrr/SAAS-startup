@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useState } from "react";
+import { TripPlannerMap } from "@/components/maps";
 import { ErrorState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
 import {
@@ -22,7 +23,18 @@ export interface TripDetailClientProps {
   activeOrgId: string;
   currentUserId: string;
   userRole: OrgRole;
-  storesMap: Record<string, { name: string; city: string; region: string }>;
+  storesMap: Record<
+    string,
+    {
+      name: string;
+      city: string;
+      region: string;
+      addressLine1?: string;
+      countryCode?: string;
+      latitude?: number | null;
+      longitude?: number | null;
+    }
+  >;
   visitsMap?: Record<string, { id: string; status: string }>;
 }
 
@@ -480,6 +492,27 @@ export function TripDetailClient({
               </div>
             </div>
 
+            {detail.stops.length > 0 ? (
+              <div style={{ marginBottom: "1rem" }}>
+                <TripPlannerMap
+                  title="Persisted Trip Route"
+                  stops={detail.stops.map((stop) => {
+                    const store = storesMap[stop.storeId];
+                    return {
+                      id: stop.id,
+                      sequenceNumber: stop.sequenceNumber,
+                      storeName: store?.name ?? stop.storeId,
+                      city: store?.city ?? "",
+                      region: store?.region ?? "",
+                      addressLine1: store?.addressLine1,
+                      latitude: store?.latitude ?? null,
+                      longitude: store?.longitude ?? null,
+                    };
+                  })}
+                />
+              </div>
+            ) : null}
+
             {detail.stops.length === 0 ? (
               <p className="card-meta">No store stops planned for this trip.</p>
             ) : (
@@ -495,6 +528,9 @@ export function TripDetailClient({
               >
                 {detail.stops.map((stop) => {
                   const store = storesMap[stop.storeId];
+                  const lat = store?.latitude;
+                  const lng = store?.longitude;
+                  const hasCoords = typeof lat === "number" && typeof lng === "number";
                   return (
                     <li
                       key={stop.id}
@@ -506,19 +542,70 @@ export function TripDetailClient({
                         borderRadius: "var(--radius-md)",
                         backgroundColor: "var(--bg-subtle, #f9fafb)",
                         border: "1px solid var(--border-default, #e5e7eb)",
+                        gap: "0.5rem",
                       }}
                     >
-                      <div>
-                        <strong>Stop #{stop.sequenceNumber}:</strong>{" "}
-                        <Link
-                          href={`/stores/${stop.storeId}`}
-                          style={{ fontWeight: 600 }}
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "0.2rem",
+                        }}
+                      >
+                        <div>
+                          <strong>Stop #{stop.sequenceNumber}:</strong>{" "}
+                          <Link
+                            href={`/stores/${stop.storeId}`}
+                            style={{ fontWeight: 600 }}
+                          >
+                            {store?.name ?? stop.storeId}
+                          </Link>
+                          <span className="card-meta" style={{ marginLeft: "0.5rem" }}>
+                            ({store?.city ?? "City"}, {store?.region ?? "Region"})
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            flexWrap: "wrap",
+                          }}
                         >
-                          {store?.name ?? stop.storeId}
-                        </Link>
-                        <span className="card-meta" style={{ marginLeft: "0.5rem" }}>
-                          ({store?.city ?? "City"}, {store?.region ?? "Region"})
-                        </span>
+                          {store?.addressLine1 ? (
+                            <span className="card-meta" style={{ fontSize: "0.75rem" }}>
+                              {store.addressLine1}
+                            </span>
+                          ) : null}
+                          {hasCoords ? (
+                            <span
+                              style={{
+                                fontSize: "0.6875rem",
+                                fontWeight: 600,
+                                color: "var(--color-success-text, #166534)",
+                                backgroundColor: "var(--color-success-subtle, #ecfdf5)",
+                                padding: "0.1rem 0.4rem",
+                                borderRadius: "9999px",
+                              }}
+                            >
+                              ✓ ({lat.toFixed(4)}, {lng.toFixed(4)})
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                fontSize: "0.6875rem",
+                                fontWeight: 600,
+                                color: "var(--status-warning-text, #92400e)",
+                                backgroundColor: "var(--status-warning-bg, #fffbeb)",
+                                border: "1px solid var(--status-warning-border, #fef3c7)",
+                                padding: "0.1rem 0.4rem",
+                                borderRadius: "9999px",
+                              }}
+                            >
+                              ⚠️ Missing Coordinates
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div
                         style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}

@@ -24,6 +24,11 @@ const serverEnvSchema = z.object({
     .default("https://api.openai.com/v1"),
   OPENAI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).max(60000).default(15000),
   OPENAI_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(128).max(4096).default(1200),
+  GOOGLE_MAPS_ROUTES_API_KEY: z
+    .string()
+    .min(1, "GOOGLE_MAPS_ROUTES_API_KEY must be a non-empty string")
+    .optional(),
+  ROUTING_PROVIDER: z.string().optional(),
 });
 
 export type ServerEnv = ReturnType<typeof getPublicEnv> & z.infer<typeof serverEnvSchema>;
@@ -53,6 +58,8 @@ export function getServerEnv(
     OPENAI_API_BASE_URL: envSource.OPENAI_API_BASE_URL || undefined,
     OPENAI_REQUEST_TIMEOUT_MS: envSource.OPENAI_REQUEST_TIMEOUT_MS || undefined,
     OPENAI_MAX_OUTPUT_TOKENS: envSource.OPENAI_MAX_OUTPUT_TOKENS || undefined,
+    GOOGLE_MAPS_ROUTES_API_KEY: envSource.GOOGLE_MAPS_ROUTES_API_KEY || undefined,
+    ROUTING_PROVIDER: envSource.ROUTING_PROVIDER || undefined,
   });
 
   return {

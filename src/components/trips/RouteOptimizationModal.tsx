@@ -227,12 +227,19 @@ export function RouteOptimizationModal({
             <span
               style={{
                 fontWeight: 600,
-                color: proposal.providerName === "osrm" ? "#0f766e" : "#b45309",
+                color:
+                  proposal.providerName === "google"
+                    ? "#1d4ed8"
+                    : proposal.providerName === "osrm"
+                      ? "#0f766e"
+                      : "#b45309",
               }}
             >
-              {proposal.providerName === "osrm"
-                ? "OSRM (Road-Network Driving)"
-                : "Haversine (Geodesic Straight-Line)"}
+              {proposal.providerName === "google"
+                ? "Google Routes (Road-Network Driving)"
+                : proposal.providerName === "osrm"
+                  ? "OSRM (Road-Network Driving)"
+                  : "Haversine (Geodesic Straight-Line)"}
             </span>
           </div>
           <div>
