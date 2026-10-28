@@ -52,6 +52,14 @@ export interface MobileOrganizationMembership {
     id: string;
     name: string;
     slug: string;
+    status?: "active" | "suspended";
+  };
+  membership?: {
+    id: string;
+    orgId: string;
+    userId: string;
+    role: "admin" | "manager" | "field_employee";
+    status: "active" | "invited" | "deactivated";
   };
   role: "admin" | "manager" | "field_employee";
   status: "active" | "invited" | "deactivated";

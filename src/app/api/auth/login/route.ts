@@ -7,6 +7,7 @@ import { clientIpFromHeaders, enforceRateLimit } from "@/lib/rate-limit";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import { signInInputSchema } from "@/modules/auth/schemas";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
+import { listUserOrganizationsForCaller } from "@/modules/tenancy/service";
 
 export async function POST(request: NextRequest): Promise<Response> {
   try {
@@ -80,7 +81,13 @@ export async function POST(request: NextRequest): Promise<Response> {
     );
 
     const tenancyRepository = new SupabaseTenancyRepository(authedSupabase);
-    const organizations = await tenancyRepository.listUserOrganizations(data.user.id);
+    const organizations = await listUserOrganizationsForCaller({
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+      },
+      repository: tenancyRepository,
+    });
 
     return jsonSuccess(
       {

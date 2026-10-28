@@ -114,6 +114,31 @@ function mapInvitationRow(row: DbOrganizationInvitationRow): OrganizationInvitat
 export class SupabaseTenancyRepository implements TenancyRepository {
   constructor(private readonly supabase: SupabaseClient) {}
 
+  private async tryRecordAuditEvent(params: {
+    orgId: string;
+    actorUserId: string | null;
+    actorRole: OrgRole | null;
+    actionType: string;
+    entityType: string;
+    entityId: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<void> {
+    try {
+      await this.supabase.from("organization_audit_events").insert({
+        organization_id: params.orgId,
+        actor_user_id: params.actorUserId,
+        actor_role: params.actorRole,
+        action_type: params.actionType,
+        entity_type: params.entityType,
+        entity_id: params.entityId,
+        changes: {},
+        metadata: params.metadata ?? {},
+      });
+    } catch {
+      // Best-effort audit recording
+    }
+  }
+
   async getMembershipByUserAndOrg(
     userId: string,
     orgId: string
@@ -191,7 +216,7 @@ export class SupabaseTenancyRepository implements TenancyRepository {
   }
 
   async createOrganizationWithOwner(
-    _userId: string,
+    userId: string,
     input: CreateOrganizationInput
   ): Promise<Organization> {
     const { data, error } = await this.supabase
@@ -212,7 +237,21 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       throw new AppError("INTERNAL_ERROR", "Failed to create organization", 500);
     }
 
-    return mapOrganizationRow(data);
+    const organization = mapOrganizationRow(data);
+    await this.tryRecordAuditEvent({
+      orgId: organization.id,
+      actorUserId: userId,
+      actorRole: "admin",
+      actionType: "org.created",
+      entityType: "organization",
+      entityId: organization.id,
+      metadata: {
+        name: organization.name,
+        slug: organization.slug,
+      },
+    });
+
+    return organization;
   }
 
   async listOrgMembers(
@@ -296,7 +335,21 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       throw new AppError("INTERNAL_ERROR", "Failed to add organization member", 500);
     }
 
-    return mapMembershipRow(data);
+    const membership = mapMembershipRow(data);
+    await this.tryRecordAuditEvent({
+      orgId,
+      actorUserId: null,
+      actorRole: "admin",
+      actionType: "member.added",
+      entityType: "member",
+      entityId: membership.id,
+      metadata: {
+        userId: membership.userId,
+        role: membership.role,
+        status: membership.status,
+      },
+    });
+    return membership;
   }
 
   async isEmailActiveMemberOfOrg(orgId: string, email: string): Promise<boolean> {
@@ -387,7 +440,20 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       );
     }
 
-    return mapInvitationRow(data);
+    const invitation = mapInvitationRow(data);
+    await this.tryRecordAuditEvent({
+      orgId: input.orgId,
+      actorUserId: input.invitedBy,
+      actorRole: "admin",
+      actionType: "member.invited",
+      entityType: "invitation",
+      entityId: invitation.id,
+      metadata: {
+        invitedEmail: invitation.invitedEmail,
+        role: invitation.role,
+      },
+    });
+    return invitation;
   }
 
   async acceptOrgInvitationByTokenHash(params: {
@@ -430,7 +496,21 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       );
     }
 
-    return mapMembershipRow(data);
+    const membership = mapMembershipRow(data);
+    await this.tryRecordAuditEvent({
+      orgId: membership.orgId,
+      actorUserId: params.user.id,
+      actorRole: membership.role,
+      actionType: "invitation.accepted",
+      entityType: "member",
+      entityId: membership.id,
+      metadata: {
+        userId: params.user.id,
+        email: params.user.email,
+        role: membership.role,
+      },
+    });
+    return membership;
   }
 
   async getProfilesByUserIds(userIds: string[]): Promise<Record<string, MemberProfile>> {

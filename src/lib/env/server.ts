@@ -29,6 +29,26 @@ const serverEnvSchema = z.object({
     .min(1, "GOOGLE_MAPS_ROUTES_API_KEY must be a non-empty string")
     .optional(),
   ROUTING_PROVIDER: z.string().optional(),
+  STRIPE_SECRET_KEY: z
+    .string()
+    .min(1, "STRIPE_SECRET_KEY must be a non-empty string")
+    .optional(),
+  STRIPE_WEBHOOK_SECRET: z
+    .string()
+    .min(1, "STRIPE_WEBHOOK_SECRET must be a non-empty string")
+    .optional(),
+  STRIPE_PRICE_ID_PRO_MONTHLY: z
+    .string()
+    .min(1, "STRIPE_PRICE_ID_PRO_MONTHLY must be a non-empty string")
+    .optional(),
+  STRIPE_PRICE_ID_ENTERPRISE_MONTHLY: z
+    .string()
+    .min(1, "STRIPE_PRICE_ID_ENTERPRISE_MONTHLY must be a non-empty string")
+    .optional(),
+  STRIPE_API_BASE_URL: z
+    .string()
+    .url("STRIPE_API_BASE_URL must be a valid URL")
+    .default("https://api.stripe.com/v1"),
 });
 
 export type ServerEnv = ReturnType<typeof getPublicEnv> & z.infer<typeof serverEnvSchema>;
@@ -40,6 +60,16 @@ export interface OpenAiReportRuntimeConfig {
   baseUrl: string;
   timeoutMs: number;
   maxOutputTokens: number;
+}
+
+export interface StripeRuntimeConfig {
+  configured: boolean;
+  webhookConfigured: boolean;
+  secretKey: string | null;
+  webhookSecret: string | null;
+  priceIdProMonthly: string | null;
+  priceIdEnterpriseMonthly: string | null;
+  apiBaseUrl: string;
 }
 
 /**
@@ -60,6 +90,12 @@ export function getServerEnv(
     OPENAI_MAX_OUTPUT_TOKENS: envSource.OPENAI_MAX_OUTPUT_TOKENS || undefined,
     GOOGLE_MAPS_ROUTES_API_KEY: envSource.GOOGLE_MAPS_ROUTES_API_KEY || undefined,
     ROUTING_PROVIDER: envSource.ROUTING_PROVIDER || undefined,
+    STRIPE_SECRET_KEY: envSource.STRIPE_SECRET_KEY || undefined,
+    STRIPE_WEBHOOK_SECRET: envSource.STRIPE_WEBHOOK_SECRET || undefined,
+    STRIPE_PRICE_ID_PRO_MONTHLY: envSource.STRIPE_PRICE_ID_PRO_MONTHLY || undefined,
+    STRIPE_PRICE_ID_ENTERPRISE_MONTHLY:
+      envSource.STRIPE_PRICE_ID_ENTERPRISE_MONTHLY || undefined,
+    STRIPE_API_BASE_URL: envSource.STRIPE_API_BASE_URL || undefined,
   });
 
   return {
@@ -94,5 +130,37 @@ export function getOpenAiReportRuntimeConfig(
     baseUrl: parsed.OPENAI_API_BASE_URL,
     timeoutMs: parsed.OPENAI_REQUEST_TIMEOUT_MS,
     maxOutputTokens: parsed.OPENAI_MAX_OUTPUT_TOKENS,
+  };
+}
+
+/**
+ * Resolves the optional server-only Stripe billing configuration without
+ * failing startup when billing credentials are not yet configured in the environment.
+ */
+export function getStripeRuntimeConfig(
+  envSource: Record<string, string | undefined> = process.env
+): StripeRuntimeConfig {
+  const parsed = serverEnvSchema.parse({
+    STRIPE_SECRET_KEY: envSource.STRIPE_SECRET_KEY || undefined,
+    STRIPE_WEBHOOK_SECRET: envSource.STRIPE_WEBHOOK_SECRET || undefined,
+    STRIPE_PRICE_ID_PRO_MONTHLY: envSource.STRIPE_PRICE_ID_PRO_MONTHLY || undefined,
+    STRIPE_PRICE_ID_ENTERPRISE_MONTHLY:
+      envSource.STRIPE_PRICE_ID_ENTERPRISE_MONTHLY || undefined,
+    STRIPE_API_BASE_URL: envSource.STRIPE_API_BASE_URL || undefined,
+  });
+
+  const secretKey = parsed.STRIPE_SECRET_KEY ?? null;
+  const webhookSecret = parsed.STRIPE_WEBHOOK_SECRET ?? null;
+  const priceIdProMonthly = parsed.STRIPE_PRICE_ID_PRO_MONTHLY ?? null;
+  const priceIdEnterpriseMonthly = parsed.STRIPE_PRICE_ID_ENTERPRISE_MONTHLY ?? null;
+
+  return {
+    configured: Boolean(secretKey && (priceIdProMonthly || priceIdEnterpriseMonthly)),
+    webhookConfigured: Boolean(secretKey && webhookSecret),
+    secretKey,
+    webhookSecret,
+    priceIdProMonthly,
+    priceIdEnterpriseMonthly,
+    apiBaseUrl: parsed.STRIPE_API_BASE_URL,
   };
 }

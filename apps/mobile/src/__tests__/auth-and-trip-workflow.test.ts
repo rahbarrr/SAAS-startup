@@ -3,6 +3,7 @@ import { FieldTrackMobileApiClient } from "../services/api";
 import {
   MobileAuthService,
   normalizeApiBaseUrl,
+  normalizeOrganizationMemberships,
   resolveDefaultApiBaseUrl,
 } from "../services/auth";
 
@@ -78,9 +79,15 @@ describe("FieldTrack Mobile Auth & Trip Loading Workflow", () => {
                 id: "org-1",
                 name: "Apex Retail Corp",
                 slug: "apex-retail",
+                status: "active",
               },
-              role: "field_employee",
-              status: "active",
+              membership: {
+                id: "mem-1",
+                orgId: "org-1",
+                userId: "emp-1",
+                role: "field_employee",
+                status: "active",
+              },
             },
           ],
         },
@@ -256,5 +263,87 @@ describe("FieldTrack Mobile Auth & Trip Loading Workflow", () => {
     expect(executableTrip.stops[0]?.longitude).toBe(72.8295);
     expect(executableTrip.stops[1]?.id).toBe("stop-2");
     expect(executableTrip.stops[1]?.storeName).toBe("Store B — Andheri");
+  });
+
+  it("normalizes nested UserOrganizationSummary payloads and refreshes workspaces via GET /api/orgs", async () => {
+    const nestedPayload = [
+      {
+        organization: {
+          id: "org-nested-1",
+          name: "Metro Field Ops",
+          slug: "metro-field-ops",
+          status: "active",
+        },
+        membership: {
+          id: "mem-nested-1",
+          orgId: "org-nested-1",
+          userId: "emp-1",
+          role: "admin",
+          status: "active",
+        },
+      },
+      {
+        organization: {
+          id: "org-suspended",
+          name: "Suspended Org",
+          slug: "suspended-org",
+          status: "suspended",
+        },
+        membership: {
+          id: "mem-2",
+          orgId: "org-suspended",
+          userId: "emp-1",
+          role: "admin",
+          status: "active",
+        },
+      },
+      {
+        organization: {
+          id: "org-deactivated-member",
+          name: "Active Org",
+          slug: "active-org",
+          status: "active",
+        },
+        membership: {
+          id: "mem-3",
+          orgId: "org-deactivated-member",
+          userId: "emp-1",
+          role: "field_employee",
+          status: "deactivated",
+        },
+      },
+    ];
+
+    const normalized = normalizeOrganizationMemberships(nestedPayload);
+    expect(normalized).toHaveLength(1);
+    expect(normalized[0]?.organization.id).toBe("org-nested-1");
+    expect(normalized[0]?.role).toBe("admin");
+    expect(normalized[0]?.status).toBe("active");
+
+    // Save a session with 0 organizations and verify refreshOrganizations self-heals it
+    await MobileAuthService.saveSession({
+      baseUrl: "http://192.168.43.142:3000",
+      accessToken: "jwt_mobile_token_123",
+      user: { id: "emp-1", email: "rahul@fieldtrack.io" },
+      organizations: [],
+      activeOrgId: null,
+      activeTripId: null,
+    });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: nestedPayload,
+          error: null,
+        }),
+      })
+    );
+
+    const refreshed = await MobileAuthService.refreshOrganizations();
+    expect(refreshed?.organizations).toHaveLength(1);
+    expect(refreshed?.activeOrgId).toBe("org-nested-1");
   });
 });

@@ -6,6 +6,7 @@ import type {
   MobileTripSummary,
   QueuedGeofenceEvent,
 } from "../types";
+import { normalizeOrganizationMemberships } from "./auth";
 
 export interface MobileApiConfig {
   baseUrl: string;
@@ -78,7 +79,61 @@ export class FieldTrackMobileApiClient {
       );
     }
 
-    return (body?.data ?? []) as MobileOrganizationMembership[];
+    return normalizeOrganizationMemberships(body?.data);
+  }
+
+  /**
+   * Creates a new organization workspace where the authenticated caller is the admin owner.
+   */
+  async createOrganization(params: {
+    name: string;
+    slug: string;
+  }): Promise<{ id: string; name: string; slug: string }> {
+    const url = `${this.config.baseUrl}/api/orgs`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({
+        name: params.name.trim(),
+        slug: params.slug.trim().toLowerCase(),
+      }),
+    });
+
+    const body = await response.json();
+    if (!response.ok || !body?.data?.id) {
+      throw new Error(
+        body?.error?.message ??
+          `Failed to create organization (${response.status})`
+      );
+    }
+
+    return body.data as { id: string; name: string; slug: string };
+  }
+
+  /**
+   * Accepts an organization invitation token for the authenticated caller.
+   */
+  async acceptInvitation(params: {
+    token: string;
+  }): Promise<{ orgId: string; role: string }> {
+    const url = `${this.config.baseUrl}/api/invitations/accept`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({
+        token: params.token.trim(),
+      }),
+    });
+
+    const body = await response.json();
+    if (!response.ok || !body?.data?.orgId) {
+      throw new Error(
+        body?.error?.message ??
+          `Failed to accept invitation (${response.status})`
+      );
+    }
+
+    return body.data as { orgId: string; role: string };
   }
 
   /**

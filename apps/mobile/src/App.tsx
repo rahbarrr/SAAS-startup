@@ -45,16 +45,29 @@ export function App({
         const saved = await MobileAuthService.getSavedSession();
         if (!mounted) return;
         if (saved) {
-          setSession(saved);
-          if (saved.activeOrgId && saved.activeTripId) {
+          let activeSession = saved;
+          if (activeSession.organizations.length === 0) {
+            try {
+              const refreshed =
+                await MobileAuthService.refreshOrganizations(activeSession);
+              if (refreshed) {
+                activeSession = refreshed;
+              }
+            } catch {
+              // Keep saved session if offline during cold boot
+            }
+          }
+          if (!mounted) return;
+          setSession(activeSession);
+          if (activeSession.activeOrgId && activeSession.activeTripId) {
             try {
               const client = new FieldTrackMobileApiClient({
-                baseUrl: saved.baseUrl,
-                authToken: saved.accessToken,
-                orgId: saved.activeOrgId,
+                baseUrl: activeSession.baseUrl,
+                authToken: activeSession.accessToken,
+                orgId: activeSession.activeOrgId,
               });
               const restoredTrip = await client.getExecutableTrip(
-                saved.activeTripId
+                activeSession.activeTripId
               );
               if (mounted) {
                 setSelectedTrip(restoredTrip);
@@ -155,6 +168,7 @@ export function App({
       ) : session ? (
         <TripSelectorScreen
           session={session}
+          onSessionUpdated={(updated) => setSession(updated)}
           onSelectOrganization={handleSelectOrganization}
           onSelectTrip={handleSelectTrip}
           onSignOut={handleSignOut}

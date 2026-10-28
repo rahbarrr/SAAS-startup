@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useCurrentRole } from "@/components/ui/RoleContext";
 import { useToast } from "@/components/ui/Toast";
+import type { OrganizationBillingSummary, PlanTier } from "@/modules/billing/domain";
 import type { OrgRole } from "@/modules/tenancy/domain";
 
 type SettingsTab =
@@ -40,6 +41,122 @@ export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClien
   // Preference states
   const [offlineSyncWifiOnly, setOfflineSyncWifiOnly] = useState(false);
   const [emailDigestTime, setEmailDigestTime] = useState("08:00");
+
+  // Billing states
+  const [billingSummary, setBillingSummary] = useState<OrganizationBillingSummary | null>(
+    null
+  );
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [billingActionLoading, setBillingActionLoading] = useState<string | null>(null);
+  const [seatInput, setSeatInput] = useState<number>(15);
+
+  const loadBillingSummary = useCallback(async () => {
+    setBillingLoading(true);
+    try {
+      const response = await fetch(`/api/orgs/${activeOrg.id}/billing`);
+      const body = await response.json();
+      if (response.ok && body?.data) {
+        const data = body.data as OrganizationBillingSummary;
+        setBillingSummary(data);
+        setSeatInput(Math.max(data.subscription.seatCount, 5));
+      }
+    } catch {
+      // Non-blocking fallback
+    } finally {
+      setBillingLoading(false);
+    }
+  }, [activeOrg.id]);
+
+  useEffect(() => {
+    if (activeTab === "billing" && !billingSummary && !billingLoading) {
+      loadBillingSummary();
+    }
+  }, [activeTab, billingSummary, billingLoading, loadBillingSummary]);
+
+  const handleCheckoutUpgrade = async (planTier: "pro" | "enterprise") => {
+    setBillingActionLoading(`checkout-${planTier}`);
+    try {
+      const response = await fetch(`/api/orgs/${activeOrg.id}/billing`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "checkout",
+          planTier,
+          seatCount: Math.max(seatInput, planTier === "enterprise" ? 50 : 15),
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        showToast(
+          body?.error?.message ?? "Unable to start Stripe Checkout session.",
+          "error"
+        );
+        return;
+      }
+      if (body?.data?.checkoutUrl) {
+        window.location.assign(body.data.checkoutUrl);
+      }
+    } catch {
+      showToast("Network error starting Stripe Checkout session.", "error");
+    } finally {
+      setBillingActionLoading(null);
+    }
+  };
+
+  const handleOpenBillingPortal = async () => {
+    setBillingActionLoading("portal");
+    try {
+      const response = await fetch(`/api/orgs/${activeOrg.id}/billing`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "portal" }),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        showToast(
+          body?.error?.message ?? "Unable to open Stripe Billing Portal.",
+          "error"
+        );
+        return;
+      }
+      if (body?.data?.portalUrl) {
+        window.location.assign(body.data.portalUrl);
+      }
+    } catch {
+      showToast("Network error opening Stripe Billing Portal.", "error");
+    } finally {
+      setBillingActionLoading(null);
+    }
+  };
+
+  const handleUpdateSeats = async (nextPlanTier?: PlanTier) => {
+    setBillingActionLoading("seats");
+    try {
+      const response = await fetch(`/api/orgs/${activeOrg.id}/billing`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_seats",
+          seatCount: seatInput,
+          ...(nextPlanTier ? { planTier: nextPlanTier } : {}),
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        showToast(
+          body?.error?.message ?? "Failed to update workspace seat allocation.",
+          "error"
+        );
+        return;
+      }
+      showToast("Workspace seat allocation updated.", "success");
+      await loadBillingSummary();
+    } catch {
+      showToast("Network error updating workspace seat allocation.", "error");
+    } finally {
+      setBillingActionLoading(null);
+    }
+  };
 
   const handleSaveCompany = (e: React.FormEvent) => {
     e.preventDefault();
@@ -665,26 +782,44 @@ export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClien
         {/* Tab 6: Subscription & Billing */}
         {activeTab === "billing" && (
           <div>
-            <div style={{ marginBottom: "1.5rem" }}>
-              <h2
-                style={{
-                  fontSize: "1.25rem",
-                  fontFamily: "var(--font-heading)",
-                  color: "var(--brand-dark)",
-                  margin: "0 0 0.25rem",
-                }}
+            <div
+              style={{
+                marginBottom: "1.5rem",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    fontSize: "1.25rem",
+                    fontFamily: "var(--font-heading)",
+                    color: "var(--brand-dark)",
+                    margin: "0 0 0.25rem",
+                  }}
+                >
+                  Subscription &amp; Workspace Allocation
+                </h2>
+                <p
+                  style={{
+                    fontSize: "0.8125rem",
+                    color: "var(--text-secondary)",
+                    margin: 0,
+                  }}
+                >
+                  Manage your workspace subscription tier, seat quotas, and Stripe billing
+                  portal.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={loadBillingSummary}
+                disabled={billingLoading}
               >
-                Subscription &amp; Workspace Allocation
-              </h2>
-              <p
-                style={{
-                  fontSize: "0.8125rem",
-                  color: "var(--text-secondary)",
-                  margin: 0,
-                }}
-              >
-                Enterprise contract details and workspace management.
-              </p>
+                {billingLoading ? "Refreshing…" : "Refresh Status"}
+              </button>
             </div>
 
             <div
@@ -694,7 +829,7 @@ export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClien
                 background:
                   "linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-primary) 100%)",
                 color: "#FFFFFF",
-                marginBottom: "1.5rem",
+                marginBottom: "1.25rem",
               }}
             >
               <div
@@ -711,7 +846,7 @@ export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClien
                       fontSize: "0.75rem",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
-                      opacity: 0.8,
+                      opacity: 0.85,
                     }}
                   >
                     Active Workspace Tier
@@ -723,41 +858,199 @@ export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClien
                       color: "#FFFFFF",
                     }}
                   >
-                    Enterprise Pilot Edition
+                    {billingSummary
+                      ? `${billingSummary.subscription.planTier.toUpperCase()} PLAN (${billingSummary.subscription.seatCount} Seats)`
+                      : "Enterprise Pilot Edition"}
                   </h3>
-                  <p style={{ fontSize: "0.8125rem", margin: 0, opacity: 0.9 }}>
-                    Multi-Store Itineraries • GPS Telemetry • Photo Proof • Audit Trail •
-                    AI Synthesis
+                  <p style={{ fontSize: "0.8125rem", margin: 0, opacity: 0.92 }}>
+                    {billingSummary?.access.message ??
+                      "Multi-Store Itineraries • GPS Telemetry • Photo Proof • Audit Trail • AI Synthesis"}
                   </p>
                 </div>
                 <span
                   style={{
                     padding: "0.25rem 0.625rem",
                     borderRadius: "9999px",
-                    background: "rgba(5, 150, 105, 0.3)",
-                    border: "1px solid #059669",
+                    background:
+                      billingSummary?.access.writeAllowed === false
+                        ? "rgba(220, 38, 38, 0.35)"
+                        : "rgba(5, 150, 105, 0.3)",
+                    border:
+                      billingSummary?.access.writeAllowed === false
+                        ? "1px solid #f87171"
+                        : "1px solid #059669",
                     fontSize: "0.75rem",
                     fontWeight: 600,
+                    textTransform: "uppercase",
                   }}
                 >
-                  Active Subscription
+                  {billingSummary?.subscription.status ?? "Active Subscription"}
                 </span>
               </div>
             </div>
 
-            <div
-              className="card"
-              style={{ padding: "1.25rem", background: "var(--bg-subtle)" }}
-            >
-              <strong style={{ fontSize: "0.875rem" }}>
-                Plan &amp; Capacity Inquiries
-              </strong>
-              <p className="card-meta" style={{ margin: "0.25rem 0 0" }}>
-                To modify your workspace seat quota, add territory accounts, or adjust
-                billing parameters, please contact your organization administrator or
-                FieldTrack enterprise support.
-              </p>
-            </div>
+            {billingSummary && (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gap: "1rem",
+                  marginBottom: "1.5rem",
+                }}
+              >
+                <div className="card" style={{ padding: "1rem" }}>
+                  <span className="card-meta">Team Seats Used</span>
+                  <div
+                    style={{
+                      fontSize: "1.25rem",
+                      fontWeight: 700,
+                      marginTop: "0.25rem",
+                    }}
+                  >
+                    {billingSummary.usage.activeAndInvitedMembers} /{" "}
+                    {billingSummary.subscription.seatCount}
+                  </div>
+                  <span className="card-meta">
+                    Plan max: {billingSummary.subscription.entitlements.max_members}
+                  </span>
+                </div>
+                <div className="card" style={{ padding: "1rem" }}>
+                  <span className="card-meta">Active Stores</span>
+                  <div
+                    style={{
+                      fontSize: "1.25rem",
+                      fontWeight: 700,
+                      marginTop: "0.25rem",
+                    }}
+                  >
+                    {billingSummary.usage.activeStores} /{" "}
+                    {billingSummary.subscription.entitlements.max_stores}
+                  </div>
+                  <span className="card-meta">Store Master Quota</span>
+                </div>
+                <div className="card" style={{ padding: "1rem" }}>
+                  <span className="card-meta">Monthly Store Visits</span>
+                  <div
+                    style={{
+                      fontSize: "1.25rem",
+                      fontWeight: 700,
+                      marginTop: "0.25rem",
+                    }}
+                  >
+                    {billingSummary.usage.monthlyVisits} /{" "}
+                    {billingSummary.subscription.entitlements.max_monthly_visits}
+                  </div>
+                  <span className="card-meta">
+                    AI Draft Quota:{" "}
+                    {billingSummary.subscription.entitlements.ai_daily_draft_quota}
+                    /day
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {userRole === "admin" ? (
+              <div className="card" style={{ padding: "1.25rem" }}>
+                <strong style={{ fontSize: "0.95rem" }}>
+                  Seat Allocation &amp; Plan Upgrade
+                </strong>
+                <p className="card-meta" style={{ margin: "0.25rem 0 0.75rem" }}>
+                  Configure workspace seat limits or launch Stripe Checkout / Billing
+                  Portal.
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.75rem",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <label
+                    htmlFor="billing-seat-input"
+                    style={{ fontSize: "0.8125rem", fontWeight: 600 }}
+                  >
+                    Seats:
+                  </label>
+                  <input
+                    id="billing-seat-input"
+                    type="number"
+                    min={1}
+                    max={1000}
+                    className="form-input"
+                    style={{ width: "100px" }}
+                    value={seatInput}
+                    onChange={(e) =>
+                      setSeatInput(Math.max(1, Number(e.target.value) || 1))
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => handleUpdateSeats()}
+                    disabled={billingActionLoading !== null}
+                  >
+                    {billingActionLoading === "seats" ? "Saving…" : "Update Seat Limit"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => handleCheckoutUpgrade("pro")}
+                    disabled={billingActionLoading !== null}
+                  >
+                    {billingActionLoading === "checkout-pro"
+                      ? "Redirecting…"
+                      : "Upgrade to Pro ($149/mo)"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => handleCheckoutUpgrade("enterprise")}
+                    disabled={billingActionLoading !== null}
+                  >
+                    {billingActionLoading === "checkout-enterprise"
+                      ? "Redirecting…"
+                      : "Upgrade to Enterprise ($499/mo)"}
+                  </button>
+                  {billingSummary?.portalAvailable && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleOpenBillingPortal}
+                      disabled={billingActionLoading !== null}
+                    >
+                      {billingActionLoading === "portal"
+                        ? "Opening…"
+                        : "Open Stripe Billing Portal"}
+                    </button>
+                  )}
+                </div>
+                {billingSummary && !billingSummary.stripeConfigured && (
+                  <p
+                    className="card-meta"
+                    style={{ marginTop: "0.75rem", color: "#b45309" }}
+                  >
+                    Stripe Checkout keys (<code>STRIPE_SECRET_KEY</code>,{" "}
+                    <code>STRIPE_PRICE_ID_PRO_MONTHLY</code>) are not yet configured in
+                    this environment. Local seat and tier entitlements remain manageable.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div
+                className="card"
+                style={{ padding: "1.25rem", background: "var(--bg-subtle)" }}
+              >
+                <strong style={{ fontSize: "0.875rem" }}>
+                  Plan &amp; Capacity Inquiries
+                </strong>
+                <p className="card-meta" style={{ margin: "0.25rem 0 0" }}>
+                  To modify your workspace seat quota, add territory accounts, or adjust
+                  billing parameters, please contact your organization administrator or
+                  FieldTrack enterprise support.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

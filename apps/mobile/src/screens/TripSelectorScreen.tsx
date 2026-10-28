@@ -4,10 +4,12 @@ import {
   FlatList,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { FieldTrackMobileApiClient } from "../services/api";
+import { MobileAuthService } from "../services/auth";
 import type {
   MobileAuthSession,
   MobileTrip,
@@ -16,6 +18,7 @@ import type {
 
 export interface TripSelectorScreenProps {
   session: MobileAuthSession;
+  onSessionUpdated?: (session: MobileAuthSession) => void;
   onSelectOrganization: (orgId: string) => void;
   onSelectTrip: (trip: MobileTrip, apiClient: FieldTrackMobileApiClient) => void;
   onSignOut: () => void;
@@ -23,6 +26,7 @@ export interface TripSelectorScreenProps {
 
 export function TripSelectorScreen({
   session,
+  onSessionUpdated,
   onSelectOrganization,
   onSelectTrip,
   onSignOut,
@@ -31,23 +35,39 @@ export function TripSelectorScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [loadingTripId, setLoadingTripId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [orgNameInput, setOrgNameInput] = useState("");
+  const [orgSlugInput, setOrgSlugInput] = useState("");
+  const [inviteTokenInput, setInviteTokenInput] = useState("");
+  const [isOnboardingSubmitting, setIsOnboardingSubmitting] = useState(false);
 
   const activeOrgId =
     session.activeOrgId ?? session.organizations[0]?.organization.id ?? null;
 
   const loadTrips = useCallback(async () => {
-    if (!activeOrgId) {
-      setTrips([]);
-      return;
-    }
-
     setIsLoading(true);
     setErrorMessage(null);
     try {
+      let resolvedOrgId = activeOrgId;
+      if (!resolvedOrgId) {
+        const refreshed = await MobileAuthService.refreshOrganizations(session);
+        if (refreshed) {
+          onSessionUpdated?.(refreshed);
+          resolvedOrgId =
+            refreshed.activeOrgId ??
+            refreshed.organizations[0]?.organization.id ??
+            null;
+        }
+      }
+
+      if (!resolvedOrgId) {
+        setTrips([]);
+        return;
+      }
+
       const client = new FieldTrackMobileApiClient({
         baseUrl: session.baseUrl,
         authToken: session.accessToken,
-        orgId: activeOrgId,
+        orgId: resolvedOrgId,
       });
 
       const allUserTrips = await client.listTrips({
@@ -62,11 +82,83 @@ export function TripSelectorScreen({
     } finally {
       setIsLoading(false);
     }
-  }, [activeOrgId, session.baseUrl, session.accessToken, session.user.id]);
+  }, [activeOrgId, onSessionUpdated, session]);
 
   useEffect(() => {
     loadTrips();
   }, [loadTrips]);
+
+  const handleCreateWorkspace = async () => {
+    const trimmedName = orgNameInput.trim();
+    const derivedSlug = (
+      orgSlugInput.trim() ||
+      trimmedName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+    ).slice(0, 64);
+
+    if (trimmedName.length < 2) {
+      setErrorMessage("Please enter an organization name (at least 2 characters).");
+      return;
+    }
+
+    setIsOnboardingSubmitting(true);
+    setErrorMessage(null);
+    try {
+      const client = new FieldTrackMobileApiClient({
+        baseUrl: session.baseUrl,
+        authToken: session.accessToken,
+        orgId: "",
+      });
+      await client.createOrganization({
+        name: trimmedName,
+        slug: derivedSlug,
+      });
+      const refreshed = await MobileAuthService.refreshOrganizations(session);
+      if (refreshed) {
+        onSessionUpdated?.(refreshed);
+      }
+      setOrgNameInput("");
+      setOrgSlugInput("");
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to create workspace."
+      );
+    } finally {
+      setIsOnboardingSubmitting(false);
+    }
+  };
+
+  const handleAcceptInviteToken = async () => {
+    const token = inviteTokenInput.trim();
+    if (!token) {
+      setErrorMessage("Please paste your workspace invitation token.");
+      return;
+    }
+
+    setIsOnboardingSubmitting(true);
+    setErrorMessage(null);
+    try {
+      const client = new FieldTrackMobileApiClient({
+        baseUrl: session.baseUrl,
+        authToken: session.accessToken,
+        orgId: "",
+      });
+      await client.acceptInvitation({ token });
+      const refreshed = await MobileAuthService.refreshOrganizations(session);
+      if (refreshed) {
+        onSessionUpdated?.(refreshed);
+      }
+      setInviteTokenInput("");
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error ? err.message : "Failed to accept invitation."
+      );
+    } finally {
+      setIsOnboardingSubmitting(false);
+    }
+  };
 
   const handleOpenTrip = async (summary: MobileTripSummary) => {
     if (!activeOrgId) return;
@@ -151,8 +243,62 @@ export function TripSelectorScreen({
         <View style={styles.warningBox}>
           <Text style={styles.warningText}>
             Your account does not belong to an active organization workspace yet.
-            Create or join an organization in the FieldTrack web app first.
+            Create a workspace or accept an invitation token below, or tap Refresh.
           </Text>
+
+          <View style={styles.onboardingCard}>
+            <Text style={styles.onboardingTitle}>Create Workspace</Text>
+            <TextInput
+              style={styles.onboardingInput}
+              value={orgNameInput}
+              onChangeText={setOrgNameInput}
+              placeholder="Organization name (e.g. Apex Field Ops)"
+              placeholderTextColor="#94a3b8"
+              editable={!isOnboardingSubmitting}
+            />
+            <TextInput
+              style={styles.onboardingInput}
+              value={orgSlugInput}
+              onChangeText={setOrgSlugInput}
+              placeholder="Slug (optional, e.g. apex-field-ops)"
+              placeholderTextColor="#94a3b8"
+              autoCapitalize="none"
+              editable={!isOnboardingSubmitting}
+            />
+            <TouchableOpacity
+              style={styles.onboardingBtn}
+              onPress={handleCreateWorkspace}
+              disabled={isOnboardingSubmitting}
+            >
+              <Text style={styles.onboardingBtnText}>
+                {isOnboardingSubmitting
+                  ? "Working…"
+                  : "Create Organization Workspace"}
+              </Text>
+            </TouchableOpacity>
+
+            <Text style={[styles.onboardingTitle, { marginTop: 10 }]}>
+              Or Accept Invitation Token
+            </Text>
+            <TextInput
+              style={styles.onboardingInput}
+              value={inviteTokenInput}
+              onChangeText={setInviteTokenInput}
+              placeholder="Paste invitation token"
+              placeholderTextColor="#94a3b8"
+              autoCapitalize="none"
+              editable={!isOnboardingSubmitting}
+            />
+            <TouchableOpacity
+              style={styles.onboardingSecondaryBtn}
+              onPress={handleAcceptInviteToken}
+              disabled={isOnboardingSubmitting}
+            >
+              <Text style={styles.onboardingSecondaryBtnText}>
+                Accept Workspace Invitation
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
@@ -341,6 +487,53 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#92400e",
     lineHeight: 17,
+  },
+  onboardingCard: {
+    marginTop: 10,
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#fde68a",
+  },
+  onboardingTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: 6,
+  },
+  onboardingInput: {
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    fontSize: 12,
+    color: "#0f172a",
+    marginBottom: 6,
+  },
+  onboardingBtn: {
+    backgroundColor: "#0284c7",
+    borderRadius: 6,
+    paddingVertical: 8,
+    alignItems: "center",
+  },
+  onboardingBtnText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  onboardingSecondaryBtn: {
+    backgroundColor: "#e2e8f0",
+    borderRadius: 6,
+    paddingVertical: 8,
+    alignItems: "center",
+  },
+  onboardingSecondaryBtnText: {
+    color: "#1e293b",
+    fontSize: 12,
+    fontWeight: "700",
   },
   errorBox: {
     backgroundColor: "#fef2f2",

@@ -4,6 +4,91 @@ import type { MobileAuthSession, MobileOrganizationMembership } from "../types";
 export const MOBILE_SESSION_STORAGE_KEY = "fieldtrack_mobile_auth_session_v1";
 
 /**
+ * Normalizes backend organization membership payloads into `MobileOrganizationMembership[]`.
+ * Supports both the canonical backend `UserOrganizationSummary` shape:
+ *   `{ organization: { id, name, slug, status }, membership: { id, orgId, userId, role, status } }`
+ * and the flat mobile shape:
+ *   `{ organization: { id, name, slug }, role, status }`
+ */
+export function normalizeOrganizationMemberships(
+  rawList: unknown
+): MobileOrganizationMembership[] {
+  if (!Array.isArray(rawList)) {
+    return [];
+  }
+
+  const normalized: MobileOrganizationMembership[] = [];
+  for (const item of rawList) {
+    if (!item || typeof item !== "object") continue;
+    const record = item as Record<string, unknown>;
+    const orgRaw =
+      record.organization && typeof record.organization === "object"
+        ? (record.organization as Record<string, unknown>)
+        : null;
+    if (!orgRaw || typeof orgRaw.id !== "string" || !orgRaw.id) continue;
+
+    const orgStatus =
+      orgRaw.status === "suspended" ? "suspended" : ("active" as const);
+    if (orgStatus !== "active") continue;
+
+    const nestedMembership =
+      record.membership && typeof record.membership === "object"
+        ? (record.membership as Record<string, unknown>)
+        : null;
+
+    const rawRole = nestedMembership?.role ?? record.role;
+    const role: MobileOrganizationMembership["role"] =
+      rawRole === "admin" || rawRole === "manager"
+        ? rawRole
+        : "field_employee";
+
+    const rawStatus = nestedMembership?.status ?? record.status ?? "active";
+    const status: MobileOrganizationMembership["status"] =
+      rawStatus === "invited" || rawStatus === "deactivated"
+        ? rawStatus
+        : "active";
+
+    if (status !== "active") continue;
+
+    normalized.push({
+      organization: {
+        id: orgRaw.id,
+        name:
+          typeof orgRaw.name === "string" && orgRaw.name.trim().length > 0
+            ? orgRaw.name
+            : "Workspace",
+        slug:
+          typeof orgRaw.slug === "string" && orgRaw.slug.trim().length > 0
+            ? orgRaw.slug
+            : orgRaw.id,
+        status: orgStatus,
+      },
+      ...(nestedMembership
+        ? {
+            membership: {
+              id:
+                typeof nestedMembership.id === "string"
+                  ? nestedMembership.id
+                  : `${orgRaw.id}:${role}`,
+              orgId: orgRaw.id,
+              userId:
+                typeof nestedMembership.userId === "string"
+                  ? nestedMembership.userId
+                  : "",
+              role,
+              status,
+            },
+          }
+        : {}),
+      role,
+      status,
+    });
+  }
+
+  return normalized;
+}
+
+/**
  * Normalizes and validates an HTTP/HTTPS API base URL.
  */
 export function normalizeApiBaseUrl(rawUrl: string): string {
@@ -145,7 +230,7 @@ export class MobileAuthService {
         refreshToken?: string | null;
         expiresAt?: number | null;
         user?: { id: string; email: string };
-        organizations?: MobileOrganizationMembership[];
+        organizations?: unknown[];
       } | null;
       error?: { code?: string; message?: string } | null;
     } | null = null;
@@ -164,8 +249,8 @@ export class MobileAuthService {
       );
     }
 
-    const activeOrgs = (body.data.organizations ?? []).filter(
-      (membership) => membership.status === "active"
+    const activeOrgs = normalizeOrganizationMemberships(
+      body.data.organizations
     );
 
     const session: MobileAuthSession = {
@@ -181,6 +266,50 @@ export class MobileAuthService {
 
     await this.saveSession(session);
     return session;
+  }
+
+  /**
+   * Re-fetches the user's active organizations from `GET /api/orgs` using the Bearer token
+   * and updates the persisted session. Self-heals cached sessions after workspace onboarding.
+   */
+  static async refreshOrganizations(
+    session?: MobileAuthSession | null
+  ): Promise<MobileAuthSession | null> {
+    const current = session ?? (await this.getSavedSession());
+    if (!current) return null;
+
+    const response = await fetch(`${current.baseUrl}/api/orgs`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${current.accessToken}`,
+      },
+    });
+
+    const body = await response.json();
+    if (!response.ok) {
+      throw new Error(
+        body?.error?.message ??
+          `Failed to refresh workspaces (HTTP ${response.status}).`
+      );
+    }
+
+    const activeOrgs = normalizeOrganizationMemberships(body?.data);
+    const hasCurrentActiveOrg = activeOrgs.some(
+      (item) => item.organization.id === current.activeOrgId
+    );
+    const nextActiveOrgId = hasCurrentActiveOrg
+      ? current.activeOrgId
+      : (activeOrgs[0]?.organization.id ?? null);
+
+    const updated: MobileAuthSession = {
+      ...current,
+      organizations: activeOrgs,
+      activeOrgId: nextActiveOrgId,
+    };
+
+    await this.saveSession(updated);
+    return updated;
   }
 
   static async updateActiveSelection(params: {

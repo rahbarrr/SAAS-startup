@@ -30,6 +30,12 @@ export interface HealthCheckResponse {
     schedulerAuth: {
       configured: boolean;
     };
+    aiReports: {
+      configured: boolean;
+    };
+    billing: {
+      configured: boolean;
+    };
   };
 }
 
@@ -68,6 +74,14 @@ export async function GET(request?: Request): Promise<NextResponse<HealthCheckRe
   );
   const isEmailConfigured = Boolean(process.env.RESEND_API_KEY);
   const isSchedulerAuthConfigured = Boolean(process.env.CRON_SECRET);
+  const isAiReportsConfigured = Boolean(
+    process.env.OPENAI_API_KEY && process.env.OPENAI_REPORT_MODEL
+  );
+  const isBillingConfigured = Boolean(
+    process.env.STRIPE_SECRET_KEY &&
+    (process.env.STRIPE_PRICE_ID_PRO_MONTHLY ||
+      process.env.STRIPE_PRICE_ID_ENTERPRISE_MONTHLY)
+  );
 
   const isHealthy = dbStatus === "connected";
 
@@ -93,6 +107,12 @@ export async function GET(request?: Request): Promise<NextResponse<HealthCheckRe
       },
       schedulerAuth: {
         configured: isSchedulerAuthConfigured,
+      },
+      aiReports: {
+        configured: isAiReportsConfigured,
+      },
+      billing: {
+        configured: isBillingConfigured,
       },
     },
   };
