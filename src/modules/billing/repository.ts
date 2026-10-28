@@ -239,6 +239,7 @@ export class SupabaseBillingRepository implements BillingRepository {
           ? input.gracePeriodEndsAt
           : (existing?.gracePeriodEndsAt ?? null),
       entitlements,
+      ...(input.updatedAt ? { updated_at: input.updatedAt } : {}),
     };
 
     const { data, error } = await this.supabase

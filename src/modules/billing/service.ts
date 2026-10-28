@@ -162,6 +162,14 @@ export async function handleOrganizationBillingAction(params: {
   const currentSub = existingSub ?? buildDefaultPilotSubscription(orgId, now);
 
   if (input.action === "update_seats") {
+    if (input.planTier && input.planTier !== currentSub.planTier) {
+      throw new AppError(
+        "BILLING_UPGRADE_REQUIRED",
+        "Changing subscription plan tiers requires completing Stripe Checkout.",
+        402
+      );
+    }
+
     if (input.seatCount < usage.activeAndInvitedMembers) {
       throw new AppError(
         "BILLING_SEAT_LIMIT_EXCEEDED",
@@ -170,21 +178,21 @@ export async function handleOrganizationBillingAction(params: {
       );
     }
 
-    const nextTier = input.planTier ?? currentSub.planTier;
-    const maxPlanMembers = PLAN_CATALOG[nextTier].entitlements.max_members;
+    const currentTier = currentSub.planTier;
+    const maxPlanMembers = PLAN_CATALOG[currentTier].entitlements.max_members;
     if (input.seatCount > maxPlanMembers) {
       throw new AppError(
         "BILLING_SEAT_LIMIT_EXCEEDED",
-        `Plan '${PLAN_CATALOG[nextTier].name}' supports up to ${maxPlanMembers} seats. Upgrade to a higher tier to provision ${input.seatCount} seats.`,
+        `Plan '${PLAN_CATALOG[currentTier].name}' supports up to ${maxPlanMembers} seats. Upgrade to a higher tier to provision ${input.seatCount} seats.`,
         422
       );
     }
 
     const updated = await repository.upsertSubscription({
       organizationId: orgId,
-      planTier: nextTier,
+      planTier: currentTier,
       seatCount: input.seatCount,
-      entitlements: getDefaultEntitlementsForTier(nextTier, input.seatCount),
+      entitlements: getDefaultEntitlementsForTier(currentTier, input.seatCount),
     });
 
     await safeRecordBillingAudit(auditRepository, {

@@ -29,6 +29,7 @@ export type ApiErrorCode =
   | "AI_MALFORMED_OUTPUT"
   | "AI_POLICY_VIOLATION"
   | "BILLING_NOT_CONFIGURED"
+  | "BILLING_UPGRADE_REQUIRED"
   | "BILLING_SEAT_LIMIT_EXCEEDED"
   | "BILLING_PLAN_LIMIT_EXCEEDED"
   | "BILLING_SUBSCRIPTION_INACTIVE"
@@ -216,5 +217,31 @@ export function isSameOriginMutation(params: {
     return new URL(params.originHeader).host === params.host;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Maps PostgreSQL trigger errors from `enforce_organization_subscription_entitlements()`
+ * to deterministic HTTP 402/429 `AppError` instances across all repositories.
+ */
+export function throwIfBillingEntitlementError(
+  error: { message?: string | null; code?: string | null } | null | undefined
+): void {
+  if (!error?.message) return;
+  const msg = error.message;
+  if (msg.includes("Organization subscription is inactive or expired")) {
+    throw new AppError("BILLING_SUBSCRIPTION_INACTIVE", msg, 402);
+  }
+  if (msg.includes("Workspace seat limit reached")) {
+    throw new AppError("BILLING_SEAT_LIMIT_EXCEEDED", msg, 402);
+  }
+  if (
+    msg.includes("Plan store limit reached") ||
+    msg.includes("Monthly visit limit reached")
+  ) {
+    throw new AppError("BILLING_PLAN_LIMIT_EXCEEDED", msg, 402);
+  }
+  if (msg.includes("Daily AI report draft quota reached")) {
+    throw new AppError("AI_QUOTA_EXCEEDED", msg, 429);
   }
 }

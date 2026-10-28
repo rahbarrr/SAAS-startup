@@ -6,6 +6,7 @@ import {
   decodeCursor,
   encodeCursor,
   sanitizePostgrestSearchTerm,
+  throwIfBillingEntitlementError,
 } from "@/lib/http/envelope";
 import type { DbTripAuditEventRow, DbTripRow, DbTripStopRow } from "@/types/database";
 import type {
@@ -287,6 +288,7 @@ export class SupabaseTripsRepository implements TripsRepository {
       .returns<DbTripStopRow[]>();
 
     if (error) {
+      throwIfBillingEntitlementError(error);
       throw new AppError("INTERNAL_ERROR", "Failed to save trip stops", 500);
     }
 
@@ -344,6 +346,7 @@ export class SupabaseTripsRepository implements TripsRepository {
       .single<DbTripRow>();
 
     if (tripError) {
+      throwIfBillingEntitlementError(tripError);
       throw new AppError("INTERNAL_ERROR", "Failed to create trip draft", 500);
     }
 
@@ -407,6 +410,7 @@ export class SupabaseTripsRepository implements TripsRepository {
       .single<DbTripRow>();
 
     if (tripError) {
+      throwIfBillingEntitlementError(tripError);
       throw new AppError("INTERNAL_ERROR", "Failed to update trip", 500);
     }
 
@@ -484,6 +488,7 @@ export class SupabaseTripsRepository implements TripsRepository {
       });
 
       if (rpcError) {
+        throwIfBillingEntitlementError(rpcError);
         if (rpcError.code === "42501") {
           throw new AppError(
             "FORBIDDEN_INSUFFICIENT_ROLE",
@@ -539,6 +544,7 @@ export class SupabaseTripsRepository implements TripsRepository {
       .maybeSingle<{ id: string }>();
 
     if (updateError || !updatedRow) {
+      throwIfBillingEntitlementError(updateError);
       throw new AppError(
         "CONFLICT",
         "Trip status could not be updated because it was already modified by another request.",

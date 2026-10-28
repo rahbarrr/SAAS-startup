@@ -60,10 +60,26 @@ create index if not exists idx_org_subscriptions_customer
 alter table public.organization_subscriptions enable row level security;
 alter table public.organization_subscriptions force row level security;
 
+create or replace function public.set_subscription_updated_at()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if new.updated_at is null or new.updated_at is not distinct from old.updated_at then
+    new.updated_at := now();
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function public.set_subscription_updated_at() from public, anon, authenticated;
+
 drop trigger if exists trg_org_subscriptions_set_updated_at on public.organization_subscriptions;
 create trigger trg_org_subscriptions_set_updated_at
 before update on public.organization_subscriptions
-for each row execute function public.set_updated_at();
+for each row execute function public.set_subscription_updated_at();
 
 -- RLS: Active members of the organization can view their workspace subscription & entitlements.
 -- Client roles cannot directly INSERT, UPDATE, or DELETE subscription records.
@@ -153,7 +169,8 @@ create trigger trg_organizations_provision_subscription
 after insert on public.organizations
 for each row execute function public.provision_default_org_subscription();
 
--- Sync `organizations.ai_daily_draft_quota` when subscription tier/entitlements are updated
+-- Sync `organizations.ai_daily_draft_quota` when subscription tier/entitlements are inserted or updated,
+-- capping quota by plan tier ceiling so subscription updates cannot grant unintended AI entitlements.
 create or replace function public.sync_org_ai_quota_from_subscription()
 returns trigger
 language plpgsql
@@ -162,13 +179,20 @@ set search_path = public, pg_temp
 as $$
 declare
   v_ai_quota integer;
+  v_tier_cap integer;
 begin
-  v_ai_quota := coalesce((new.entitlements->>'ai_daily_draft_quota')::integer, 5);
-  if v_ai_quota >= 0 and v_ai_quota <= 10000 then
-    update public.organizations
-       set ai_daily_draft_quota = v_ai_quota
-     where id = new.organization_id;
-  end if;
+  v_tier_cap := case new.plan_tier
+    when 'enterprise' then 2000
+    when 'pro' then 50
+    else 10
+  end;
+  v_ai_quota := least(
+    v_tier_cap,
+    greatest(0, coalesce((new.entitlements->>'ai_daily_draft_quota')::integer, 5))
+  );
+  update public.organizations
+     set ai_daily_draft_quota = v_ai_quota
+   where id = new.organization_id;
   return new;
 end;
 $$;
@@ -177,7 +201,7 @@ revoke all on function public.sync_org_ai_quota_from_subscription() from public,
 
 drop trigger if exists trg_org_subscriptions_sync_ai_quota on public.organization_subscriptions;
 create trigger trg_org_subscriptions_sync_ai_quota
-after update of plan_tier, entitlements on public.organization_subscriptions
+after insert or update of plan_tier, entitlements on public.organization_subscriptions
 for each row execute function public.sync_org_ai_quota_from_subscription();
 
 -- 4. Database-level enforcement of subscription write-access and plan/seat entitlements
@@ -189,19 +213,29 @@ set search_path = public, pg_temp
 as $$
 declare
   v_sub public.organization_subscriptions;
+  v_new_json jsonb := to_jsonb(new);
+  v_old_json jsonb := case when tg_op = 'UPDATE' then to_jsonb(old) else '{}'::jsonb end;
+  v_org_id uuid := (v_new_json->>'organization_id')::uuid;
+  v_row_id uuid := nullif(v_new_json->>'id', '')::uuid;
   v_write_allowed boolean := true;
+  v_permitted_readonly_downsize boolean := false;
   v_active_stores integer;
   v_max_stores integer;
   v_current_seats integer;
   v_pending_invites integer;
   v_effective_seat_limit integer;
+  v_member_email text;
+  v_invited_email text;
+  v_expires_at timestamptz;
   v_monthly_visits integer;
   v_max_monthly_visits integer;
+  v_daily_ai_drafts integer;
+  v_max_daily_ai_drafts integer;
 begin
   select *
     into v_sub
     from public.organization_subscriptions s
-   where s.organization_id = new.organization_id;
+   where s.organization_id = v_org_id;
 
   -- If no subscription record exists yet (e.g. initial owner insert during org creation), allow
   if not found then
@@ -218,19 +252,37 @@ begin
     v_write_allowed := false;
   end if;
 
-  if not v_write_allowed then
+  -- Permit narrowly-scoped administrative downsizing/cancellation operations even in read-only mode
+  if tg_op = 'UPDATE' then
+    if tg_table_name = 'stores' and (v_old_json->>'active') = 'true' and (v_new_json->>'active') = 'false' then
+      v_permitted_readonly_downsize := true;
+    elsif tg_table_name = 'organization_members' and coalesce(v_old_json->>'status', '') <> 'deactivated' and (v_new_json->>'status') = 'deactivated' then
+      v_permitted_readonly_downsize := true;
+    elsif tg_table_name = 'organization_invitations' and coalesce(v_old_json->>'status', '') <> 'revoked' and (v_new_json->>'status') = 'revoked' then
+      v_permitted_readonly_downsize := true;
+    elsif tg_table_name = 'trips' and coalesce(v_old_json->>'status', '') <> 'cancelled' and (v_new_json->>'status') = 'cancelled' then
+      v_permitted_readonly_downsize := true;
+    end if;
+  end if;
+
+  if not v_write_allowed and not v_permitted_readonly_downsize then
     raise exception 'Organization subscription is inactive or expired (status: %). Workspace is in read-only mode until billing is updated.', v_sub.status
       using errcode = '42501';
   end if;
 
+  if v_permitted_readonly_downsize then
+    return new;
+  end if;
+
   if tg_table_name = 'stores' then
-    if new.active = true then
+    if (v_new_json->>'active') = 'true' and (tg_op = 'INSERT' or (v_old_json->>'active') = 'false') then
       v_max_stores := coalesce((v_sub.entitlements->>'max_stores')::integer, 15);
       select count(*)::integer
         into v_active_stores
         from public.stores st
-       where st.organization_id = new.organization_id
-         and st.active = true;
+       where st.organization_id = v_org_id
+         and st.active = true
+         and (tg_op = 'INSERT' or st.id is distinct from v_row_id);
 
       if v_active_stores >= v_max_stores then
         raise exception 'Plan store limit reached (%/% active stores). Upgrade your subscription plan to add more stores.', v_active_stores, v_max_stores
@@ -238,50 +290,116 @@ begin
       end if;
     end if;
   elsif tg_table_name = 'organization_members' then
-    if new.status = 'active' then
+    if (v_new_json->>'status') in ('active', 'invited') and (
+      tg_op = 'INSERT'
+      or (v_old_json->>'status') = 'deactivated'
+      or ((v_old_json->>'status') = 'invited' and (v_new_json->>'status') = 'active')
+    ) then
       v_effective_seat_limit := least(
         v_sub.seat_count,
         coalesce((v_sub.entitlements->>'max_members')::integer, v_sub.seat_count)
       );
+
       select count(*)::integer
         into v_current_seats
         from public.organization_members m
-       where m.organization_id = new.organization_id
-         and m.status = 'active';
+       where m.organization_id = v_org_id
+         and m.status in ('active', 'invited')
+         and (tg_op = 'INSERT' or m.id is distinct from v_row_id);
 
-      if v_current_seats >= v_effective_seat_limit then
-        raise exception 'Workspace seat limit reached (%/% seats used). Increase your seat limit or upgrade your subscription plan.', v_current_seats, v_effective_seat_limit
+      select lower(trim(p.email))
+        into v_member_email
+        from public.profiles p
+       where p.id = nullif(v_new_json->>'user_id', '')::uuid;
+
+      select count(distinct lower(trim(i.invited_email)))::integer
+        into v_pending_invites
+        from public.organization_invitations i
+       where i.organization_id = v_org_id
+         and i.status = 'pending'
+         and i.expires_at > clock_timestamp()
+         and (v_member_email is null or lower(trim(i.invited_email)) <> v_member_email)
+         and not exists (
+           select 1
+             from public.organization_members m2
+             join public.profiles p2 on p2.id = m2.user_id
+            where m2.organization_id = v_org_id
+              and m2.status in ('active', 'invited')
+              and lower(trim(p2.email)) = lower(trim(i.invited_email))
+         );
+
+      if (v_current_seats + v_pending_invites) >= v_effective_seat_limit then
+        raise exception 'Workspace seat limit reached (%/% seats used). Increase your seat limit or upgrade your subscription plan.', (v_current_seats + v_pending_invites), v_effective_seat_limit
           using errcode = '22023';
       end if;
     end if;
   elsif tg_table_name = 'organization_invitations' then
-    if new.status = 'pending' then
+    v_invited_email := lower(trim(coalesce(v_new_json->>'invited_email', '')));
+    v_expires_at := nullif(v_new_json->>'expires_at', '')::timestamptz;
+    if (v_new_json->>'status') = 'pending'
+      and (tg_op = 'INSERT' or coalesce(v_old_json->>'status', '') <> 'pending')
+      and (v_expires_at is null or v_expires_at > clock_timestamp())
+    then
       v_effective_seat_limit := least(
         v_sub.seat_count,
         coalesce((v_sub.entitlements->>'max_members')::integer, v_sub.seat_count)
       );
+
       select count(*)::integer
         into v_current_seats
         from public.organization_members m
-       where m.organization_id = new.organization_id
-         and m.status = 'active';
+       where m.organization_id = v_org_id
+         and m.status in ('active', 'invited');
 
-      if v_current_seats >= v_effective_seat_limit then
-        raise exception 'Workspace seat limit reached (%/% seats allocated including pending invitations). Increase your seat limit or upgrade your plan.', v_current_seats, v_effective_seat_limit
+      select count(distinct lower(trim(i.invited_email)))::integer
+        into v_pending_invites
+        from public.organization_invitations i
+       where i.organization_id = v_org_id
+         and i.status = 'pending'
+         and i.expires_at > clock_timestamp()
+         and (tg_op = 'INSERT' or i.id is distinct from v_row_id)
+         and lower(trim(i.invited_email)) <> v_invited_email
+         and not exists (
+           select 1
+             from public.organization_members m2
+             join public.profiles p2 on p2.id = m2.user_id
+            where m2.organization_id = v_org_id
+              and m2.status in ('active', 'invited')
+              and lower(trim(p2.email)) = lower(trim(i.invited_email))
+         );
+
+      if (v_current_seats + v_pending_invites) >= v_effective_seat_limit then
+        raise exception 'Workspace seat limit reached (%/% seats allocated including pending invitations). Increase your seat limit or upgrade your plan.', (v_current_seats + v_pending_invites), v_effective_seat_limit
           using errcode = '22023';
       end if;
     end if;
   elsif tg_table_name = 'visits' then
-    v_max_monthly_visits := coalesce((v_sub.entitlements->>'max_monthly_visits')::integer, 50);
-    select count(*)::integer
-      into v_monthly_visits
-      from public.visits v
-     where v.organization_id = new.organization_id
-       and v.checked_in_at >= date_trunc('month', clock_timestamp());
+    if tg_op = 'INSERT' then
+      v_max_monthly_visits := coalesce((v_sub.entitlements->>'max_monthly_visits')::integer, 50);
+      select count(*)::integer
+        into v_monthly_visits
+        from public.visits v
+       where v.organization_id = v_org_id
+         and v.checked_in_at >= date_trunc('month', clock_timestamp());
 
-    if v_monthly_visits >= v_max_monthly_visits then
-      raise exception 'Monthly visit limit reached (%/% visits this month). Upgrade your subscription plan to record additional visits.', v_monthly_visits, v_max_monthly_visits
-        using errcode = '22023';
+      if v_monthly_visits >= v_max_monthly_visits then
+        raise exception 'Monthly visit limit reached (%/% visits this month). Upgrade your subscription plan to record additional visits.', v_monthly_visits, v_max_monthly_visits
+          using errcode = '22023';
+      end if;
+    end if;
+  elsif tg_table_name = 'visit_ai_report_drafts' then
+    if tg_op = 'INSERT' then
+      v_max_daily_ai_drafts := coalesce((v_sub.entitlements->>'ai_daily_draft_quota')::integer, 5);
+      select count(*)::integer
+        into v_daily_ai_drafts
+        from public.visit_ai_report_drafts d
+       where d.organization_id = v_org_id
+         and d.created_at >= date_trunc('day', clock_timestamp());
+
+      if v_daily_ai_drafts >= v_max_daily_ai_drafts then
+        raise exception 'Daily AI report draft quota reached (%/% drafts today). Upgrade your subscription plan for higher AI capacity.', v_daily_ai_drafts, v_max_daily_ai_drafts
+          using errcode = '22023';
+      end if;
     end if;
   end if;
 
@@ -293,32 +411,47 @@ revoke all on function public.enforce_organization_subscription_entitlements() f
 
 drop trigger if exists trg_stores_enforce_subscription_entitlements on public.stores;
 create trigger trg_stores_enforce_subscription_entitlements
-before insert on public.stores
+before insert or update on public.stores
 for each row execute function public.enforce_organization_subscription_entitlements();
 
 drop trigger if exists trg_org_members_enforce_subscription_entitlements on public.organization_members;
 create trigger trg_org_members_enforce_subscription_entitlements
-before insert on public.organization_members
+before insert or update on public.organization_members
 for each row execute function public.enforce_organization_subscription_entitlements();
 
 drop trigger if exists trg_org_invitations_enforce_subscription_entitlements on public.organization_invitations;
 create trigger trg_org_invitations_enforce_subscription_entitlements
-before insert on public.organization_invitations
+before insert or update on public.organization_invitations
 for each row execute function public.enforce_organization_subscription_entitlements();
 
 drop trigger if exists trg_trips_enforce_subscription_entitlements on public.trips;
 create trigger trg_trips_enforce_subscription_entitlements
-before insert on public.trips
+before insert or update on public.trips
+for each row execute function public.enforce_organization_subscription_entitlements();
+
+drop trigger if exists trg_trip_stops_enforce_subscription_entitlements on public.trip_stops;
+create trigger trg_trip_stops_enforce_subscription_entitlements
+before insert or update on public.trip_stops
 for each row execute function public.enforce_organization_subscription_entitlements();
 
 drop trigger if exists trg_visits_enforce_subscription_entitlements on public.visits;
 create trigger trg_visits_enforce_subscription_entitlements
-before insert on public.visits
+before insert or update on public.visits
+for each row execute function public.enforce_organization_subscription_entitlements();
+
+drop trigger if exists trg_visit_checklist_enforce_subscription_entitlements on public.visit_checklist_items;
+create trigger trg_visit_checklist_enforce_subscription_entitlements
+before insert or update on public.visit_checklist_items
+for each row execute function public.enforce_organization_subscription_entitlements();
+
+drop trigger if exists trg_visit_evidence_enforce_subscription_entitlements on public.visit_evidence;
+create trigger trg_visit_evidence_enforce_subscription_entitlements
+before insert or update on public.visit_evidence
 for each row execute function public.enforce_organization_subscription_entitlements();
 
 drop trigger if exists trg_ai_drafts_enforce_subscription_entitlements on public.visit_ai_report_drafts;
 create trigger trg_ai_drafts_enforce_subscription_entitlements
-before insert on public.visit_ai_report_drafts
+before insert or update on public.visit_ai_report_drafts
 for each row execute function public.enforce_organization_subscription_entitlements();
 
 -- 5. Backfill existing organizations safely:

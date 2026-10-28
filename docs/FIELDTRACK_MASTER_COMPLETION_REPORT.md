@@ -1,153 +1,162 @@
-# FieldTrack Master Completion, Verification & Release-Hardening Report
+# FieldTrack Master Completion, Verification & Pre-Merge Safety Gate Report
 
 **Date:** 2026-10-28  
-**Starting Git Commit:** `47492c06247511b0b3501db4bba8ad9ba85167f7`  
+**Starting Git Commit:** `ae128d8` (after initial completion commit `47492c0`)  
 **Active Implementation Branch:** `feat/master-platform-completion`  
-**Scope:** Independent verification and release hardening of mobile workspace onboarding, Stripe billing & subscription enforcement, Migration 16 (`20261028000016_phase12_stripe_billing_and_subscriptions.sql`), webhook security, tenant isolation, Google Maps Preview configuration, and end-to-end automated test coverage.
+**Final Recommendation:** **READY FOR REVIEW**
 
 ---
 
-## 1. Original Issues & Verified Root Causes
+## 1. Migration 16 Isolated-Database Execution Results
 
-1. **Mobile Workspace Membership Contract Bug (`0` Organizations / `0` Trips on Android Device):**
-   - **Original Issue:** When signing in on the physical Android development build, the user reached `TripSelectorScreen` with the warning _"Your account does not belong to an active organization workspace yet"_ (`0` organizations and `0` trips) even when their account belonged to an active organization.
-   - **Root Cause:** `listUserOrganizationsForCaller` (`GET /api/orgs` and `POST /api/auth/login`) returns `UserOrganizationSummary[]` with nested `{ organization: { id, name, slug, status }, membership: { id, orgId, userId, role, status } }`. Previously, [`apps/mobile/src/services/auth.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/apps/mobile/src/services/auth.ts) expected a flat `{ organization, role, status }` object and ran `.filter((m) => m.status === "active")`. Because `m.status` was `undefined` at the top level, every active organization was filtered out.
-   - **Verified Fix:**
-     - `normalizeOrganizationMemberships()` in [`apps/mobile/src/services/auth.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/apps/mobile/src/services/auth.ts) normalizes both nested `UserOrganizationSummary` and flat payloads, filtering strictly for `membership.status === "active"` and `organization.status === "active"`.
-     - `MobileAuthService.refreshOrganizations()` (`GET /api/orgs`) self-heals cached sessions on cold boot (`App.tsx`) and on refresh (`TripSelectorScreen.tsx`).
-     - Added inline mobile workspace creation (`POST /api/orgs`) and invitation token acceptance (`POST /api/invitations/accept`) in [`apps/mobile/src/screens/TripSelectorScreen.tsx`](file:///Users/rahbarraza/Downloads/SAAS%20startup/apps/mobile/src/screens/TripSelectorScreen.tsx) for accounts that genuinely have no workspace yet, without ever fabricating fake organizations or trips.
+### Local Database Tooling & Execution Environment
 
-2. **Migration 16 Backfill & Database-Level Entitlement Enforcement Gap (Found & Fixed During Verification Pass):**
-   - **Original Issue Found in Review:**
-     - The initial Migration 16 backfill query set `trial_start = o.created_at` and `trial_end = o.created_at + interval '14 days'` with a fixed `seat_count = 5`. Any pre-existing organization created more than 14 days before Migration 16 would immediately be backfilled with an **expired** trial (`trial_end < now()`), and any organization with >5 existing members would violate its seat count.
-     - Additionally, `public.stores` uses boolean column `active` (`true`/`false`), whereas `SupabaseBillingRepository.getUsageMetrics` initially queried `.eq("status", "active")`, and database tables (`stores`, `organization_members`, `organization_invitations`, `trips`, `visits`, `visit_ai_report_drafts`) lacked a database-level trigger enforcing subscription write-access and plan/seat limits.
-   - **Verified Fix:**
-     - Updated [`supabase/migrations/20261028000016_phase12_stripe_billing_and_subscriptions.sql`](file:///Users/rahbarraza/Downloads/SAAS%20startup/supabase/migrations/20261028000016_phase12_stripe_billing_and_subscriptions.sql) to backfill existing organizations with `trial_start = clock_timestamp()`, `trial_end = clock_timestamp() + interval '14 days'`, `seat_count = greatest(5, current_active_and_invited_members)`, and `on conflict (organization_id) do nothing`.
-     - Added `SECURITY DEFINER` trigger function `public.enforce_organization_subscription_entitlements()` (`SET search_path = public, pg_temp`) attached `BEFORE INSERT` on `stores`, `organization_members`, `organization_invitations`, `trips`, `visits`, and `visit_ai_report_drafts` to block mutations when a subscription is inactive/expired and enforce `max_stores`, `seat_count`/`max_members`, and `max_monthly_visits` in PostgreSQL.
-     - Added trigger `public.sync_org_ai_quota_from_subscription()` to automatically sync `public.organizations.ai_daily_draft_quota` when `organization_subscriptions` changes tier/entitlements.
-     - Fixed `SupabaseBillingRepository.getUsageMetrics` in [`src/modules/billing/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/billing/repository.ts) to filter `stores` by `.eq("active", true)`.
+- **Tooling Check:** Native `psql`, `pg_isready`, and `supabase` CLI are not installed on this host, and the local Docker daemon is not running. Production Supabase credentials were **never** used or contacted.
+- **Disposable PostgreSQL Engine Used:** Executed against isolated, in-memory **PGlite (PostgreSQL 16 WebAssembly)** instances via Vitest (`src/modules/billing/__tests__/phase12-stripe-billing.test.ts`, `src/modules/tenancy/__tests__/database-rls.test.ts`, and `src/modules/security/__tests__/db-privilege-hardening.test.ts`), plus static AST/regex safety verification via `npm run lint:migrations` (`16/16` migrations passed with 0 errors and 0 warnings).
 
----
+### Verified Migration 16 Invariants (`20261028000016_phase12_stripe_billing_and_subscriptions.sql`)
 
-## 2. Stripe Billing Workflows: Implemented vs. Remaining External Blockers
-
-| Workflow                                                               | Implementation & Connection Status                                                                                                                                                                                                                                                                                                                                                          | Verification Method                                                                 |
-| :--------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------- |
-| **Display current plan, status, trial/grace countdown & usage meters** | **Implemented & Connected:** `SettingsClient.tsx` Tab 6 (`Subscription & Billing`) calls `GET /api/orgs/[orgId]/billing` and renders plan tier, status badge, seat usage, active store count, monthly visits, and daily AI draft quota.                                                                                                                                                     | Unit + API + component build verification                                           |
-| **Create Stripe Checkout Session (`pro` / `enterprise`)**              | **Implemented & Connected:** `SettingsClient.tsx` -> `POST /api/orgs/[orgId]/billing` (and `/api/orgs/[orgId]/billing/checkout`) -> `handleOrganizationBillingAction` -> `StripeBillingClient.createCheckoutSession` (`https://api.stripe.com/v1/checkout/sessions`). Returns `503 BILLING_NOT_CONFIGURED` when `STRIPE_SECRET_KEY` / price IDs are unset.                                  | Verified in `phase12-stripe-billing.test.ts` with mocked Stripe REST responses      |
-| **Open Stripe Billing Portal**                                         | **Implemented & Connected:** `SettingsClient.tsx` -> `POST /api/orgs/[orgId]/billing` (and `/api/orgs/[orgId]/billing/portal`) -> `StripeBillingClient.createBillingPortalSession` (`https://api.stripe.com/v1/billing_portal/sessions`). Requires `providerCustomerId` on the organization's subscription.                                                                                 | Verified in `phase12-stripe-billing.test.ts`                                        |
-| **Update subscription state from verified webhooks**                   | **Implemented & Connected:** `POST /api/webhooks/stripe` -> `processStripeWebhookPayload` handles `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed` (sets 7-day `past_due` grace period), and `invoice.paid` (restores `active` and clears grace period).                           | Verified in `phase12-stripe-billing.test.ts`                                        |
-| **Enforce seat & plan limits on server-side mutations**                | **Implemented & Connected (DB Trigger + Service):** Enforced by `public.enforce_organization_subscription_entitlements()` in PostgreSQL (`stores`, `organization_members`, `organization_invitations`, `trips`, `visits`, `visit_ai_report_drafts`) and `assertOrganizationMutationEntitlement()` in `src/modules/billing/service.ts`.                                                      | Verified in PGlite DB tests & service unit tests (`phase12-stripe-billing.test.ts`) |
-| **Restrict paid features based on trusted subscription state**         | **Implemented & Connected:** Expired trials (`status = 'trialing' and trial_end <= now()`), expired `past_due` grace periods, and `canceled`/`unpaid` subscriptions transition the workspace to **read-only mode** (existing data remains readable/exportable; new stores, members, invitations, trips, visits, and AI report drafts are blocked with `402 BILLING_SUBSCRIPTION_INACTIVE`). | Verified in PGlite DB tests & service unit tests                                    |
-| **Live Stripe Checkout / Portal with real Stripe account**             | **Blocked by External Configuration:** Requires `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PRO_MONTHLY`, and `STRIPE_PRICE_ID_ENTERPRISE_MONTHLY` in environment variables.                                                                                                                                                                                             | Tested with Stripe test-mode fixtures only; never charges real payment methods      |
+1. **Sequential Application After Prior Migrations (`000001`–`000015`):**
+   - Verified in a dedicated upgrade test that applies migrations `000001` through `000015`, seeds existing organizations and a legacy organization created 90 days ago with 7 active/invited members, and then applies Migration 16.
+2. **Safe Backfill of Pre-Existing Organizations:**
+   - Pre-existing organizations receive a fresh 14-day Pilot trial starting from migration execution (`clock_timestamp()` to `clock_timestamp() + interval '14 days'`) so legacy workspaces created >14 days ago are not locked out.
+   - `seat_count` and `entitlements.max_members` are backfilled to `greatest(5, <existing active + invited member count>)` (verified with a 7-member legacy organization receiving `seat_count = 7` and `max_members = 7`).
+3. **Repeatable / Idempotent Reruns:**
+   - Re-executing Migration 16 a second time on the already-migrated database succeeds cleanly (`create table if not exists`, `create or replace function`, `drop trigger if exists`, `drop policy if exists`, `where not exists (...) on conflict (organization_id) do nothing`) without duplicating or overwriting subscription state.
+4. **Single Subscription Provisioning on New Organization Creation:**
+   - `trg_organizations_provision_subscription` (`AFTER INSERT ON public.organizations`) calls `public.provision_default_org_subscription()`, inserting exactly one `pilot` `trialing` row (`seat_count = 5`) per new organization (`on conflict (organization_id) do nothing`).
+5. **Foreign Keys, Uniqueness, RLS, FORCE RLS, Grants & Function Privileges:**
+   - `public.organization_subscriptions`: PK/FK `organization_id references public.organizations(id) on delete cascade`, `unique (provider_customer_id)`, `unique (provider_subscription_id)`, `relrowsecurity = true`, `relforcerowsecurity = true`, `SELECT` granted only to `authenticated` via `public.is_active_org_member(organization_id)`. Direct client `INSERT`, `UPDATE`, and `DELETE` are revoked (`permission denied`).
+   - `public.billing_webhook_events`: `unique (provider, event_id)`, FK `organization_id references public.organizations(id) on delete set null`, `relrowsecurity = true`, `relforcerowsecurity = true`, all privileges revoked from `public`, `anon`, and `authenticated`.
+   - All 4 trigger functions (`provision_default_org_subscription`, `sync_org_ai_quota_from_subscription`, `enforce_organization_subscription_entitlements`, `set_subscription_updated_at`) pin `SET search_path = public, pg_temp` and have `EXECUTE` revoked from `public`, `anon`, and `authenticated`.
 
 ---
 
-## 3. Webhook Security Review Results
+## 2. Confirmed Entitlement-Bypass Findings and Fixes
 
-Reviewed [`src/app/api/webhooks/stripe/route.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/api/webhooks/stripe/route.ts), [`src/modules/billing/stripe-client.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/billing/stripe-client.ts), and [`src/modules/billing/service.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/billing/service.ts):
+Auditing `public.enforce_organization_subscription_entitlements()` and all service/repository mutation paths revealed **five bypass vectors**, all of which have been fixed and covered by automated regression tests:
 
-1. **Unmodified Raw Request Body:** `POST /api/webhooks/stripe` reads `await request.text()` before JSON parsing and passes the exact raw string into `verifyStripeWebhookSignature`.
-2. **Cryptographic HMAC-SHA256 & Constant-Time Comparison:** `verifyStripeWebhookSignature` parses `t=<timestamp>` and all `v1=<hex>` signatures from `Stripe-Signature`, computes `createHmac("sha256", webhookSecret).update("${timestamp}.${rawBody}", "utf8").digest("hex")`, and compares buffers using `node:crypto` `timingSafeEqual`.
-3. **Replay Window Tolerance:** Enforces a default 300-second (5-minute) tolerance window (`Math.abs(nowSeconds - timestamp) <= 300`), rejecting stale replays with `400 BILLING_WEBHOOK_TIMESTAMP_EXPIRED`.
-4. **Idempotent Event Ledger:** Checks `billing_webhook_events` (`unique (provider, event_id)`) before mutating state and records processed events with `on conflict do nothing` (`23505` safe). Duplicate deliveries return `{ status: "duplicate" }` (`200 OK`) with zero duplicate state changes.
-5. **Out-of-Order Event Protection:** Compares `event.created` against `Date.parse(existingSub.updatedAt) / 1000`. If an older webhook arrives after a newer webhook has already updated the subscription, it is logged in `billing_webhook_events` as `ignored_outdated` without overwriting subscription state.
-6. **Zero Trust in Client Input:** Subscription status and entitlements can never be set by client roles (`REVOKE ALL ON TABLE public.organization_subscriptions FROM PUBLIC, anon, authenticated; GRANT SELECT ON TABLE public.organization_subscriptions TO authenticated`).
+1. **Bypass 1 — `BEFORE UPDATE` Bypasses on `stores`, `organization_members`, `organization_invitations`, `trips`, `visits`, and `visit_ai_report_drafts`:**
+   - **Finding:** The entitlement trigger was previously attached only `BEFORE INSERT`. As a result:
+     - Updating an inactive store to active (`UPDATE public.stores SET active = true`) bypassed `max_stores` AND bypassed subscription read-only mode.
+     - Activating an `'invited'` or `'deactivated'` member (`UPDATE public.organization_members SET status = 'active'`, including the `ON CONFLICT (organization_id, user_id) DO UPDATE` path inside `accept_organization_invitation`) bypassed `seat_count` / `max_members` AND bypassed subscription read-only mode.
+     - Editing, submitting, or approving trips (`UPDATE public.trips`), updating or checking out visits (`UPDATE public.visits`), mutating checklist/evidence records, or reviewing AI drafts (`UPDATE public.visit_ai_report_drafts`) bypassed subscription read-only mode.
+   - **Fix:** Attached `enforce_organization_subscription_entitlements()` `BEFORE INSERT OR UPDATE` on `stores`, `organization_members`, `organization_invitations`, `trips`, `trip_stops`, `visits`, `visit_checklist_items`, `visit_evidence`, and `visit_ai_report_drafts`.
+   - **Preserved Legitimate Administrative Downsizing & Privacy Operations:**
+     - Store deactivation (`UPDATE public.stores SET active = false` when `old.active = true`), member deactivation (`UPDATE public.organization_members SET status = 'deactivated'`), invitation revocation (`UPDATE public.organization_invitations SET status = 'revoked'`), and trip cancellation (`UPDATE public.trips SET status = 'cancelled'`) remain explicitly permitted even during subscription read-only mode.
+     - `DELETE` operations (such as GDPR/DPDP location retention purges on `employee_location_samples`) are not blocked by subscription read-only mode.
+     - On `public.visits`, `max_monthly_visits` is enforced on `INSERT` (check-in) while `UPDATE` (checklist completion / check-out of an already checked-in visit) checks only `v_write_allowed`, preventing a workspace from getting stuck unable to check out its final allowed visit of the month.
 
----
+2. **Bypass 2 — Self-Upgrade Privilege Escalation via `update_seats` Action (`src/modules/billing/service.ts`):**
+   - **Finding:** `handleOrganizationBillingAction` (`action: "update_seats"`) previously accepted an optional `input.planTier` (`const nextTier = input.planTier ?? currentSub.planTier`) and persisted `planTier: nextTier` with `getDefaultEntitlementsForTier(nextTier)`. An admin on the free `pilot` trial could call `update_seats` with `planTier: "enterprise"` and grant Enterprise entitlements without completing Stripe Checkout.
+   - **Fix:** `update_seats` now rejects any attempt to change `planTier` (`if (input.planTier && input.planTier !== currentSub.planTier)` -> throws `402 BILLING_UPGRADE_REQUIRED`) and strictly preserves `currentSub.planTier`.
 
-## 4. Migration 16 Review Results (`20261028000016_phase12_stripe_billing_and_subscriptions.sql`)
+3. **Bypass 3 — Unbounded AI Daily Draft Quota Sync (`supabase/migrations/20261028000016_phase12_stripe_billing_and_subscriptions.sql`):**
+   - **Finding:** `sync_org_ai_quota_from_subscription()` previously trusted any integer up to `10000` in `entitlements->>'ai_daily_draft_quota'` regardless of `plan_tier`, and `enforce_organization_subscription_entitlements()` did not enforce daily AI draft counts on `INSERT` into `visit_ai_report_drafts`.
+   - **Fix:** `sync_org_ai_quota_from_subscription()` now fires on `AFTER INSERT OR UPDATE OF plan_tier, entitlements` and caps `organizations.ai_daily_draft_quota` by the tier ceiling (`pilot <= 10`, `pro <= 50`, `enterprise <= 2000`). Additionally, `enforce_organization_subscription_entitlements()` enforces `ai_daily_draft_quota` on `BEFORE INSERT ON public.visit_ai_report_drafts`.
 
-- **Schema & Uniqueness Constraints:**
-  - `public.organization_subscriptions`: `organization_id uuid primary key references public.organizations(id) on delete cascade`, `provider_customer_id text unique`, `provider_subscription_id text unique`, `seat_count >= 1 and seat_count <= 10000`.
-  - `public.billing_webhook_events`: `unique (provider, event_id)`, `organization_id uuid null references public.organizations(id) on delete set null`.
-- **14-Day Pilot Trial Auto-Provisioning Trigger:**
-  - `public.provision_default_org_subscription()` runs `AFTER INSERT ON public.organizations`, provisioning a `pilot` `trialing` row (`5` seats, `15` max stores, `5` max members, `50` monthly visits, `5` daily AI drafts, `2 GB` storage) with `on conflict (organization_id) do nothing`.
-- **Safe Backfill of Existing Organizations:**
-  - Grants existing organizations a full 14-day Pilot trial starting from migration execution (`clock_timestamp() + interval '14 days'`) and sets `seat_count` / `max_members` to `greatest(5, active_and_invited_member_count)`.
-- **RLS, FORCE RLS & Function Privileges:**
-  - Both tables have `ENABLE ROW LEVEL SECURITY` and `FORCE ROW LEVEL SECURITY`.
-  - All 3 trigger functions (`provision_default_org_subscription`, `sync_org_ai_quota_from_subscription`, `enforce_organization_subscription_entitlements`) pin `SET search_path = public, pg_temp` and `REVOKE ALL ON FUNCTION ... FROM PUBLIC, anon, authenticated`.
-  - Verified by `src/modules/security/__tests__/db-privilege-hardening.test.ts` and `src/modules/billing/__tests__/phase12-stripe-billing.test.ts`.
+4. **Bypass 4 — Out-of-Order Webhook Timestamp Overwrite in PostgreSQL (`src/modules/billing/repository.ts` & Migration 16):**
+   - **Finding:** `SupabaseBillingRepository.upsertSubscription` did not include `updated_at: input.updatedAt` in the upsert payload, and `trg_org_subscriptions_set_updated_at` unconditionally overwrote `new.updated_at := now()`, which could skew `event.created < existingUpdatedSeconds` comparisons for out-of-order Stripe webhooks.
+   - **Fix:** Added `public.set_subscription_updated_at()` in Migration 16 (which preserves an explicit `new.updated_at` when provided and defaults to `now()` otherwise) and passed `...(input.updatedAt ? { updated_at: input.updatedAt } : {})` in `SupabaseBillingRepository.upsertSubscription`.
 
----
-
-## 5. Tenant-Isolation and Authorization Test Results
-
-- **Handler-Level Access Control (`src/modules/security/__tests__/api-access-control.test.ts`):**
-  - Automatically discovered and tested all **27 protected API route files** (including `/api/auth/login`, `/api/orgs/[orgId]/billing`, `/api/orgs/[orgId]/billing/checkout`, `/api/orgs/[orgId]/billing/portal`, and `/api/webhooks/stripe`).
-  - **105 access-control assertions passed:** Every route returns `401 UNAUTHENTICATED` with zero DB writes when signed out, and every org-scoped route returns `403 FORBIDDEN_ORG_ACCESS` with zero DB writes and zero tenant-ID leakage when called by a signed-in non-member.
-- **Database Privilege & RLS Hardening (`db-privilege-hardening.test.ts` & `database-rls.test.ts`):**
-  - Verified across all 16 migrations in PGlite with emulated Supabase default privileges: `anon` holds zero table/sequence privileges, all public tables have RLS enabled and forced, and cross-organization reads/writes on `organization_subscriptions` and `billing_webhook_events` are blocked.
+5. **Bypass 5 — Misclassification of Trigger Errors in Repository Methods (`src/lib/http/envelope.ts` & Repositories):**
+   - **Finding:** In `SupabaseTenancyRepository.acceptOrgInvitationByTokenHash`, a database trigger error containing `"Organization subscription is inactive or expired"` matched `msg.includes("expired")` and was misclassified as `400 INVITATION_EXPIRED` instead of `402 BILLING_SUBSCRIPTION_INACTIVE`. Similarly, `updateStore`, `trips/repository.ts`, `visits/repository.ts`, and `ai-reports/repository.ts` did not map subscription/entitlement trigger errors to `402`/`429`.
+   - **Fix:** Added `throwIfBillingEntitlementError()` in [`src/lib/http/envelope.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/lib/http/envelope.ts) and wired it into `tenancy/repository.ts`, `stores/repository.ts`, `trips/repository.ts`, `visits/repository.ts`, and `ai-reports/repository.ts` so all database entitlement errors map deterministically to `402 BILLING_SUBSCRIPTION_INACTIVE`, `402 BILLING_SEAT_LIMIT_EXCEEDED`, `402 BILLING_PLAN_LIMIT_EXCEEDED`, or `429 AI_QUOTA_EXCEEDED`.
 
 ---
 
-## 6. Google Maps Preview Configuration Requirements (Phase D)
+## 3. Stripe Test-Mode Verification Results
 
-Inspection of [`src/lib/env/startup.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/lib/env/startup.ts) confirmed the exact cause of the earlier Vercel Preview failure:
+| Workflow / Scenario                                                       | Verification Scope & Result                                                                                                                                                                                                                            | Live External Service Status                                                                 |
+| :------------------------------------------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
+| **Checkout Session Creation (`POST /api/orgs/[orgId]/billing/checkout`)** | **PASS (Automated Test Suite):** Verified `StripeBillingClient.createCheckoutSession` URL-encoded form serialization (`mode=subscription`, `line_items[0][price]`, `line_items[0][quantity]`, `metadata`, `subscription_data[metadata]`) and RBAC.     | Requires live Stripe test-mode keys (`STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID_*`) in deployment |
+| **Billing Portal Session (`POST /api/orgs/[orgId]/billing/portal`)**      | **PASS (Automated Test Suite):** Verified `StripeBillingClient.createBillingPortalSession` form serialization, `409 BILLING_CUSTOMER_NOT_FOUND` when no Stripe customer exists, and `502 BILLING_PROVIDER_ERROR` on upstream Stripe failure.           | Requires live Stripe test-mode key & customer record in deployment                           |
+| **Webhook Signature Verification (`POST /api/webhooks/stripe`)**          | **PASS (Automated Test Suite):** Verified raw-body HMAC-SHA256 verification (`timingSafeEqual`), 300s timestamp replay window tolerance (`400 BILLING_WEBHOOK_TIMESTAMP_EXPIRED`), and invalid signature rejection (`400`).                            | Ready for Stripe test/live webhook delivery once `STRIPE_WEBHOOK_SECRET` is set              |
+| **Duplicate & Out-of-Order Webhook Deliveries**                           | **PASS (Automated Test Suite):** Duplicate `event.id` returns `{ status: "duplicate" }` via `billing_webhook_events`; stale out-of-order events (`event.created < updated_at`) are recorded as `ignored_outdated` without mutating subscription state. | Verified in unit and PGlite tests                                                            |
+| **Trial Expiration & 7-Day `past_due` Grace Period**                      | **PASS (Automated Test Suite & PGlite):** `invoice.payment_failed` transitions to `past_due` with `grace_period_ends_at = now + 7 days` (writes permitted during grace window, locked after expiration).                                               | Verified in unit and PGlite tests                                                            |
+| **Subscription Cancellation & Payment Recovery**                          | **PASS (Automated Test Suite & PGlite):** `customer.subscription.deleted` transitions to `canceled` (read-only lock); `invoice.paid` restores `status = 'active'` and clears `grace_period_ends_at`.                                                   | Verified in unit and PGlite tests                                                            |
+| **Incomplete Stripe Configuration Handling**                              | **PASS (Automated Test Suite):** Returns `503 BILLING_NOT_CONFIGURED` with explicit missing variable names when `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, or price IDs are unset.                                                                  | Verified (`STRIPE_SECRET_KEY` is currently unset in `.env.local`)                            |
 
-- Line 36 requires `APP_ENV` to be `"development"` or `"production"`.
-- Lines 103–109 explicitly forbid `APP_ENV === "production"` when `VERCEL_ENV === "preview"`.
-- Lines 69–101 require `EXPECTED_SUPABASE_PROJECT_REF` to match the `<ref>` subdomain of `NEXT_PUBLIC_SUPABASE_URL` whenever `VERCEL_ENV` is `"preview"` or `"production"`.
-- **Browser vs. Server Key Separation Confirmed:** Browser components (`src/components/maps/*`) read only `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, while server route optimization (`src/modules/routing/google-provider.ts`) uses `import "server-only"` and reads `GOOGLE_MAPS_ROUTES_API_KEY`.
-
-**Required Manual Configuration in Vercel Project Settings (Scoped to `Preview` Only):**
-
-- `APP_ENV` = `development`
-- `EXPECTED_SUPABASE_PROJECT_REF` = `<non-production-supabase-project-ref>`
-- `NEXT_PUBLIC_SUPABASE_URL` = `https://<non-production-supabase-project-ref>.supabase.co`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` = `<non-production-supabase-anon-key>`
-- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` = `<browser-maps-key-restricted-to-*.vercel.app/*>`
-- `GOOGLE_MAPS_ROUTES_API_KEY` = `<server-routes-api-key>`
-- `ROUTING_PROVIDER` = `google_routes`
+> [!NOTE]
+> Automated tests verify the complete Stripe HTTP request/response serialization, cryptographic HMAC-SHA256 webhook verification, and PostgreSQL state machine using deterministic test fixtures and PGlite. Live network calls to `https://api.stripe.com` have not been executed because `STRIPE_SECRET_KEY` is not configured in `.env.local`.
 
 ---
 
-## 7. Mobile Integration Status & Remaining Real-Device Tests
+## 4. Reconciled `APP_ENV` and Vercel Preview Configuration Requirements
 
-- **Current Code Status (`apps/mobile`):**
-  - Upgraded to Expo SDK 58 (`expo@~58.0.0`, `react-native@0.84.0`, `react@19.2.0`, `expo-dev-client@~58.0.16`).
-  - Mobile workspace membership normalization (`normalizeOrganizationMemberships`), session self-healing (`refreshOrganizations`), inline workspace creation / invitation acceptance, trip selection, background geofencing (`GeofenceManager`), consent management, and offline SecureStore event queue are implemented and verified by automated tests.
-- **Remaining Physical-Device Verification (Untested in Automated CI):**
-  - Reloading the updated JavaScript bundle on the physical Android device to confirm the signed-in account now resolves its active workspace and approved/in-progress trips.
-  - Physical-device field test of native OS geofence entry (`GeofencingEventType.Enter`) and exit (`GeofencingEventType.Exit`) transitions in background/locked-screen state.
+Inspection of [`src/lib/env/startup.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/lib/env/startup.ts), [`src/lib/env/server.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/lib/env/server.ts), and [`.env.example`](file:///Users/rahbarraza/Downloads/SAAS%20startup/.env.example) confirms:
 
----
+- **`APP_ENV` Schema (`src/lib/env/startup.ts` line 36):** Only `"development"` and `"production"` are valid (`z.enum(["development", "production"])`). Dedicated `staging` mode does not exist and must not be used.
+- **Cross-Environment Guard (`src/lib/env/startup.ts` lines 61–109):**
+  - When `VERCEL_ENV === "preview"`, setting `APP_ENV=production` is rejected (`"production configuration must never run in a preview deployment"`). Therefore, **Vercel Preview must set `APP_ENV=development`**.
+  - Whenever `VERCEL_ENV` is `"preview"` or `"production"`, `EXPECTED_SUPABASE_PROJECT_REF` is **required** and must match the exact `<project-ref>` subdomain of `NEXT_PUBLIC_SUPABASE_URL` (`https://<project-ref>.supabase.co`). This guarantees Preview deployments cannot accidentally or silently use the Production Supabase database.
 
-## 8. Exact Test & Verification Results
+### Required Non-Production (Vercel Preview) Environment Variables
 
-| Verification Check                     | Command Executed                                                                        | Exact Result                                                    |
-| :------------------------------------- | :-------------------------------------------------------------------------------------- | :-------------------------------------------------------------- |
-| **Root Prettier Check**                | `npm run format:check`                                                                  | **PASS** (All matched files use Prettier code style)            |
-| **Root ESLint**                        | `npm run lint`                                                                          | **PASS** (0 errors, 0 warnings)                                 |
-| **Root TypeScript**                    | `npm run typecheck`                                                                     | **PASS** (0 errors)                                             |
-| **Migration Safety Lint**              | `npm run lint:migrations`                                                               | **PASS** (`Checked 16 migration(s): 0 error(s), 0 warning(s)`)  |
-| **Root Automated Tests**               | `npm test`                                                                              | **PASS** — **48 test files passed, 467 tests passed, 0 failed** |
-| **Root Production Build**              | `npm run build`                                                                         | **PASS** (Next.js 16.4.2 production build succeeded)            |
-| **Mobile TypeScript**                  | `cd apps/mobile && npm run typecheck`                                                   | **PASS** (0 errors)                                             |
-| **Mobile Automated Tests**             | `cd apps/mobile && npm test`                                                            | **PASS** — **3 test files passed, 18 tests passed, 0 failed**   |
-| **Mobile Expo Doctor**                 | `cd apps/mobile && CI=1 npx expo-doctor`                                                | **PASS** (`20/20 checks passed. No issues detected!`)           |
-| **Mobile iOS & Android Bundle Export** | `cd apps/mobile && npx expo export --platform ios --platform android --output-dir dist` | **PASS** (Android & iOS `.hbc` bundles exported cleanly)        |
-
----
-
-## 9. Files Changed During This Verification & Hardening Pass
-
-1. [`supabase/migrations/20261028000016_phase12_stripe_billing_and_subscriptions.sql`](file:///Users/rahbarraza/Downloads/SAAS%20startup/supabase/migrations/20261028000016_phase12_stripe_billing_and_subscriptions.sql) — Aligned Pilot entitlements with architecture specification, fixed backfill query to grant a full 14-day window (`clock_timestamp() + interval '14 days'`) and preserve existing seat counts, added `sync_org_ai_quota_from_subscription()`, and added `enforce_organization_subscription_entitlements()` trigger across `stores`, `organization_members`, `organization_invitations`, `trips`, `visits`, and `visit_ai_report_drafts`.
-2. [`src/lib/http/envelope.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/lib/http/envelope.ts) — Added `BILLING_PLAN_LIMIT_EXCEEDED` and `BILLING_SUBSCRIPTION_INACTIVE` error codes.
-3. [`src/modules/billing/domain.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/billing/domain.ts) — Aligned `PLAN_CATALOG` entitlements with [`docs/billing-architecture-specification.md`](file:///Users/rahbarraza/Downloads/SAAS%20startup/docs/billing-architecture-specification.md).
-4. [`src/modules/billing/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/billing/repository.ts) — Fixed active store count query on `public.stores` to use `.eq("active", true)`.
-5. [`src/modules/billing/service.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/billing/service.ts) — Added `assertOrganizationMutationEntitlement()` to enforce subscription write-access and store/seat/visit plan limits at the service layer.
-6. [`src/modules/stores/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/stores/repository.ts) & [`src/modules/tenancy/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/tenancy/repository.ts) — Mapped database subscription/entitlement trigger errors to `BILLING_SUBSCRIPTION_INACTIVE`, `BILLING_PLAN_LIMIT_EXCEEDED`, and `BILLING_SEAT_LIMIT_EXCEEDED` (`HTTP 402`).
-7. [`src/app/api/orgs/[orgId]/billing/checkout/route.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/api/orgs/%5BorgId%5D/billing/checkout/route.ts) & [`src/app/api/orgs/[orgId]/billing/portal/route.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/app/api/orgs/%5BorgId%5D/billing/portal/route.ts) — Added dedicated Stripe Checkout and Billing Portal route handlers in addition to `POST /api/orgs/[orgId]/billing`.
-8. [`src/modules/billing/__tests__/phase12-stripe-billing.test.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/billing/__tests__/phase12-stripe-billing.test.ts) — Added service and PGlite database tests for read-only subscription locks, store limits, seat limits, and AI quota synchronization.
-9. [`apps/mobile/src/__tests__/auth-and-trip-workflow.test.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/apps/mobile/src/__tests__/auth-and-trip-workflow.test.ts) — Added regression tests for workspace creation, invitation acceptance, and draft/unauthorized trip rejection.
-10. [`docs/FIELDTRACK_MASTER_COMPLETION_REPORT.md`](file:///Users/rahbarraza/Downloads/SAAS%20startup/docs/FIELDTRACK_MASTER_COMPLETION_REPORT.md) — Updated with complete verification and hardening findings.
+| Variable Name                        | Required in Preview | Purpose (Values Omitted)                                                                                          |
+| :----------------------------------- | :------------------ | :---------------------------------------------------------------------------------------------------------------- |
+| `APP_ENV`                            | **Yes**             | Must be set to `development` in Vercel Preview (`production` is blocked when `VERCEL_ENV=preview`).               |
+| `NEXT_PUBLIC_SUPABASE_URL`           | **Yes**             | `https://<non-prod-project-ref>.supabase.co` pointing to the isolated non-production Supabase project.            |
+| `EXPECTED_SUPABASE_PROJECT_REF`      | **Yes**             | Exact `<non-prod-project-ref>` subdomain matching `NEXT_PUBLIC_SUPABASE_URL`.                                     |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | **Yes**             | Public anon/publishable key for the non-production Supabase project (never a `service_role` or `sb_secret_` key). |
+| `SUPABASE_SERVICE_ROLE_KEY`          | Optional            | Server-only service-role key for the non-production Supabase project.                                             |
+| `NEXT_PUBLIC_APP_URL`                | Optional in Preview | Auto-resolves from `https://${VERCEL_URL}` on Vercel Preview when omitted; required explicitly in Production.     |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`    | Optional            | Browser Google Maps JS & Places API key restricted to HTTP referrers (`https://*.vercel.app/*`).                  |
+| `GOOGLE_MAPS_ROUTES_API_KEY`         | Optional            | Server-only Google Routes API key (`import "server-only"`).                                                       |
+| `ROUTING_PROVIDER`                   | Optional            | Set to `google` when `GOOGLE_MAPS_ROUTES_API_KEY` is configured; falls back to Haversine + 2-Opt when omitted.    |
+| `STRIPE_SECRET_KEY`                  | Optional            | Server-only Stripe test secret key (`sk_test_...`) for Checkout and Billing Portal sessions.                      |
+| `STRIPE_WEBHOOK_SECRET`              | Optional            | Server-only Stripe webhook signing secret (`whsec_...`) for `/api/webhooks/stripe`.                               |
+| `STRIPE_PRICE_ID_PRO_MONTHLY`        | Optional            | Stripe test-mode recurring Price ID (`price_...`) for the Pro plan.                                               |
+| `STRIPE_PRICE_ID_ENTERPRISE_MONTHLY` | Optional            | Stripe test-mode recurring Price ID (`price_...`) for the Enterprise plan.                                        |
 
 ---
 
-## 10. Final Branch, Commit, and Working-Tree Status
+## 5. Exact Root and Mobile Verification Results
 
-- **Current Git Branch:** `feat/master-platform-completion`
-- **Base Commit (`HEAD`):** `47492c06247511b0b3501db4bba8ad9ba85167f7`
-- **Working-Tree State:** Uncommitted verification & hardening changes preserved on `feat/master-platform-completion` (no commits, pushes, merges, production deployments, or remote database migrations were executed during this verification pass).
+| Suite / Check                          | Command Executed                                                                             | Result                                                          |
+| :------------------------------------- | :------------------------------------------------------------------------------------------- | :-------------------------------------------------------------- |
+| **Root Prettier Format Check**         | `npm run format:check`                                                                       | **PASS** (`All matched files use Prettier code style!`)         |
+| **Root ESLint**                        | `npm run lint`                                                                               | **PASS** (0 errors, 0 warnings)                                 |
+| **Root TypeScript**                    | `npm run typecheck`                                                                          | **PASS** (0 errors)                                             |
+| **Migration Safety Lint**              | `npm run lint:migrations`                                                                    | **PASS** (`Checked 16 migration(s): 0 error(s), 0 warning(s)`)  |
+| **Root Automated Test Suite**          | `npm test`                                                                                   | **PASS** — **48 test files passed, 470 tests passed, 0 failed** |
+| **Root Next.js Production Build**      | `npm run build`                                                                              | **PASS** (Next.js 16.4.2 Turbopack build succeeded)             |
+| **Mobile TypeScript**                  | `cd apps/mobile && npm run typecheck`                                                        | **PASS** (0 errors)                                             |
+| **Mobile Automated Test Suite**        | `cd apps/mobile && npm test`                                                                 | **PASS** — **3 test files passed, 18 tests passed, 0 failed**   |
+| **Mobile Expo Doctor**                 | `cd apps/mobile && npx expo-doctor`                                                          | **PASS** (`20/20 checks passed. No issues detected!`)           |
+| **Mobile Android & iOS Bundle Export** | `cd apps/mobile && npx expo export --platform android ... && npx expo export --platform ios` | **PASS** (Hermes `.hbc` bundles exported cleanly for both OSes) |
+
+---
+
+## 6. Remaining External or Manual Prerequisites
+
+1. **Apply Migration 16 to Target Supabase Environments:**
+   - Apply [`supabase/migrations/20261028000016_phase12_stripe_billing_and_subscriptions.sql`](file:///Users/rahbarraza/Downloads/SAAS%20startup/supabase/migrations/20261028000016_phase12_stripe_billing_and_subscriptions.sql) to the non-production Supabase project first, verify, and then apply to Production via the controlled release workflow.
+2. **Configure Stripe Credentials in Vercel:**
+   - Provision Pro and Enterprise recurring monthly prices and webhook endpoint (`/api/webhooks/stripe`) in Stripe, then set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PRO_MONTHLY`, and `STRIPE_PRICE_ID_ENTERPRISE_MONTHLY` in Vercel.
+3. **Configure Vercel Preview Environment Variables:**
+   - Set `APP_ENV=development` and `EXPECTED_SUPABASE_PROJECT_REF=<non-prod-ref>` (alongside the non-production `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`) in Vercel Project Settings scoped to `Preview`.
+4. **Deferred Physical-Device Mobile Verification:**
+   - Physical-device geofence entry/exit field testing on Android/iOS remains deferred until the operator reloads the updated JS bundle against the deployed backend.
+
+---
+
+## 7. Files Changed in This Pre-Merge Safety Gate Pass
+
+1. [`supabase/migrations/20261028000016_phase12_stripe_billing_and_subscriptions.sql`](file:///Users/rahbarraza/Downloads/SAAS%20startup/supabase/migrations/20261028000016_phase12_stripe_billing_and_subscriptions.sql) — Added `set_subscription_updated_at()`, capped AI daily draft quota by plan tier ceiling on `INSERT OR UPDATE`, extended `enforce_organization_subscription_entitlements()` to fire `BEFORE INSERT OR UPDATE` across `stores`, `organization_members`, `organization_invitations`, `trips`, `trip_stops`, `visits`, `visit_checklist_items`, `visit_evidence`, and `visit_ai_report_drafts`, enforced daily AI draft quota on `INSERT`, and preserved legitimate downsizing/cancellation updates (`stores.active = false`, `organization_members.status = 'deactivated'`, `organization_invitations.status = 'revoked'`, `trips.status = 'cancelled'`).
+2. [`src/lib/http/envelope.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/lib/http/envelope.ts) — Added `BILLING_UPGRADE_REQUIRED` error code and `throwIfBillingEntitlementError()` helper for deterministic HTTP `402`/`429` mapping.
+3. [`src/modules/billing/service.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/billing/service.ts) — Prevented `update_seats` from escalating `planTier` without Stripe Checkout (`402 BILLING_UPGRADE_REQUIRED`).
+4. [`src/modules/billing/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/billing/repository.ts) — Persisted `updated_at: input.updatedAt` in `upsertSubscription` so out-of-order Stripe webhook protection uses the provider event timestamp in PostgreSQL.
+5. [`src/modules/tenancy/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/tenancy/repository.ts), [`src/modules/stores/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/stores/repository.ts), [`src/modules/trips/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/trips/repository.ts), [`src/modules/visits/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/visits/repository.ts), and [`src/modules/ai-reports/repository.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/ai-reports/repository.ts) — Wired `throwIfBillingEntitlementError()` into all mutation methods.
+6. [`src/modules/billing/__tests__/phase12-stripe-billing.test.ts`](file:///Users/rahbarraza/Downloads/SAAS%20startup/src/modules/billing/__tests__/phase12-stripe-billing.test.ts) — Added PGlite sequential upgrade/backfill/idempotency tests, `BEFORE UPDATE` bypass and permitted downsizing tests, `update_seats` tier-escalation prevention test, `invoice.paid` / `customer.subscription.deleted` tests, `StripeBillingClient` request serialization tests, and `throwIfBillingEntitlementError` mapping tests.
+7. [`.env.example`](file:///Users/rahbarraza/Downloads/SAAS%20startup/.env.example) — Documented server-only Stripe environment variables (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PRO_MONTHLY`, `STRIPE_PRICE_ID_ENTERPRISE_MONTHLY`, `STRIPE_API_BASE_URL`).
+8. [`docs/FIELDTRACK_MASTER_COMPLETION_REPORT.md`](file:///Users/rahbarraza/Downloads/SAAS%20startup/docs/FIELDTRACK_MASTER_COMPLETION_REPORT.md) — Updated with final pre-merge integration and database safety gate results.
+
+---
+
+## 8. Final Git Branch and Working-Tree State
+
+- **Current Branch:** `feat/master-platform-completion`
+- **Base Commit (`HEAD`):** `ae128d8`
+- **Working-Tree State:** Uncommitted pre-merge safety gate fixes preserved cleanly on `feat/master-platform-completion`. No commits, pushes, merges, deployments, Production config changes, or remote database migrations were executed.
+- **Release Gate Recommendation:** **READY FOR REVIEW**

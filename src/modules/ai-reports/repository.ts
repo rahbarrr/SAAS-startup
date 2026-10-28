@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { AppError } from "@/lib/http/envelope";
+import { AppError, throwIfBillingEntitlementError } from "@/lib/http/envelope";
 import type { DbVisitAiReportDraftRow } from "@/types/database";
 import {
   type AiCompletedActionItem,
@@ -233,6 +233,7 @@ export class SupabaseAiReportsRepository implements AiReportsRepository {
       .single<DbVisitAiReportDraftRow>();
 
     if (error || !data) {
+      throwIfBillingEntitlementError(error);
       throw new AppError("INTERNAL_ERROR", "Failed to save AI visit report draft", 500);
     }
 
@@ -262,6 +263,7 @@ export class SupabaseAiReportsRepository implements AiReportsRepository {
       .maybeSingle<DbVisitAiReportDraftRow>();
 
     if (error) {
+      throwIfBillingEntitlementError(error);
       throw new AppError(
         "INTERNAL_ERROR",
         "Failed to update AI report draft review",

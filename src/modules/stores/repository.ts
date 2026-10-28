@@ -6,6 +6,7 @@ import {
   decodeCursor,
   encodeCursor,
   sanitizePostgrestSearchTerm,
+  throwIfBillingEntitlementError,
 } from "@/lib/http/envelope";
 import type { DbStoreRow } from "@/types/database";
 import type { Store } from "./domain";
@@ -209,6 +210,7 @@ export class SupabaseStoresRepository implements StoresRepository {
       .maybeSingle<DbStoreRow>();
 
     if (error) {
+      throwIfBillingEntitlementError(error);
       throw new AppError("INTERNAL_ERROR", "Failed to update store", 500);
     }
     if (!data) {

@@ -5,6 +5,7 @@ import {
   type CursorPaginationMeta,
   decodeCursor,
   encodeCursor,
+  throwIfBillingEntitlementError,
 } from "@/lib/http/envelope";
 import { logger } from "@/lib/observability/logger";
 import type {
@@ -488,6 +489,7 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       .single<DbOrganizationMemberRow>();
 
     if (error) {
+      throwIfBillingEntitlementError(error);
       const msg = error.message.toLowerCase();
       if (msg.includes("expired") && !msg.includes("invalid")) {
         throw new AppError(

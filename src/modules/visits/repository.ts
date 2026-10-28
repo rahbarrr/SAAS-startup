@@ -5,6 +5,7 @@ import {
   type CursorPaginationMeta,
   decodeCursor,
   encodeCursor,
+  throwIfBillingEntitlementError,
 } from "@/lib/http/envelope";
 import type { Trip, TripStop } from "@/modules/trips/domain";
 import type {
@@ -487,6 +488,7 @@ export class SupabaseVisitsRepository implements VisitsRepository {
       .single<DbVisitRow>();
 
     if (rpcError || !visitRow) {
+      throwIfBillingEntitlementError(rpcError);
       if (rpcError?.code === "42501") {
         throw new AppError(
           "FORBIDDEN_INSUFFICIENT_ROLE",
@@ -535,6 +537,7 @@ export class SupabaseVisitsRepository implements VisitsRepository {
         .maybeSingle<{ id: string }>();
 
       if (visitUpdateError || !updatedVisit) {
+        throwIfBillingEntitlementError(visitUpdateError);
         throw new AppError(
           "CONFLICT",
           "Visit notes could not be updated because the visit is no longer in progress.",
@@ -564,6 +567,7 @@ export class SupabaseVisitsRepository implements VisitsRepository {
         );
 
       if (itemError) {
+        throwIfBillingEntitlementError(itemError);
         throw new AppError("CONFLICT", "Failed to update checklist item for visit", 409);
       }
     }
@@ -677,6 +681,7 @@ export class SupabaseVisitsRepository implements VisitsRepository {
       .single<DbVisitEvidenceRow>();
 
     if (error || !data) {
+      throwIfBillingEntitlementError(error);
       throw new AppError("CONFLICT", "Failed to record uploaded visit evidence", 409);
     }
 
@@ -760,6 +765,7 @@ export class SupabaseVisitsRepository implements VisitsRepository {
       .single<DbVisitRow>();
 
     if (rpcError || !visitRow) {
+      throwIfBillingEntitlementError(rpcError);
       if (rpcError?.code === "42501") {
         throw new AppError(
           "FORBIDDEN_INSUFFICIENT_ROLE",
