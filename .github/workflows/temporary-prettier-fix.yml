@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   format:
-    if: ${{ !startsWith(github.event.head_commit.message, 'style: auto-format sources') }}
+    if: ${{ ! startsWith(github.event.head_commit.message, 'style: auto-format sources') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
