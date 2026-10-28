@@ -165,7 +165,8 @@ export async function sendOrganizationInvitationEmail(
       provider: "resend",
       delivered: false,
       messageId: null,
-      error: "Resend could not be reached. The invitation exists; copy the fallback link and send it manually.",
+      error:
+        "Resend could not be reached. The invitation exists; copy the fallback link and send it manually.",
       attemptedAt,
     };
   }

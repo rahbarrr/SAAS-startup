@@ -136,7 +136,8 @@ export function TeamDirectoryClient({
       const emailDelivered = payload.data.emailDelivery?.delivered === true;
       const emailStatusMessage = emailDelivered
         ? "Resend accepted the invitation email for delivery."
-        : payload.data.emailDelivery?.error ?? "Automatic email delivery is not configured. Copy the fallback link and send it to the invitee.";
+        : (payload.data.emailDelivery?.error ??
+          "Automatic email delivery is not configured. Copy the fallback link and send it to the invitee.");
 
       setCreatedInvite({
         email: inviteEmail.trim(),

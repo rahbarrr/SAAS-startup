@@ -9,7 +9,12 @@ const serverEnvSchema = z.object({
     .optional(),
   CRON_SECRET: z.string().min(1, "CRON_SECRET must be a non-empty string").optional(),
   RESEND_API_KEY: z.string().trim().min(1, "RESEND_API_KEY must be non-empty").optional(),
-  RESEND_FROM_EMAIL: z.string().trim().min(3, "RESEND_FROM_EMAIL must be non-empty").max(254).optional(),
+  RESEND_FROM_EMAIL: z
+    .string()
+    .trim()
+    .min(3, "RESEND_FROM_EMAIL must be non-empty")
+    .max(254)
+    .optional(),
   OPENAI_API_KEY: z
     .string()
     .min(1, "OPENAI_API_KEY must be a non-empty string")

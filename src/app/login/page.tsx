@@ -150,7 +150,16 @@ export default function LoginPage(): ReactNode {
         ) : null}
 
         <GoogleAuthButton mode="login" inviteToken={inviteToken} nextPath={nextPath} />
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", margin: "1.25rem 0", color: "var(--text-muted)", fontSize: "0.8125rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            margin: "1.25rem 0",
+            color: "var(--text-muted)",
+            fontSize: "0.8125rem",
+          }}
+        >
           <span style={{ height: "1px", flex: 1, background: "var(--border-subtle)" }} />
           <span>or sign in with email</span>
           <span style={{ height: "1px", flex: 1, background: "var(--border-subtle)" }} />
@@ -281,7 +290,11 @@ export default function LoginPage(): ReactNode {
         >
           Don’t have an organization account yet?{" "}
           <Link
-            href={inviteToken ? `/signup?invite_token=${encodeURIComponent(inviteToken)}` : "/signup"}
+            href={
+              inviteToken
+                ? `/signup?invite_token=${encodeURIComponent(inviteToken)}`
+                : "/signup"
+            }
             style={{
               color: "var(--brand-primary)",
               fontWeight: 600,

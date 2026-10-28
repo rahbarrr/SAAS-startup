@@ -12,7 +12,9 @@ export function createBrowserSupabaseClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anonKey) {
-    throw new Error("Supabase browser authentication is not configured. Please contact the workspace administrator.");
+    throw new Error(
+      "Supabase browser authentication is not configured. Please contact the workspace administrator."
+    );
   }
 
   browserClient = createBrowserClient(url, anonKey);

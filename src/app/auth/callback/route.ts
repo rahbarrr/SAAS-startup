@@ -14,22 +14,34 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (!error) {
       let destination = nextPath;
       const nextUrl = new URL(nextPath, origin);
-      // OAuth sign-in should return existing members to the workspace, while new
-      // accounts must complete company setup. Invitation tokens always go through onboarding.
-      if (nextUrl.pathname === "/onboarding" && !nextUrl.searchParams.has("token")) {
+      const hasInvitationToken =
+        nextUrl.pathname === "/onboarding" && nextUrl.searchParams.has("token");
+
+      // Invitation tokens always go through onboarding. Everyone else must have an
+      // active workspace before the callback can take them to a workspace-only page.
+      if (!hasInvitationToken) {
         try {
           const { data: userData } = await supabase.auth.getUser();
-          if (userData.user) {
-            const repository = new SupabaseTenancyRepository(supabase);
-            const memberships = await repository.listUserOrganizations(userData.user.id);
-            if (memberships.some((entry) => entry.membership.status === "active" && entry.organization.status === "active")) {
-              destination = "/";
-            }
-          }
+          const repository = new SupabaseTenancyRepository(supabase);
+          const memberships = userData.user
+            ? await repository.listUserOrganizations(userData.user.id)
+            : [];
+          const hasActiveMembership = memberships.some(
+            (entry) =>
+              entry.membership.status === "active" &&
+              entry.organization.status === "active"
+          );
+
+          destination = hasActiveMembership
+            ? nextUrl.pathname === "/onboarding"
+              ? "/"
+              : nextPath
+            : "/onboarding";
         } catch {
-          // Fail closed into onboarding if membership resolution is temporarily unavailable.
+          destination = "/onboarding";
         }
       }
+
       return NextResponse.redirect(new URL(destination, origin));
     }
   }

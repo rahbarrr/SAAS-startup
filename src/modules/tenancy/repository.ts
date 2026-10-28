@@ -184,6 +184,11 @@ export class SupabaseTenancyRepository implements TenancyRepository {
           slug,
           status,
           created_by,
+          industry,
+          company_size,
+          country,
+          website,
+          phone,
           created_at,
           updated_at
         )

@@ -105,7 +105,11 @@ export async function signUpAction(rawInput: {
       callbackUrl.searchParams.set("next", `${nextUrl.pathname}${nextUrl.search}`);
       redirectToUrl = callbackUrl.toString();
       if (!isTrustedRedirectUrl(redirectToUrl, trustedOrigin)) {
-        throw new AppError("VALIDATION_ERROR", "Account confirmation redirect is not configured safely", 400);
+        throw new AppError(
+          "VALIDATION_ERROR",
+          "Account confirmation redirect is not configured safely",
+          400
+        );
       }
     } else if (invitationToken) {
       throw new AppError(

@@ -132,9 +132,25 @@ describe("FieldTrack — Core Retail Workflow & Access Control End-to-End Accept
   it("Step 3.1: Manager onboards new organization and configures store directory", async () => {
     // Manager creates organization via transactional RPC (reads auth.uid() automatically)
     const orgRes = await runAs(MANAGER_ID, async () => {
-      const res = await db.query<{ id: string; name: string; slug: string; industry: string; company_size: string; country: string }>(
-        `select id, name, slug, industry, company_size, country from public.create_organization_with_company_profile($1, $2, $3, $4, $5, $6, $7)`,
-        ["Apex Supermarkets Inc.", "apex-supermarkets", "Retail", "11-50", "India", null, null]
+      const res = await db.query<{
+        id: string;
+        name: string;
+        slug: string;
+        industry: string;
+        company_size: string;
+        country: string;
+      }>(
+        `select id, name, slug, industry, company_size, country
+         from public.create_organization_with_company_profile($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          "Apex Supermarkets Inc.",
+          "apex-supermarkets",
+          "Retail",
+          "11-50",
+          "India",
+          null,
+          null,
+        ]
       );
       return requireRow(res.rows[0]);
     });

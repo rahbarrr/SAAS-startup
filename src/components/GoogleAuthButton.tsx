@@ -22,12 +22,13 @@ export function GoogleAuthButton({
     setError(null);
     try {
       const supabase = createBrowserSupabaseClient();
-      const safeNextPath =
-        inviteToken
-          ? `/onboarding?token=${encodeURIComponent(inviteToken)}`
-          : nextPath.startsWith("/") && !nextPath.startsWith("//") && !nextPath.includes("\\")
-            ? nextPath
-            : "/onboarding";
+      const safeNextPath = inviteToken
+        ? `/onboarding?token=${encodeURIComponent(inviteToken)}`
+        : nextPath.startsWith("/") &&
+            !nextPath.startsWith("//") &&
+            !nextPath.includes("\\")
+          ? nextPath
+          : "/onboarding";
       const callbackUrl = new URL("/auth/callback", window.location.origin);
       callbackUrl.searchParams.set("next", safeNextPath);
       const { error: authError } = await supabase.auth.signInWithOAuth({
@@ -39,7 +40,9 @@ export function GoogleAuthButton({
       });
       if (authError) throw authError;
     } catch {
-      setError("Google sign-in could not start. Please check that Google is enabled in Supabase Auth, or use email sign-in.");
+      setError(
+        "Google sign-in could not start. Please check that Google is enabled in Supabase Auth, or use email sign-in."
+      );
       setIsPending(false);
     }
   }
@@ -51,12 +54,43 @@ export function GoogleAuthButton({
         className="btn btn-secondary"
         onClick={() => void handleGoogleAuth()}
         disabled={isPending}
-        style={{ width: "100%", minHeight: "var(--touch-target-min)", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", background: "#FFFFFF", color: "#202124", border: "1px solid #DADCE0", fontWeight: 600 }}
+        style={{
+          width: "100%",
+          minHeight: "var(--touch-target-min)",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "0.75rem",
+          background: "#FFFFFF",
+          color: "#202124",
+          border: "1px solid #DADCE0",
+          fontWeight: 600,
+        }}
       >
-        <span aria-hidden="true" style={{ fontWeight: 800, fontSize: "1.125rem", color: "#4285F4" }}>G</span>
-        {isPending ? "Connecting to Google…" : mode === "signup" ? "Sign up with Google" : "Continue with Google"}
+        <span
+          aria-hidden="true"
+          style={{ fontWeight: 800, fontSize: "1.125rem", color: "#4285F4" }}
+        >
+          G
+        </span>
+        {isPending
+          ? "Connecting to Google…"
+          : mode === "signup"
+            ? "Sign up with Google"
+            : "Continue with Google"}
       </button>
-      {error ? <p role="alert" style={{ margin: 0, color: "var(--danger-red, #b91c1c)", fontSize: "0.8125rem" }}>{error}</p> : null}
+      {error ? (
+        <p
+          role="alert"
+          style={{
+            margin: 0,
+            color: "var(--danger-red, #b91c1c)",
+            fontSize: "0.8125rem",
+          }}
+        >
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

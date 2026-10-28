@@ -220,7 +220,9 @@ describe("DB privileges and SECURITY DEFINER hardening (PGlite, emulated Supabas
     try {
       await db.exec("set local role authenticated;");
       await expect(
-        db.query("select public.create_organization_with_owner('Legacy bypass', 'legacy-bypass')")
+        db.query(
+          "select public.create_organization_with_owner('Legacy bypass', 'legacy-bypass')"
+        )
       ).rejects.toThrow(/permission denied/i);
     } finally {
       await db.exec("rollback;");

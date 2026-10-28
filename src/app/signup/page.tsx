@@ -26,7 +26,12 @@ export default function SignUpPage(): ReactNode {
     setMessage(null);
 
     startTransition(async () => {
-      const result = await signUpAction({ fullName, email, password, inviteToken: inviteToken || undefined });
+      const result = await signUpAction({
+        fullName,
+        email,
+        password,
+        inviteToken: inviteToken || undefined,
+      });
       if (!result.ok) {
         setError(result.error ?? "Unable to create account.");
         return;
@@ -148,7 +153,16 @@ export default function SignUpPage(): ReactNode {
         ) : null}
 
         <GoogleAuthButton mode="signup" inviteToken={inviteToken} />
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", margin: "1.25rem 0", color: "var(--text-muted)", fontSize: "0.8125rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            margin: "1.25rem 0",
+            color: "var(--text-muted)",
+            fontSize: "0.8125rem",
+          }}
+        >
           <span style={{ height: "1px", flex: 1, background: "var(--border-subtle)" }} />
           <span>or continue with email</span>
           <span style={{ height: "1px", flex: 1, background: "var(--border-subtle)" }} />

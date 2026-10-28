@@ -21,7 +21,9 @@ function OnboardingContent(): ReactNode {
 
   const [orgName, setOrgName] = useState("");
   const [industry, setIndustry] = useState("");
-  const [companySize, setCompanySize] = useState<"1-10" | "11-50" | "51-200" | "201-500" | "501-1000" | "1000+">("1-10");
+  const [companySize, setCompanySize] = useState<
+    "1-10" | "11-50" | "51-200" | "201-500" | "501-1000" | "1000+"
+  >("1-10");
   const [country, setCountry] = useState("India");
   const [website, setWebsite] = useState("");
   const [phone, setPhone] = useState("");
@@ -41,7 +43,10 @@ function OnboardingContent(): ReactNode {
     startTransition(async () => {
       const result = await acceptInvitationAction({ token: tokenParam });
       if (!result.ok) {
-        setError(result.error ?? "Unable to accept invitation. Please sign in with the email address the invitation was sent to.");
+        setError(
+          result.error ??
+            "Unable to accept invitation. Please sign in with the email address the invitation was sent to."
+        );
         return;
       }
       setMessage(result.message ?? "Invitation accepted. Opening your workspace…");
@@ -152,7 +157,9 @@ function OnboardingContent(): ReactNode {
           {tokenParam ? "Join Your Invited Workspace" : "Set Up Your Company"}
         </h1>
         <p className="card-meta" style={{ fontSize: "0.9375rem" }}>
-          {tokenParam ? "Your invitation is being verified and your assigned role will be activated after authentication." : "Complete your company profile to create your workspace as the initial administrator."}
+          {tokenParam
+            ? "Your invitation is being verified and your assigned role will be activated after authentication."
+            : "Complete your company profile to create your workspace as the initial administrator."}
         </p>
       </section>
 
@@ -197,247 +204,287 @@ function OnboardingContent(): ReactNode {
       >
         {/* Company setup is only available to a new workspace owner, never an invitee. */}
         {!tokenParam ? (
-        <section
-          className="card"
-          aria-labelledby="create-org-heading"
-          style={{
-            padding: "1.75rem",
-            borderRadius: "var(--radius-xl)",
-            borderTop: "4px solid var(--brand-primary)",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                marginBottom: "0.5rem",
-              }}
-            >
-              <span
-                style={{
-                  width: "1.75rem",
-                  height: "1.75rem",
-                  borderRadius: "50%",
-                  background: "var(--brand-primary)",
-                  color: "#FFFFFF",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "0.8125rem",
-                  fontWeight: 700,
-                }}
-              >
-                1
-              </span>
-              <h2
-                id="create-org-heading"
-                className="card-title"
-                style={{ fontSize: "1.25rem", margin: 0, color: "var(--brand-dark)" }}
-              >
-                Create New Organization
-              </h2>
-            </div>
-            <p className="card-meta" style={{ marginBottom: "1.25rem" }}>
-              Transactionally provisions the workspace database schema and assigns your
-              account as the initial Admin.
-            </p>
-
-            <form
-              onSubmit={handleCreateOrg}
-              style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-            >
-              <div>
-                <label
-                  htmlFor="org-name"
-                  style={{
-                    display: "block",
-                    fontWeight: 600,
-                    fontSize: "0.875rem",
-                    marginBottom: "0.375rem",
-                  }}
-                >
-                  Company Name *
-                </label>
-                <input
-                  id="org-name"
-                  name="name"
-                  type="text"
-                  required
-                  minLength={2}
-                  placeholder="e.g. Acme Retail North"
-                  value={orgName}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  className="input-field"
-                  style={{
-                    width: "100%",
-                    minHeight: "var(--touch-target-min)",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="org-slug"
-                  style={{
-                    display: "block",
-                    fontWeight: 600,
-                    fontSize: "0.875rem",
-                    marginBottom: "0.375rem",
-                  }}
-                >
-                  Workspace Identifier Slug *
-                </label>
-                <input
-                  id="org-slug"
-                  name="slug"
-                  type="text"
-                  required
-                  minLength={2}
-                  placeholder="acme-retail-north"
-                  value={orgSlug}
-                  onChange={(e) => {
-                    setIsSlugManuallyEdited(true);
-                    setOrgSlug(e.target.value);
-                  }}
-                  className="input-field"
-                  style={{
-                    width: "100%",
-                    minHeight: "var(--touch-target-min)",
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "var(--text-muted)",
-                    marginTop: "0.25rem",
-                    display: "block",
-                  }}
-                >
-                  Used for unique tenant identification and routing.
-                </span>
-              </div>
-
-              <div>
-                <label htmlFor="org-industry" style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}>
-                  Industry *
-                </label>
-                <input
-                  id="org-industry"
-                  name="industry"
-                  type="text"
-                  required
-                  minLength={2}
-                  maxLength={120}
-                  placeholder="e.g. Retail, FMCG, Fashion"
-                  value={industry}
-                  onChange={(e) => setIndustry(e.target.value)}
-                  className="input-field"
-                  style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="org-company-size" style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}>
-                  Company Size *
-                </label>
-                <select
-                  id="org-company-size"
-                  name="companySize"
-                  required
-                  value={companySize}
-                  onChange={(e) => setCompanySize(e.target.value as typeof companySize)}
-                  className="input-field"
-                  style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
-                >
-                  <option value="1-10">1–10 employees</option>
-                  <option value="11-50">11–50 employees</option>
-                  <option value="51-200">51–200 employees</option>
-                  <option value="201-500">201–500 employees</option>
-                  <option value="501-1000">501–1,000 employees</option>
-                  <option value="1000+">1,000+ employees</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="org-country" style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}>
-                  Country *
-                </label>
-                <input
-                  id="org-country"
-                  name="country"
-                  type="text"
-                  required
-                  minLength={2}
-                  maxLength={100}
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="input-field"
-                  style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="org-website" style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}>
-                  Company Website (Optional)
-                </label>
-                <input
-                  id="org-website"
-                  name="website"
-                  type="url"
-                  placeholder="https://company.com"
-                  value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
-                  className="input-field"
-                  style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="org-phone" style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}>
-                  Company Phone (Optional)
-                </label>
-                <input
-                  id="org-phone"
-                  name="phone"
-                  type="tel"
-                  maxLength={40}
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="input-field"
-                  style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
-                />
-              </div>
-
+          <section
+            className="card"
+            aria-labelledby="create-org-heading"
+            style={{
+              padding: "1.75rem",
+              borderRadius: "var(--radius-xl)",
+              borderTop: "4px solid var(--brand-primary)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            <div>
               <div
                 style={{
-                  padding: "0.75rem",
-                  background: "var(--bg-canvas)",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--border-subtle)",
-                  fontSize: "0.75rem",
-                  color: "var(--text-secondary)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  marginBottom: "0.5rem",
                 }}
               >
-                ✓ <strong>Admin Privileges:</strong> Full control over trip approvals,
-                checklist templates, store directories, and team member invitations.
+                <span
+                  style={{
+                    width: "1.75rem",
+                    height: "1.75rem",
+                    borderRadius: "50%",
+                    background: "var(--brand-primary)",
+                    color: "#FFFFFF",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "0.8125rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  1
+                </span>
+                <h2
+                  id="create-org-heading"
+                  className="card-title"
+                  style={{ fontSize: "1.25rem", margin: 0, color: "var(--brand-dark)" }}
+                >
+                  Create New Organization
+                </h2>
               </div>
+              <p className="card-meta" style={{ marginBottom: "1.25rem" }}>
+                Transactionally provisions the workspace database schema and assigns your
+                account as the initial Admin.
+              </p>
 
-              <button
-                type="submit"
-                disabled={isPending}
-                className="btn btn-primary"
-                style={{ minHeight: "var(--touch-target-min)", marginTop: "0.5rem" }}
+              <form
+                onSubmit={handleCreateOrg}
+                style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
               >
-                {isPending ? "Creating Workspace…" : "Create & Launch Workspace"}
-              </button>
-            </form>
-          </div>
-        </section>
+                <div>
+                  <label
+                    htmlFor="org-name"
+                    style={{
+                      display: "block",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      marginBottom: "0.375rem",
+                    }}
+                  >
+                    Company Name *
+                  </label>
+                  <input
+                    id="org-name"
+                    name="name"
+                    type="text"
+                    required
+                    minLength={2}
+                    placeholder="e.g. Acme Retail North"
+                    value={orgName}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    className="input-field"
+                    style={{
+                      width: "100%",
+                      minHeight: "var(--touch-target-min)",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="org-slug"
+                    style={{
+                      display: "block",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      marginBottom: "0.375rem",
+                    }}
+                  >
+                    Workspace Identifier Slug *
+                  </label>
+                  <input
+                    id="org-slug"
+                    name="slug"
+                    type="text"
+                    required
+                    minLength={2}
+                    placeholder="acme-retail-north"
+                    value={orgSlug}
+                    onChange={(e) => {
+                      setIsSlugManuallyEdited(true);
+                      setOrgSlug(e.target.value);
+                    }}
+                    className="input-field"
+                    style={{
+                      width: "100%",
+                      minHeight: "var(--touch-target-min)",
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--text-muted)",
+                      marginTop: "0.25rem",
+                      display: "block",
+                    }}
+                  >
+                    Used for unique tenant identification and routing.
+                  </span>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="org-industry"
+                    style={{
+                      display: "block",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      marginBottom: "0.375rem",
+                    }}
+                  >
+                    Industry *
+                  </label>
+                  <input
+                    id="org-industry"
+                    name="industry"
+                    type="text"
+                    required
+                    minLength={2}
+                    maxLength={120}
+                    placeholder="e.g. Retail, FMCG, Fashion"
+                    value={industry}
+                    onChange={(e) => setIndustry(e.target.value)}
+                    className="input-field"
+                    style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="org-company-size"
+                    style={{
+                      display: "block",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      marginBottom: "0.375rem",
+                    }}
+                  >
+                    Company Size *
+                  </label>
+                  <select
+                    id="org-company-size"
+                    name="companySize"
+                    required
+                    value={companySize}
+                    onChange={(e) => setCompanySize(e.target.value as typeof companySize)}
+                    className="input-field"
+                    style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
+                  >
+                    <option value="1-10">1–10 employees</option>
+                    <option value="11-50">11–50 employees</option>
+                    <option value="51-200">51–200 employees</option>
+                    <option value="201-500">201–500 employees</option>
+                    <option value="501-1000">501–1,000 employees</option>
+                    <option value="1000+">1,000+ employees</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="org-country"
+                    style={{
+                      display: "block",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      marginBottom: "0.375rem",
+                    }}
+                  >
+                    Country *
+                  </label>
+                  <input
+                    id="org-country"
+                    name="country"
+                    type="text"
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="input-field"
+                    style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="org-website"
+                    style={{
+                      display: "block",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      marginBottom: "0.375rem",
+                    }}
+                  >
+                    Company Website (Optional)
+                  </label>
+                  <input
+                    id="org-website"
+                    name="website"
+                    type="url"
+                    placeholder="https://company.com"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    className="input-field"
+                    style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="org-phone"
+                    style={{
+                      display: "block",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      marginBottom: "0.375rem",
+                    }}
+                  >
+                    Company Phone (Optional)
+                  </label>
+                  <input
+                    id="org-phone"
+                    name="phone"
+                    type="tel"
+                    maxLength={40}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="input-field"
+                    style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
+                  />
+                </div>
+
+                <div
+                  style={{
+                    padding: "0.75rem",
+                    background: "var(--bg-canvas)",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--border-subtle)",
+                    fontSize: "0.75rem",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  ✓ <strong>Admin Privileges:</strong> Full control over trip approvals,
+                  checklist templates, store directories, and team member invitations.
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="btn btn-primary"
+                  style={{ minHeight: "var(--touch-target-min)", marginTop: "0.5rem" }}
+                >
+                  {isPending ? "Creating Workspace…" : "Create & Launch Workspace"}
+                </button>
+              </form>
+            </div>
+          </section>
 
         ) : null}
 
