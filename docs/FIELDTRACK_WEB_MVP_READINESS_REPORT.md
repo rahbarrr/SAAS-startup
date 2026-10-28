@@ -101,8 +101,8 @@ The mobile codebase (`apps/mobile`), mobile build pipelines (EAS), and Google Ma
 
 | Suite / Check | Command | Result | Duration |
 | :--- | :--- | :--- | :--- |
-| **Root Unit & Integration Tests** | `npm test` | **48 / 48 files passed (470 tests)** | 10.27s |
-| **End-to-End Retail Journey** | `npx vitest run src/modules/tenancy/__tests__/end-to-end-workflow.test.ts` | **9 / 9 passed** | 1.54s |
+| **Root Web & Script Unit Tests** | `npm run test:unit` | **44 / 44 files passed (432 tests)** | Verified in GitHub Actions run [#40717917768](https://github.com/rahbarrr/SAAS-startup/actions/runs/40717917768) |
+| **PGlite Database Integration Suite** | `npm run test:integration` | **1 / 1 file passed (20 tests)** | Verified in GitHub Actions run [#40717917768](https://github.com/rahbarrr/SAAS-startup/actions/runs/40717917768) |
 | **UI Workflow Invariants** | `npx vitest run src/modules/trips/__tests__/ui-workflows.test.ts` | **10 / 10 passed** | 0.12s |
 | **Code Formatting** | `npm run format:check` | **All files clean (Prettier)** | 3.5s |
 | **Linting** | `npm run lint` | **0 errors, 0 warnings (ESLint)** | 2.1s |
@@ -123,7 +123,7 @@ The mobile codebase (`apps/mobile`), mobile build pipelines (EAS), and Google Ma
 ## 5. Release Checklist & Review Decision
 
 - [x] Code is committed directly on `main`
-- [x] Root automated suite reported 470 passing tests
+- [x] Root web/script tests: 432/432 passed; PGlite database integration tests: 20/20 passed in [GitHub Actions run #40717917768](https://github.com/rahbarrr/SAAS-startup/actions/runs/40717917768)
 - [x] Next.js production build reported passing
 - [x] No sensitive secrets or credentials included in this report
 - [x] Mobile and Maps work remain out of scope
