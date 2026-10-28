@@ -49,17 +49,17 @@ export const PLAN_CATALOG: Record<PlanTier, PlanCatalogEntry> = {
     monthlySeatPriceUsd: 0,
     includedSeats: 5,
     entitlements: {
-      max_stores: 25,
+      max_stores: 15,
       max_members: 5,
-      max_monthly_visits: 250,
-      ai_daily_draft_quota: 25,
-      storage_limit_bytes: 1_073_741_824, // 1 GB
+      max_monthly_visits: 50,
+      ai_daily_draft_quota: 5,
+      storage_limit_bytes: 2_147_483_648, // 2 GB
     },
     features: [
-      "Up to 5 team members & 25 stores",
-      "250 store visits per month",
+      "Up to 5 team members & 15 active stores",
+      "50 completed store visits per month",
       "Google Maps route optimization & native geofencing",
-      "25 AI visit report drafts per day",
+      "5 AI visit report drafts per day (2 GB evidence storage)",
     ],
   },
   pro: {
@@ -70,17 +70,17 @@ export const PLAN_CATALOG: Record<PlanTier, PlanCatalogEntry> = {
     monthlySeatPriceUsd: 19,
     includedSeats: 15,
     entitlements: {
-      max_stores: 500,
-      max_members: 50,
-      max_monthly_visits: 5000,
-      ai_daily_draft_quota: 250,
-      storage_limit_bytes: 26_843_545_600, // 25 GB
+      max_stores: 150,
+      max_members: 30,
+      max_monthly_visits: 1000,
+      ai_daily_draft_quota: 50,
+      storage_limit_bytes: 53_687_091_200, // 50 GB
     },
     features: [
-      "Up to 50 team members & 500 stores",
-      "5,000 store visits per month",
+      "Up to 30 team members & 150 active stores",
+      "1,000 completed store visits per month",
       "Territory analytics, CSV audit exports & manager briefings",
-      "250 AI visit report drafts per day",
+      "50 AI visit report drafts per day (50 GB evidence storage)",
     ],
   },
   enterprise: {
@@ -95,13 +95,13 @@ export const PLAN_CATALOG: Record<PlanTier, PlanCatalogEntry> = {
       max_members: 1000,
       max_monthly_visits: 100000,
       ai_daily_draft_quota: 2000,
-      storage_limit_bytes: 268_435_456_000, // 250 GB
+      storage_limit_bytes: 1_099_511_627_776, // 1 TB
     },
     features: [
-      "Up to 1,000 team members & 10,000 stores",
-      "100,000 store visits per month",
+      "Up to 1,000 team members & 10,000 active stores",
+      "100,000 completed store visits per month",
       "Priority SLA, custom retention & dedicated onboarding",
-      "2,000 AI visit report drafts per day",
+      "2,000 AI visit report drafts per day (1 TB evidence storage)",
     ],
   },
 };
@@ -163,15 +163,11 @@ export interface OrganizationBillingSummary {
 
 export function getDefaultEntitlementsForTier(
   tier: PlanTier,
-  seatCount?: number
+  _seatCount?: number
 ): PlanEntitlements {
   const base = PLAN_CATALOG[tier].entitlements;
   return {
     ...base,
-    max_members:
-      seatCount && seatCount > 0
-        ? Math.max(seatCount, base.max_members)
-        : base.max_members,
   };
 }
 

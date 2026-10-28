@@ -227,6 +227,13 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       .single<DbOrganizationRow>();
 
     if (error) {
+      const msg = error.message ?? "";
+      if (msg.includes("Organization subscription is inactive or expired")) {
+        throw new AppError("BILLING_SUBSCRIPTION_INACTIVE", msg, 402);
+      }
+      if (msg.includes("Workspace seat limit reached")) {
+        throw new AppError("BILLING_SEAT_LIMIT_EXCEEDED", msg, 402);
+      }
       if (error.code === "23505") {
         throw new AppError(
           "CONFLICT",
@@ -325,6 +332,13 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       .single<DbOrganizationMemberRow>();
 
     if (error) {
+      const msg = error.message ?? "";
+      if (msg.includes("Organization subscription is inactive or expired")) {
+        throw new AppError("BILLING_SUBSCRIPTION_INACTIVE", msg, 402);
+      }
+      if (msg.includes("Workspace seat limit reached")) {
+        throw new AppError("BILLING_SEAT_LIMIT_EXCEEDED", msg, 402);
+      }
       if (error.code === "23505") {
         throw new AppError(
           "CONFLICT",
@@ -419,6 +433,13 @@ export class SupabaseTenancyRepository implements TenancyRepository {
         errorMessage: error.message,
       });
 
+      const msg = error.message ?? "";
+      if (msg.includes("Organization subscription is inactive or expired")) {
+        throw new AppError("BILLING_SUBSCRIPTION_INACTIVE", msg, 402);
+      }
+      if (msg.includes("Workspace seat limit reached")) {
+        throw new AppError("BILLING_SEAT_LIMIT_EXCEEDED", msg, 402);
+      }
       if (error.code === "23505") {
         throw new AppError(
           "CONFLICT",

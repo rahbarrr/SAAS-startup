@@ -271,7 +271,7 @@ export class SupabaseBillingRepository implements BillingRepository {
         .from("stores")
         .select("id", { count: "exact", head: true })
         .eq("organization_id", orgId)
-        .eq("status", "active"),
+        .eq("active", true),
       this.supabase
         .from("organization_members")
         .select("id", { count: "exact", head: true })

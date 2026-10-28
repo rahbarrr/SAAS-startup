@@ -346,4 +346,89 @@ describe("FieldTrack Mobile Auth & Trip Loading Workflow", () => {
     expect(refreshed?.organizations).toHaveLength(1);
     expect(refreshed?.activeOrgId).toBe("org-nested-1");
   });
+
+  it("supports workspace creation, invitation acceptance, and rejects draft/unauthorized trips without fabricating data", async () => {
+    const mockFetch = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.endsWith("/api/orgs") && init?.method === "POST") {
+        return {
+          ok: true,
+          status: 201,
+          json: async () => ({
+            data: {
+              id: "org-created-1",
+              name: "New Field Ops",
+              slug: "new-field-ops",
+            },
+            error: null,
+          }),
+        };
+      }
+      if (url.endsWith("/api/invitations/accept") && init?.method === "POST") {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            data: {
+              orgId: "org-invited-1",
+              role: "field_employee",
+            },
+            error: null,
+          }),
+        };
+      }
+      if (url.endsWith("/api/orgs/org-created-1/trips/trip-draft")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            data: {
+              trip: {
+                id: "trip-draft",
+                orgId: "org-created-1",
+                ownerUserId: "emp-1",
+                title: "Unapproved Draft Trip",
+                startDate: "2026-10-28",
+                endDate: "2026-10-29",
+                purpose: "Draft",
+                status: "draft",
+              },
+              stops: [],
+            },
+            error: null,
+          }),
+        };
+      }
+      if (url.includes("/api/orgs/org-created-1/stores")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ data: [], error: null }),
+        };
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const apiClient = new FieldTrackMobileApiClient({
+      baseUrl: "http://192.168.43.142:3000",
+      authToken: "jwt_mobile_token_123",
+      orgId: "org-created-1",
+    });
+
+    const createdOrg = await apiClient.createOrganization({
+      name: "New Field Ops",
+      slug: "new-field-ops",
+    });
+    expect(createdOrg.id).toBe("org-created-1");
+
+    const accepted = await apiClient.acceptInvitation({
+      token: "raw_invite_token_abc",
+    });
+    expect(accepted.orgId).toBe("org-invited-1");
+
+    // Draft trips cannot be executed for geofencing on mobile
+    await expect(apiClient.getExecutableTrip("trip-draft")).rejects.toThrow(
+      /Only approved or in-progress trips can be executed on mobile/
+    );
+  });
 });

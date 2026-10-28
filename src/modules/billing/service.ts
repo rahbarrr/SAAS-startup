@@ -34,6 +34,56 @@ async function safeRecordBillingAudit(
   }
 }
 
+export async function assertOrganizationMutationEntitlement(params: {
+  orgId: string;
+  mutationType: "store" | "member" | "visit" | "trip" | "ai_report";
+  repository: BillingRepository;
+  now?: Date;
+}): Promise<void> {
+  const { orgId, mutationType, repository, now = new Date() } = params;
+  const [existingSub, usage] = await Promise.all([
+    repository.getSubscriptionByOrgId(orgId),
+    repository.getUsageMetrics(orgId, now),
+  ]);
+
+  const subscription = existingSub ?? buildDefaultPilotSubscription(orgId, now);
+  const access = evaluateSubscriptionAccess(subscription, now);
+
+  if (!access.writeAllowed) {
+    throw new AppError("BILLING_SUBSCRIPTION_INACTIVE", access.message, 402);
+  }
+
+  if (mutationType === "store") {
+    if (usage.activeStores >= subscription.entitlements.max_stores) {
+      throw new AppError(
+        "BILLING_PLAN_LIMIT_EXCEEDED",
+        `Store limit reached for your ${PLAN_CATALOG[subscription.planTier].name} plan (${usage.activeStores}/${subscription.entitlements.max_stores} active stores). Upgrade your plan to add more stores.`,
+        402
+      );
+    }
+  } else if (mutationType === "member") {
+    const effectiveSeatLimit = Math.min(
+      subscription.seatCount,
+      subscription.entitlements.max_members
+    );
+    if (usage.activeAndInvitedMembers >= effectiveSeatLimit) {
+      throw new AppError(
+        "BILLING_SEAT_LIMIT_EXCEEDED",
+        `Workspace seat limit reached (${usage.activeAndInvitedMembers}/${effectiveSeatLimit} seats used). Increase your seat limit or upgrade your plan to invite more members.`,
+        402
+      );
+    }
+  } else if (mutationType === "visit") {
+    if (usage.monthlyVisits >= subscription.entitlements.max_monthly_visits) {
+      throw new AppError(
+        "BILLING_PLAN_LIMIT_EXCEEDED",
+        `Monthly visit limit reached for your ${PLAN_CATALOG[subscription.planTier].name} plan (${usage.monthlyVisits}/${subscription.entitlements.max_monthly_visits} visits). Upgrade your plan to record additional visits.`,
+        402
+      );
+    }
+  }
+}
+
 export async function getOrganizationBillingSummaryForCaller(params: {
   context: TenantContext;
   repository: BillingRepository;

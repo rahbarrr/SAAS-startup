@@ -167,6 +167,13 @@ export class SupabaseStoresRepository implements StoresRepository {
       .single<DbStoreRow>();
 
     if (error) {
+      const msg = error.message ?? "";
+      if (msg.includes("Organization subscription is inactive or expired")) {
+        throw new AppError("BILLING_SUBSCRIPTION_INACTIVE", msg, 402);
+      }
+      if (msg.includes("Plan store limit reached")) {
+        throw new AppError("BILLING_PLAN_LIMIT_EXCEEDED", msg, 402);
+      }
       throw new AppError("INTERNAL_ERROR", "Failed to create store", 500);
     }
 

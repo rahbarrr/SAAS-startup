@@ -17,6 +17,7 @@ import {
   type UpsertSubscriptionInput,
 } from "../repository";
 import {
+  assertOrganizationMutationEntitlement,
   getOrganizationBillingSummaryForCaller,
   handleOrganizationBillingAction,
   processStripeWebhookPayload,
@@ -315,6 +316,43 @@ describe("Phase 12 — Stripe Billing, Entitlements, Webhooks, and RLS", () => {
       code: "BILLING_NOT_CONFIGURED",
       status: 503,
     });
+
+    // Server-side mutation entitlement checks enforce store, seat, visit, and subscription locks
+    repo.usage = {
+      activeStores: 150,
+      activeAndInvitedMembers: 20,
+      monthlyVisits: 1000,
+    };
+    await expect(
+      assertOrganizationMutationEntitlement({
+        orgId: TEST_ORG_ID,
+        mutationType: "store",
+        repository: repo,
+      })
+    ).rejects.toMatchObject({
+      code: "BILLING_PLAN_LIMIT_EXCEEDED",
+      status: 402,
+    });
+    await expect(
+      assertOrganizationMutationEntitlement({
+        orgId: TEST_ORG_ID,
+        mutationType: "member",
+        repository: repo,
+      })
+    ).rejects.toMatchObject({
+      code: "BILLING_SEAT_LIMIT_EXCEEDED",
+      status: 402,
+    });
+    await expect(
+      assertOrganizationMutationEntitlement({
+        orgId: TEST_ORG_ID,
+        mutationType: "visit",
+        repository: repo,
+      })
+    ).rejects.toMatchObject({
+      code: "BILLING_PLAN_LIMIT_EXCEEDED",
+      status: 402,
+    });
   });
 
   it("verifies Stripe-Signature HMAC-SHA256 headers and rejects tampered or replay payloads", () => {
@@ -569,6 +607,99 @@ describe("Phase 12 — Stripe Billing, Entitlements, Webhooks, and RLS", () => {
           db.query("select * from public.billing_webhook_events")
         ).rejects.toThrow(/permission denied/i);
         await db.exec("rollback to savepoint sp_read_webhooks;");
+      } finally {
+        await db.exec("rollback;");
+      }
+    });
+
+    it("enforces database-level subscription read-only lock, store limits, seat limits, and AI quota sync", async () => {
+      await db.exec("begin;");
+      try {
+        // 1. Verify AI quota sync when subscription is upgraded to Pro (50 drafts/day)
+        await db.query(`
+          update public.organization_subscriptions
+             set plan_tier = 'pro',
+                 status = 'active',
+                 seat_count = 15,
+                 entitlements = '{"max_stores": 150, "max_members": 30, "max_monthly_visits": 1000, "ai_daily_draft_quota": 50, "storage_limit_bytes": 53687091200}'::jsonb
+           where organization_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+        `);
+
+        const orgAiQuota = await db.query<{ ai_daily_draft_quota: number }>(`
+          select ai_daily_draft_quota
+            from public.organizations
+           where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+        `);
+        expect(orgAiQuota.rows[0]?.ai_daily_draft_quota).toBe(50);
+
+        // 2. Verify store limit enforcement (set max_stores to 1, below current active store count)
+        await db.query(`
+          update public.organization_subscriptions
+             set entitlements = jsonb_set(entitlements, '{max_stores}', '1'::jsonb)
+           where organization_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+        `);
+
+        await db.exec("savepoint sp_store_limit;");
+        await expect(
+          db.query(`
+            insert into public.stores (
+              organization_id, name, region, address_line1, city, country_code, active
+            ) values (
+              'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Over Limit Store', 'North', '1 Main St', 'Delhi', 'IN', true
+            );
+          `)
+        ).rejects.toThrow(/Plan store limit reached/i);
+        await db.exec("rollback to savepoint sp_store_limit;");
+
+        // 3. Verify seat limit enforcement (set seat_count to 2, below current active member count = 3)
+        await db.query(`
+          update public.organization_subscriptions
+             set seat_count = 2
+           where organization_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+        `);
+
+        await db.exec("savepoint sp_seat_limit;");
+        await expect(
+          db.query(`
+            insert into public.organization_invitations (
+              organization_id, invited_email, role, token_hash, invited_by, status, expires_at
+            ) values (
+              'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+              'overlimit@acme.local',
+              'field_employee',
+              repeat('e', 64),
+              '10000000-0000-4000-8000-000000000001',
+              'pending',
+              now() + interval '7 days'
+            );
+          `)
+        ).rejects.toThrow(/Workspace seat limit reached/i);
+        await db.exec("rollback to savepoint sp_seat_limit;");
+
+        // 4. Verify read-only lock when subscription status is 'canceled' or trial is expired
+        await db.query(`
+          update public.organization_subscriptions
+             set status = 'canceled'
+           where organization_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+        `);
+
+        await db.exec("savepoint sp_readonly_lock;");
+        await expect(
+          db.query(`
+            insert into public.trips (
+              organization_id, owner_user_id, title, start_date, end_date, purpose, status
+            ) values (
+              'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+              '10000000-0000-4000-8000-000000000003',
+              'Blocked Trip During Canceled Sub',
+              current_date,
+              current_date + 1,
+              'Should fail read-only check',
+              'draft'
+            );
+          `)
+        ).rejects.toThrow(/Organization subscription is inactive or expired/i);
+        await db.exec("rollback to savepoint sp_readonly_lock;");
       } finally {
         await db.exec("rollback;");
       }
