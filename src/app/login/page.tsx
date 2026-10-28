@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, type ReactNode, useEffect, useState, useTransition } from "react";
+import {
+  type FormEvent,
+  type ReactNode,
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { sanitizeRedirectPath } from "@/modules/auth/schemas";
 import { signInAction } from "@/modules/auth/actions";
@@ -41,9 +47,7 @@ export default function LoginPage(): ReactNode {
         `Signed in as ${result.data?.email ?? email}. Redirecting to your workspace…`
       );
       window.location.assign(
-        inviteToken
-          ? `/onboarding?token=${encodeURIComponent(inviteToken)}`
-          : nextPath
+        inviteToken ? `/onboarding?token=${encodeURIComponent(inviteToken)}` : nextPath
       );
     });
   }

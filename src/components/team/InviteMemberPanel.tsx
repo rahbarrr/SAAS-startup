@@ -78,8 +78,8 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
         emailDelivered,
         emailStatusMessage: emailDelivered
           ? "Resend accepted the invitation email for delivery."
-          : payload.data.emailDelivery?.error ??
-            "Automatic email delivery is not configured. Copy and share the fallback link.",
+          : (payload.data.emailDelivery?.error ??
+            "Automatic email delivery is not configured. Copy and share the fallback link."),
       });
       setEmail("");
     } catch (err) {
@@ -257,7 +257,6 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
                 Field Employee (Visit audits, checklists, evidence)
               </option>
               <option value="manager">Manager (Trip approvals, reviews, exports)</option>
-
             </select>
           </div>
 

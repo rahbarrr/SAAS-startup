@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, type ReactNode, useEffect, useState, useTransition } from "react";
+import {
+  type FormEvent,
+  type ReactNode,
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { signUpAction } from "@/modules/auth/actions";
 
@@ -309,7 +315,11 @@ export default function SignUpPage(): ReactNode {
         >
           Already have an account?{" "}
           <Link
-            href={inviteToken ? `/login?invite_token=${encodeURIComponent(inviteToken)}` : "/login"}
+            href={
+              inviteToken
+                ? `/login?invite_token=${encodeURIComponent(inviteToken)}`
+                : "/login"
+            }
             style={{
               color: "var(--brand-primary)",
               fontWeight: 600,

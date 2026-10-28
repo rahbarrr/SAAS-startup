@@ -139,9 +139,10 @@ export async function sendOrganizationInvitationEmail(
       }),
     });
 
-    const payload = (await response.json().catch(() => null)) as
-      | { id?: unknown; message?: unknown }
-      | null;
+    const payload = (await response.json().catch(() => null)) as {
+      id?: unknown;
+      message?: unknown;
+    } | null;
     if (!response.ok) {
       return {
         provider: "resend",

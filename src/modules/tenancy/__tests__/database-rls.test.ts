@@ -921,15 +921,7 @@ describe("PostgreSQL Schema, Migrations, RLS Policies, and Workflow Triggers", (
         await db.query(
           `select id
            from public.create_organization_with_company_profile($1, $2, $3, $4, $5, $6, $7)`,
-          [
-            `Spam Org ${i}`,
-            `spam-org-${i}`,
-            "Retail",
-            "1-10",
-            "India",
-            null,
-            null,
-          ]
+          [`Spam Org ${i}`, `spam-org-${i}`, "Retail", "1-10", "India", null, null]
         );
       }
     });

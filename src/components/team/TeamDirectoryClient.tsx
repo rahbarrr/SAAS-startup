@@ -660,7 +660,6 @@ export function TeamDirectoryClient({
                 >
                   <option value="field_employee">Field Representative</option>
                   <option value="manager">Operations Manager</option>
-                  
                 </select>
               </div>
             </form>

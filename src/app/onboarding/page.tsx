@@ -485,7 +485,6 @@ function OnboardingContent(): ReactNode {
               </form>
             </div>
           </section>
-
         ) : null}
 
         {/* Option 2: Join via Invitation */}
