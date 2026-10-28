@@ -1,11 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, type ReactNode, useState, useTransition } from "react";
+import { type FormEvent, type ReactNode, useEffect, useState, useTransition } from "react";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
+import { sanitizeRedirectPath } from "@/modules/auth/schemas";
 import { signInAction } from "@/modules/auth/actions";
 
 export default function LoginPage(): ReactNode {
   const [email, setEmail] = useState("");
+  const [inviteToken, setInviteToken] = useState("");
+  const [nextPath, setNextPath] = useState("/");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("invite_token");
+    if (token) setInviteToken(token);
+    const candidateNext = params.get("next");
+    if (candidateNext) {
+      setNextPath(sanitizeRedirectPath(candidateNext, "/"));
+    }
+  }, []);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +40,11 @@ export default function LoginPage(): ReactNode {
       setMessage(
         `Signed in as ${result.data?.email ?? email}. Redirecting to your workspace…`
       );
-      window.location.assign("/");
+      window.location.assign(
+        inviteToken
+          ? `/onboarding?token=${encodeURIComponent(inviteToken)}`
+          : nextPath
+      );
     });
   }
 
@@ -131,6 +149,12 @@ export default function LoginPage(): ReactNode {
           </div>
         ) : null}
 
+        <GoogleAuthButton mode="login" inviteToken={inviteToken} nextPath={nextPath} />
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", margin: "1.25rem 0", color: "var(--text-muted)", fontSize: "0.8125rem" }}>
+          <span style={{ height: "1px", flex: 1, background: "var(--border-subtle)" }} />
+          <span>or sign in with email</span>
+          <span style={{ height: "1px", flex: 1, background: "var(--border-subtle)" }} />
+        </div>
         <form
           onSubmit={handleSubmit}
           style={{ display: "flex", flexDirection: "column", gap: "1.125rem" }}
@@ -257,7 +281,7 @@ export default function LoginPage(): ReactNode {
         >
           Don’t have an organization account yet?{" "}
           <Link
-            href="/signup"
+            href={inviteToken ? `/signup?invite_token=${encodeURIComponent(inviteToken)}` : "/signup"}
             style={{
               color: "var(--brand-primary)",
               fontWeight: 600,

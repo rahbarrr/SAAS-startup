@@ -79,6 +79,11 @@ function mapOrganizationRow(row: DbOrganizationRow): Organization {
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    industry: row.industry,
+    companySize: row.company_size,
+    country: row.country,
+    website: row.website,
+    phone: row.phone,
   };
 }
 
@@ -221,9 +226,14 @@ export class SupabaseTenancyRepository implements TenancyRepository {
     input: CreateOrganizationInput
   ): Promise<Organization> {
     const { data, error } = await this.supabase
-      .rpc("create_organization_with_owner", {
+      .rpc("create_organization_with_company_profile", {
         p_name: input.name,
         p_slug: input.slug,
+        p_industry: input.industry,
+        p_company_size: input.companySize,
+        p_country: input.country,
+        p_website: input.website || null,
+        p_phone: input.phone || null,
       })
       .single<DbOrganizationRow>();
 
@@ -234,6 +244,13 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       }
       if (msg.includes("Workspace seat limit reached")) {
         throw new AppError("BILLING_SEAT_LIMIT_EXCEEDED", msg, 402);
+      }
+      if (msg.includes("Organization creation limit reached")) {
+        throw new AppError(
+          "FORBIDDEN_INSUFFICIENT_ROLE",
+          "This account has reached the workspace creation limit.",
+          403
+        );
       }
       if (error.code === "23505") {
         throw new AppError(
@@ -256,6 +273,9 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       metadata: {
         name: organization.name,
         slug: organization.slug,
+        industry: organization.industry,
+        companySize: organization.companySize,
+        country: organization.country,
       },
     });
 

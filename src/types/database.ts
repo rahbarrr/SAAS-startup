@@ -53,6 +53,11 @@ export interface DbOrganizationRow {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  industry?: string;
+  company_size?: string;
+  country?: string;
+  website?: string | null;
+  phone?: string | null;
 }
 
 export interface DbOrganizationMemberRow {
@@ -358,8 +363,16 @@ export interface Database {
         Args: { target_org_id: string; target_visit_id: string };
         Returns: boolean;
       };
-      create_organization_with_owner: {
-        Args: { p_name: string; p_slug: string };
+      create_organization_with_company_profile: {
+        Args: {
+          p_name: string;
+          p_slug: string;
+          p_industry: string;
+          p_company_size: string;
+          p_country: string;
+          p_website: string | null;
+          p_phone: string | null;
+        };
         Returns: DbOrganizationRow;
       };
       accept_organization_invitation: {

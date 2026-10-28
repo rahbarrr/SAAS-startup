@@ -123,8 +123,8 @@ describe("Phase 9: End-to-End Full User-Journey Pilot Validation (13 Steps)", ()
   it("Step 1: Admin creates organization workspace and adds retail stores", async () => {
     const orgRes = await runAs(ADMIN_ID, async () => {
       const res = await db.query<{ id: string; name: string; slug: string }>(
-        `select id, name, slug from public.create_organization_with_owner($1, $2)`,
-        ["Summit Retail Group", "summit-retail"]
+        `select id, name, slug from public.create_organization_with_company_profile($1, $2, $3, $4, $5, $6, $7)`,
+        ["Summit Retail Group", "summit-retail", "Retail", "51-200", "India", null, null]
       );
       return requireRow(res.rows[0]);
     });

@@ -18,6 +18,7 @@ import {
   signInCaller,
   signUpPublicCaller,
   SupabaseAuthProvider,
+  isTrustedRedirectUrl,
   updatePasswordForCaller,
 } from "./service";
 
@@ -78,19 +79,58 @@ export async function signUpAction(rawInput: {
   email: string;
   password: string;
   fullName: string;
+  inviteToken?: string;
 }): Promise<ActionState<{ requiresEmailConfirmation: boolean }>> {
   try {
     const supabase = await createUserServerSupabaseClient();
     const authProvider = new SupabaseAuthProvider(supabase);
     const ip = clientIpFromHeaders(await headers());
     await enforceRateLimit({ supabase, scope: "auth_sign_up", subject: `ip:${ip}` });
-    const result = await signUpPublicCaller({ rawInput, authProvider });
+
+    let redirectToUrl: string | undefined;
+    let trustedOrigin: string | undefined;
+    const appUrlValue = process.env.NEXT_PUBLIC_APP_URL?.trim();
+    const invitationToken =
+      typeof rawInput.inviteToken === "string" &&
+      /^[A-Za-z0-9_-]{16,256}$/.test(rawInput.inviteToken)
+        ? rawInput.inviteToken
+        : null;
+
+    if (appUrlValue) {
+      const appUrl = new URL(appUrlValue);
+      trustedOrigin = appUrl.origin;
+      const callbackUrl = new URL("/auth/callback", trustedOrigin);
+      const nextUrl = new URL("/onboarding", trustedOrigin);
+      if (invitationToken) nextUrl.searchParams.set("token", invitationToken);
+      callbackUrl.searchParams.set("next", `${nextUrl.pathname}${nextUrl.search}`);
+      redirectToUrl = callbackUrl.toString();
+      if (!isTrustedRedirectUrl(redirectToUrl, trustedOrigin)) {
+        throw new AppError("VALIDATION_ERROR", "Account confirmation redirect is not configured safely", 400);
+      }
+    } else if (invitationToken) {
+      throw new AppError(
+        "INTERNAL_ERROR",
+        "Email confirmation for invitation links requires NEXT_PUBLIC_APP_URL to be configured.",
+        503
+      );
+    }
+
+    const result = await signUpPublicCaller({
+      rawInput: {
+        email: rawInput.email,
+        password: rawInput.password,
+        fullName: rawInput.fullName,
+      },
+      authProvider,
+      redirectToUrl,
+      trustedOrigin,
+    });
 
     revalidatePath("/", "layout");
     return {
       ok: true,
       message: result.requiresEmailConfirmation
-        ? "Check your email to confirm your account before signing in."
+        ? "Check your email to confirm your account. The link will return you to FieldTrack to finish onboarding."
         : "Account created. You can now create or join an organization.",
       data: {
         requiresEmailConfirmation: result.requiresEmailConfirmation,
@@ -201,6 +241,11 @@ export async function switchActiveOrganizationAction(rawInput: {
 export async function onboardOrganizationAction(rawInput: {
   name: string;
   slug: string;
+  industry: string;
+  companySize: "1-10" | "11-50" | "51-200" | "201-500" | "501-1000" | "1000+";
+  country: string;
+  website?: string;
+  phone?: string;
 }): Promise<ActionState<{ orgId: string; slug: string }>> {
   try {
     const supabase = await createUserServerSupabaseClient();

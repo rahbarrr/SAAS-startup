@@ -86,6 +86,11 @@ class InMemoryTenancyRepository implements TenancyRepository {
       createdBy: userId,
       createdAt: now,
       updatedAt: now,
+      industry: input.industry,
+      companySize: input.companySize,
+      country: input.country,
+      website: input.website || null,
+      phone: input.phone || null,
     };
     this.organizations.push(org);
     this.memberships.push({
@@ -617,12 +622,20 @@ describe("Boundary validation, cursor pagination, and response envelopes", () =>
       rawInput: {
         name: "Gamma Distributors",
         slug: "gamma-distributors",
+        industry: "Wholesale",
+        companySize: "11-50",
+        country: "India",
+        website: "",
+        phone: "",
       },
       repository,
     });
 
     expect(createdOrg.slug).toBe("gamma-distributors");
     expect(createdOrg.createdBy).toBe(USER_MULTI_ORG.id);
+    expect(createdOrg.industry).toBe("Wholesale");
+    expect(createdOrg.companySize).toBe("11-50");
+    expect(createdOrg.country).toBe("India");
 
     // Rejects invalid slug format
     await expect(
@@ -631,6 +644,11 @@ describe("Boundary validation, cursor pagination, and response envelopes", () =>
         rawInput: {
           name: "Invalid Slug Org",
           slug: "Invalid_Slug--Here!",
+          industry: "Retail",
+          companySize: "1-10",
+          country: "India",
+          website: "",
+          phone: "",
         },
         repository,
       })

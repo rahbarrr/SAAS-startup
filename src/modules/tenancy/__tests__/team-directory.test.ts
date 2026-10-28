@@ -480,6 +480,19 @@ describe("Team Directory & Member Management Service", () => {
           repository,
         })
       ).rejects.toThrow();
+
+      await expect(
+        createInvitationForOrg({
+          user: ADMIN_USER,
+          candidateOrgId: ORG_ID,
+          rawInput: {
+            email: "another-admin@fieldops.com",
+            role: "admin",
+            expiresInHours: 72,
+          },
+          repository,
+        })
+      ).rejects.toThrow();
     });
 
     it("rejects invitation creation when invited email is already an active member in workspace (409 CONFLICT)", async () => {

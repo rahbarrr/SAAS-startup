@@ -1,11 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, type ReactNode, useState, useTransition } from "react";
+import { type FormEvent, type ReactNode, useEffect, useState, useTransition } from "react";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { signUpAction } from "@/modules/auth/actions";
 
 export default function SignUpPage(): ReactNode {
   const [fullName, setFullName] = useState("");
+  const [inviteToken, setInviteToken] = useState("");
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("invite_token");
+    if (token) setInviteToken(token);
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +26,7 @@ export default function SignUpPage(): ReactNode {
     setMessage(null);
 
     startTransition(async () => {
-      const result = await signUpAction({ fullName, email, password });
+      const result = await signUpAction({ fullName, email, password, inviteToken: inviteToken || undefined });
       if (!result.ok) {
         setError(result.error ?? "Unable to create account.");
         return;
@@ -29,7 +36,11 @@ export default function SignUpPage(): ReactNode {
           "Account created. Proceed to onboarding to create or join an organization."
       );
       if (!result.data?.requiresEmailConfirmation) {
-        window.location.assign("/onboarding");
+        window.location.assign(
+          inviteToken
+            ? `/onboarding?token=${encodeURIComponent(inviteToken)}`
+            : "/onboarding"
+        );
       }
     });
   }
@@ -136,6 +147,12 @@ export default function SignUpPage(): ReactNode {
           </div>
         ) : null}
 
+        <GoogleAuthButton mode="signup" inviteToken={inviteToken} />
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", margin: "1.25rem 0", color: "var(--text-muted)", fontSize: "0.8125rem" }}>
+          <span style={{ height: "1px", flex: 1, background: "var(--border-subtle)" }} />
+          <span>or continue with email</span>
+          <span style={{ height: "1px", flex: 1, background: "var(--border-subtle)" }} />
+        </div>
         <form
           onSubmit={handleSubmit}
           style={{ display: "flex", flexDirection: "column", gap: "1.125rem" }}
@@ -278,7 +295,7 @@ export default function SignUpPage(): ReactNode {
         >
           Already have an account?{" "}
           <Link
-            href="/login"
+            href={inviteToken ? `/login?invite_token=${encodeURIComponent(inviteToken)}` : "/login"}
             style={{
               color: "var(--brand-primary)",
               fontWeight: 600,

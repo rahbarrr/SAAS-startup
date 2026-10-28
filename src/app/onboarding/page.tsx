@@ -6,6 +6,7 @@ import {
   type FormEvent,
   type ReactNode,
   useEffect,
+  useRef,
   useState,
   useTransition,
 } from "react";
@@ -19,6 +20,12 @@ function OnboardingContent(): ReactNode {
   const tokenParam = searchParams.get("token") ?? "";
 
   const [orgName, setOrgName] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [companySize, setCompanySize] = useState<"1-10" | "11-50" | "51-200" | "201-500" | "501-1000" | "1000+">("1-10");
+  const [country, setCountry] = useState("India");
+  const [website, setWebsite] = useState("");
+  const [phone, setPhone] = useState("");
+  const invitationAutoAcceptStarted = useRef(false);
   const [orgSlug, setOrgSlug] = useState("");
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
   const [inviteToken, setInviteToken] = useState(tokenParam);
@@ -27,10 +34,20 @@ function OnboardingContent(): ReactNode {
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    if (tokenParam) {
-      setInviteToken(tokenParam);
-    }
-  }, [tokenParam]);
+    if (!tokenParam) return;
+    setInviteToken(tokenParam);
+    if (invitationAutoAcceptStarted.current) return;
+    invitationAutoAcceptStarted.current = true;
+    startTransition(async () => {
+      const result = await acceptInvitationAction({ token: tokenParam });
+      if (!result.ok) {
+        setError(result.error ?? "Unable to accept invitation. Please sign in with the email address the invitation was sent to.");
+        return;
+      }
+      setMessage(result.message ?? "Invitation accepted. Opening your workspace…");
+      window.location.assign("/");
+    });
+  }, [tokenParam, startTransition]);
 
   function handleNameChange(val: string) {
     setOrgName(val);
@@ -53,6 +70,11 @@ function OnboardingContent(): ReactNode {
       const result = await onboardOrganizationAction({
         name: orgName,
         slug: orgSlug,
+        industry,
+        companySize,
+        country,
+        website,
+        phone,
       });
       if (!result.ok) {
         setError(result.error ?? "Unable to create organization.");
@@ -127,11 +149,10 @@ function OnboardingContent(): ReactNode {
             color: "var(--brand-dark)",
           }}
         >
-          Organization Onboarding
+          {tokenParam ? "Join Your Invited Workspace" : "Set Up Your Company"}
         </h1>
         <p className="card-meta" style={{ fontSize: "0.9375rem" }}>
-          Create a new company workspace as the initial Workspace Administrator, or join
-          an existing organization using a verified invitation token.
+          {tokenParam ? "Your invitation is being verified and your assigned role will be activated after authentication." : "Complete your company profile to create your workspace as the initial administrator."}
         </p>
       </section>
 
@@ -174,7 +195,8 @@ function OnboardingContent(): ReactNode {
           gap: "1.5rem",
         }}
       >
-        {/* Option 1: Create Organization */}
+        {/* Company setup is only available to a new workspace owner, never an invitee. */}
+        {!tokenParam ? (
         <section
           className="card"
           aria-labelledby="create-org-heading"
@@ -239,7 +261,7 @@ function OnboardingContent(): ReactNode {
                     marginBottom: "0.375rem",
                   }}
                 >
-                  Organization Name *
+                  Company Name *
                 </label>
                 <input
                   id="org-name"
@@ -300,6 +322,97 @@ function OnboardingContent(): ReactNode {
                 </span>
               </div>
 
+              <div>
+                <label htmlFor="org-industry" style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}>
+                  Industry *
+                </label>
+                <input
+                  id="org-industry"
+                  name="industry"
+                  type="text"
+                  required
+                  minLength={2}
+                  maxLength={120}
+                  placeholder="e.g. Retail, FMCG, Fashion"
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  className="input-field"
+                  style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="org-company-size" style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}>
+                  Company Size *
+                </label>
+                <select
+                  id="org-company-size"
+                  name="companySize"
+                  required
+                  value={companySize}
+                  onChange={(e) => setCompanySize(e.target.value as typeof companySize)}
+                  className="input-field"
+                  style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
+                >
+                  <option value="1-10">1–10 employees</option>
+                  <option value="11-50">11–50 employees</option>
+                  <option value="51-200">51–200 employees</option>
+                  <option value="201-500">201–500 employees</option>
+                  <option value="501-1000">501–1,000 employees</option>
+                  <option value="1000+">1,000+ employees</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="org-country" style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}>
+                  Country *
+                </label>
+                <input
+                  id="org-country"
+                  name="country"
+                  type="text"
+                  required
+                  minLength={2}
+                  maxLength={100}
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="input-field"
+                  style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="org-website" style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}>
+                  Company Website (Optional)
+                </label>
+                <input
+                  id="org-website"
+                  name="website"
+                  type="url"
+                  placeholder="https://company.com"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  className="input-field"
+                  style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="org-phone" style={{ display: "block", fontWeight: 600, fontSize: "0.875rem", marginBottom: "0.375rem" }}>
+                  Company Phone (Optional)
+                </label>
+                <input
+                  id="org-phone"
+                  name="phone"
+                  type="tel"
+                  maxLength={40}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="input-field"
+                  style={{ width: "100%", minHeight: "var(--touch-target-min)" }}
+                />
+              </div>
+
               <div
                 style={{
                   padding: "0.75rem",
@@ -325,6 +438,8 @@ function OnboardingContent(): ReactNode {
             </form>
           </div>
         </section>
+
+        ) : null}
 
         {/* Option 2: Join via Invitation */}
         <section

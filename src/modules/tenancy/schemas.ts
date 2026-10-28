@@ -17,13 +17,33 @@ export const organizationSlugSchema = z
     "Slug must contain only lowercase alphanumeric characters and single hyphens"
   );
 
+export const COMPANY_SIZE_OPTIONS = [
+  "1-10",
+  "11-50",
+  "51-200",
+  "201-500",
+  "501-1000",
+  "1000+",
+] as const;
+
 export const createOrganizationInputSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Organization name must be at least 2 characters")
-    .max(120, "Organization name must be at most 120 characters"),
+    .min(2, "Company name must be at least 2 characters")
+    .max(120, "Company name must be at most 120 characters"),
   slug: organizationSlugSchema,
+  industry: z.string().trim().min(2, "Select or enter your industry").max(120),
+  companySize: z.enum(COMPANY_SIZE_OPTIONS),
+  country: z.string().trim().min(2, "Country is required").max(100),
+  website: z
+    .string()
+    .trim()
+    .max(2048)
+    .url("Enter a valid company website URL")
+    .or(z.literal(""))
+    .default(""),
+  phone: z.string().trim().max(40, "Phone number is too long").default(""),
 });
 
 export type CreateOrganizationInput = z.infer<typeof createOrganizationInputSchema>;
@@ -66,7 +86,7 @@ export const createOrgInvitationInputSchema = z.object({
     .toLowerCase()
     .email("A valid email address is required")
     .max(254),
-  role: z.enum(ORG_ROLES),
+  role: z.enum(["manager", "field_employee"]),
   expiresInHours: z.coerce.number().int().min(1).max(168).default(72),
 });
 

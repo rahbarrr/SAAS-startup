@@ -332,10 +332,10 @@ describe("PostgreSQL Schema, Migrations, RLS Policies, and Workflow Triggers", (
       [NEW_FOUNDER_ID, NEW_INVITED_USER_ID]
     );
 
-    // 1. Transactional onboarding via `create_organization_with_owner`
+    // 1. Transactional onboarding via the company-profile RPC
     await runAsAuthenticatedUser(NEW_FOUNDER_ID, async () => {
       const createdOrg = await db.query<{ id: string; slug: string }>(
-        `select id, slug from public.create_organization_with_owner('New Frontier Retail', 'new-frontier-retail')`
+        `select id, slug from public.create_organization_with_company_profile('New Frontier Retail', 'new-frontier-retail', 'Retail', '1-10', 'India', null, null)`
       );
       expect(createdOrg.rows).toHaveLength(1);
       const newOrgId = createdOrg.rows[0]?.id;
@@ -909,16 +909,21 @@ describe("PostgreSQL Schema, Migrations, RLS Policies, and Workflow Triggers", (
     );
     await runAsAuthenticatedUser(SPAMMER, async () => {
       for (let i = 0; i < 10; i += 1) {
-        await db.query(`select id from public.create_organization_with_owner($1, $2)`, [
+        await db.query(`select id from public.create_organization_with_company_profile($1, $2, $3, $4, $5, $6, $7)`, [
           `Spam Org ${i}`,
           `spam-org-${i}`,
+          "Retail",
+          "1-10",
+          "India",
+          null,
+          null,
         ]);
       }
     });
     await expect(
       runAsAuthenticatedUser(SPAMMER, async () => {
         await db.query(
-          `select id from public.create_organization_with_owner('Spam Org X', 'spam-org-x')`
+          `select id from public.create_organization_with_company_profile('Spam Org X', 'spam-org-x', 'Retail', '1-10', 'India', null, null)`
         );
       })
     ).rejects.toThrow(/creation limit/);

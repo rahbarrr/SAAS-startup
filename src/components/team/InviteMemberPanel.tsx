@@ -19,6 +19,8 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
     role: string;
     inviteToken: string;
     expiresAt: string;
+    emailDelivered: boolean;
+    emailStatusMessage: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -50,6 +52,7 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
         data?: {
           invitation: { invitedEmail: string; role: string; expiresAt: string };
           inviteToken: string;
+          emailDelivery?: { delivered: boolean; error?: string | null };
         };
         error?: { message: string } | string;
         message?: string;
@@ -66,11 +69,16 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
         throw new Error(serverError);
       }
 
+      const emailDelivered = payload.data.emailDelivery?.delivered === true;
       setCreatedInvite({
         email: payload.data.invitation.invitedEmail,
         role: payload.data.invitation.role,
         inviteToken: payload.data.inviteToken,
         expiresAt: payload.data.invitation.expiresAt,
+        emailDelivered,
+        emailStatusMessage: emailDelivered
+          ? "Resend accepted the invitation email for delivery."
+          : payload.data.emailDelivery?.error ?? "Automatic email delivery is not configured. Copy and share the fallback link.",
       });
       setEmail("");
     } catch (err) {
@@ -88,7 +96,7 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
   function handleCopyInviteLink() {
     if (!createdInvite) return;
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const inviteUrl = `${origin}/signup?invite_token=${createdInvite.inviteToken}`;
+    const inviteUrl = `${origin}/signup?invite_token=${encodeURIComponent(createdInvite.inviteToken)}`;
     navigator.clipboard.writeText(inviteUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
@@ -128,18 +136,18 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
           style={{
             padding: "1rem",
             marginBottom: "1rem",
-            backgroundColor: "var(--color-success-subtle, #ecfdf5)",
-            border: "1px solid var(--color-success-border, #a7f3d0)",
+            backgroundColor: createdInvite.emailDelivered ? "var(--color-success-subtle, #ecfdf5)" : "var(--color-warning-subtle, #fffbeb)",
+            border: createdInvite.emailDelivered ? "1px solid var(--color-success-border, #a7f3d0)" : "1px solid var(--color-warning-border, #f59e0b)",
             borderRadius: "0.375rem",
             fontSize: "0.875rem",
           }}
         >
-          <strong style={{ color: "var(--color-success-text, #065f46)" }}>
-            ✓ Invitation created for {createdInvite.email} ({createdInvite.role})
+          <strong style={{ color: createdInvite.emailDelivered ? "var(--color-success-text, #065f46)" : "var(--color-warning-text, #92400e)" }}>
+            {createdInvite.emailDelivered ? "Invitation email accepted for delivery" : "Invitation created, but email was not sent"}: {createdInvite.email} ({createdInvite.role})
           </strong>
+          <p style={{ margin: "0.5rem 0" }}>{createdInvite.emailStatusMessage}</p>
           <p style={{ margin: "0.5rem 0" }}>
-            Share this one-time token or signup link with the invitee (expires in{" "}
-            {expiresInHours} hours):
+            Fallback invitation link (expires in {expiresInHours} hours):
           </p>
           <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
             <code
@@ -233,7 +241,7 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
                 Field Employee (Visit audits, checklists, evidence)
               </option>
               <option value="manager">Manager (Trip approvals, reviews, exports)</option>
-              <option value="admin">Admin (Manage members, settings, invitations)</option>
+
             </select>
           </div>
 

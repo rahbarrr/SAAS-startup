@@ -137,8 +137,17 @@ async function enforceSessionAndAuth(request: NextRequest): Promise<NextResponse
 
   if (user && isAuthPublicRoute(pathname)) {
     const homeUrl = request.nextUrl.clone();
-    homeUrl.pathname = "/";
-    homeUrl.search = "";
+    const invitationToken =
+      pathname === "/signup" ? request.nextUrl.searchParams.get("invite_token") : null;
+
+    if (invitationToken) {
+      homeUrl.pathname = "/onboarding";
+      homeUrl.search = "";
+      homeUrl.searchParams.set("token", invitationToken);
+    } else {
+      homeUrl.pathname = "/";
+      homeUrl.search = "";
+    }
     return NextResponse.redirect(homeUrl);
   }
 

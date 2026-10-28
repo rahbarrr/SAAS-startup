@@ -16,7 +16,8 @@ import {
 export interface AuthProvider {
   signInWithPassword(input: SignInInput): Promise<AuthenticatedUser>;
   signUpWithPassword(
-    input: PublicSignUpInput
+    input: PublicSignUpInput,
+    redirectToUrl?: string
   ): Promise<{ user: AuthenticatedUser; requiresEmailConfirmation: boolean }>;
   signOut(): Promise<void>;
   sendPasswordRecoveryEmail(
@@ -50,16 +51,18 @@ export class SupabaseAuthProvider implements AuthProvider {
   }
 
   async signUpWithPassword(
-    input: PublicSignUpInput
+    input: PublicSignUpInput,
+    redirectToUrl?: string
   ): Promise<{ user: AuthenticatedUser; requiresEmailConfirmation: boolean }> {
     const { data, error } = await this.supabase.auth.signUp({
       email: input.email,
       password: input.password,
       options: {
-        // Only store non-privileged display metadata; never accept org_id or role here
+        // Only store non-privileged display metadata; never accept org_id or role here.
         data: {
           full_name: input.fullName,
         },
+        ...(redirectToUrl ? { emailRedirectTo: redirectToUrl } : {}),
       },
     });
 
@@ -135,6 +138,8 @@ export async function signInCaller(params: {
 export async function signUpPublicCaller(params: {
   rawInput: unknown;
   authProvider: AuthProvider;
+  redirectToUrl?: string;
+  trustedOrigin?: string;
 }): Promise<{ user: AuthenticatedUser; requiresEmailConfirmation: boolean }> {
   const parsed = publicSignUpInputSchema.safeParse(params.rawInput);
   if (!parsed.success) {
@@ -144,7 +149,19 @@ export async function signUpPublicCaller(params: {
       400
     );
   }
-  return params.authProvider.signUpWithPassword(parsed.data);
+  if (params.redirectToUrl) {
+    if (
+      !params.trustedOrigin ||
+      !isTrustedRedirectUrl(params.redirectToUrl, params.trustedOrigin)
+    ) {
+      throw new AppError(
+        "VALIDATION_ERROR",
+        "Untrusted account confirmation redirect URL",
+        400
+      );
+    }
+  }
+  return params.authProvider.signUpWithPassword(parsed.data, params.redirectToUrl);
 }
 
 /**

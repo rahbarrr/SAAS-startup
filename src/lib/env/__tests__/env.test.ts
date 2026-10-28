@@ -24,11 +24,15 @@ describe("Environment variable validation & secret isolation", () => {
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "public-anon-placeholder",
       SUPABASE_SERVICE_ROLE_KEY: "service-role-secret-placeholder",
+      RESEND_API_KEY: "resend-key-placeholder",
+      RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
     });
 
     expect(env.NEXT_PUBLIC_SUPABASE_URL).toBe("https://example.supabase.co");
     expect(env.NEXT_PUBLIC_SUPABASE_ANON_KEY).toBe("public-anon-placeholder");
     expect(env.SUPABASE_SERVICE_ROLE_KEY).toBe("service-role-secret-placeholder");
+    expect(env.RESEND_API_KEY).toBe("resend-key-placeholder");
+    expect(env.RESEND_FROM_EMAIL).toBe("FieldTrack <invites@example.com>");
   });
 
   it("rejects missing or malformed NEXT_PUBLIC_SUPABASE_URL (DENIED)", () => {
@@ -79,6 +83,7 @@ describe("Environment variable validation & secret isolation", () => {
       expect(content).not.toContain("@/lib/env/server");
       expect(content).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
       expect(content).not.toContain("OPENAI_API_KEY");
+      expect(content).not.toContain("RESEND_API_KEY");
       expect(content).not.toContain("@/lib/supabase/server");
     }
   });

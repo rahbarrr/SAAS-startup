@@ -5,6 +5,7 @@ import { logger } from "@/lib/observability/logger";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
 import { createInvitationForOrg } from "@/modules/tenancy/service";
+import { sendOrganizationInvitationEmail } from "@/modules/auth/invitation-email";
 
 interface RouteContext {
   params: Promise<{ orgId: string }>;
@@ -41,15 +42,34 @@ export async function POST(
       repository,
     });
 
+    const { data: organization } = await supabase
+      .from("organizations")
+      .select("name")
+      .eq("id", orgId)
+      .maybeSingle<{ name: string }>();
+
+    const emailDelivery = await sendOrganizationInvitationEmail({
+      invitationId: result.invitation.id,
+      recipientEmail: result.invitation.invitedEmail,
+      organizationName: organization?.name ?? "your FieldTrack workspace",
+      role: result.invitation.role as "manager" | "field_employee",
+      invitationToken: result.inviteToken,
+      expiresAt: result.invitation.expiresAt,
+    });
+
     logger.info("Successfully generated workspace invitation", {
       orgId,
       invitationId: result.invitation.id,
       role: result.invitation.role,
       invitedBy: result.invitation.invitedBy,
       expiresAt: result.invitation.expiresAt,
+      emailProvider: emailDelivery.provider,
+      emailAcceptedByProvider: emailDelivery.delivered,
     });
 
-    return jsonSuccess(result, 201);
+    // The admin response includes the token as a fallback when email cannot be sent.
+    // The persistent invitation record stores only the one-way hash.
+    return jsonSuccess({ ...result, emailDelivery }, 201);
   } catch (error) {
     logger.error("Failed to generate workspace invitation", {
       orgId,

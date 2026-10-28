@@ -74,6 +74,11 @@ export interface Organization {
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
+  industry?: string;
+  companySize?: string;
+  country?: string;
+  website?: string | null;
+  phone?: string | null;
 }
 
 export interface OrganizationMembership {

@@ -37,6 +37,8 @@ export interface CreatedInviteInfo {
   role: OrgRole;
   token: string;
   link: string;
+  emailDelivered: boolean;
+  emailStatusMessage: string;
 }
 
 export function TeamDirectoryClient({
@@ -47,7 +49,7 @@ export function TeamDirectoryClient({
 }: TeamDirectoryClientProps): ReactNode {
   const { showToast } = useToast();
   const { currentRole } = useCurrentRole();
-  const canInvite = isAdmin || currentRole === "admin" || currentRole === "manager";
+  const canInvite = isAdmin || currentRole === "admin";
 
   const members = initialMembers;
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -111,6 +113,7 @@ export function TeamDirectoryClient({
             expiresAt: string;
           };
           inviteToken: string;
+          emailDelivery?: { provider: string; delivered: boolean; error?: string | null };
         };
         error?: { message: string } | string;
         message?: string;
@@ -129,16 +132,27 @@ export function TeamDirectoryClient({
 
       const token = payload.data.inviteToken;
       const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const link = `${origin}/onboarding?token=${token}`;
+      const link = `${origin}/signup?invite_token=${encodeURIComponent(token)}`;
+      const emailDelivered = payload.data.emailDelivery?.delivered === true;
+      const emailStatusMessage = emailDelivered
+        ? "Resend accepted the invitation email for delivery."
+        : payload.data.emailDelivery?.error ?? "Automatic email delivery is not configured. Copy the fallback link and send it to the invitee.";
 
       setCreatedInvite({
         email: inviteEmail.trim(),
         role: inviteRole,
         token,
         link,
+        emailDelivered,
+        emailStatusMessage,
       });
 
-      showToast(`Invitation created for ${inviteEmail.trim()}`, "success");
+      showToast(
+        emailDelivered
+          ? `Invitation email accepted for ${inviteEmail.trim()}`
+          : `Invitation created, but email was not sent to ${inviteEmail.trim()}`,
+        emailDelivered ? "success" : "error"
+      );
     } catch (err) {
       setInviteError(err instanceof Error ? err.message : "Failed to invite member.");
     } finally {
@@ -560,41 +574,55 @@ export function TeamDirectoryClient({
           {createdInvite ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div
+                role="status"
                 style={{
-                  background: "var(--status-success-bg)",
-                  border: "1px solid var(--status-success-border)",
+                  background: createdInvite.emailDelivered
+                    ? "var(--status-success-bg)"
+                    : "var(--status-warning-bg, #fffbeb)",
+                  border: createdInvite.emailDelivered
+                    ? "1px solid var(--status-success-border)"
+                    : "1px solid var(--status-warning-border, #f59e0b)",
                   borderRadius: "var(--radius-md)",
                   padding: "0.75rem 1rem",
                   fontSize: "0.875rem",
-                  color: "var(--status-success-text)",
+                  color: "var(--text-primary)",
                 }}
               >
-                ✓ Secure single-use invitation generated for{" "}
-                <strong>{createdInvite.email}</strong> as{" "}
-                <strong>{createdInvite.role}</strong>.
+                <strong>
+                  {createdInvite.emailDelivered
+                    ? "Invitation email accepted for delivery"
+                    : "Invitation created, but email was not sent"}
+                </strong>
+                <p style={{ margin: "0.5rem 0 0" }}>{createdInvite.emailStatusMessage}</p>
+                <p style={{ margin: "0.5rem 0 0" }}>
+                  Invitee: <strong>{createdInvite.email}</strong> · Role:{" "}
+                  <strong>{createdInvite.role}</strong>
+                </p>
               </div>
 
-              <div>
-                <label className="form-label" style={{ fontWeight: 600 }}>
-                  Onboarding Link (Valid for 72 hours):
-                </label>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <input
-                    type="text"
-                    readOnly
-                    value={createdInvite.link}
-                    className="form-input"
-                    style={{ fontFamily: "monospace", fontSize: "0.8125rem" }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={handleCopyInviteLink}
-                  >
-                    Copy
-                  </button>
+              {!createdInvite.emailDelivered ? (
+                <div>
+                  <label className="form-label" style={{ fontWeight: 600 }}>
+                    Fallback invitation link (valid for 72 hours):
+                  </label>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <input
+                      type="text"
+                      readOnly
+                      value={createdInvite.link}
+                      className="form-input"
+                      style={{ fontFamily: "monospace", fontSize: "0.8125rem" }}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleCopyInviteLink}
+                    >
+                      Copy
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </div>
           ) : (
             <form
@@ -631,7 +659,7 @@ export function TeamDirectoryClient({
                 >
                   <option value="field_employee">Field Representative</option>
                   <option value="manager">Operations Manager</option>
-                  {isAdmin && <option value="admin">Workspace Administrator</option>}
+                  
                 </select>
               </div>
             </form>
