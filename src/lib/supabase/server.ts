@@ -1,17 +1,42 @@
 import "server-only";
 import { type CookieOptions, createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getPublicEnv } from "@/lib/env/public";
+
+export async function extractBearerTokenFromHeaders(): Promise<string | null> {
+  try {
+    const headerStore = await headers();
+    const authHeader =
+      headerStore.get("authorization") ?? headerStore.get("Authorization");
+    if (authHeader && /^Bearer\s+(.+)$/i.test(authHeader)) {
+      const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+      return token.length > 0 ? token : null;
+    }
+  } catch {
+    // headers() may throw when called outside a Next.js request scope in unit tests
+  }
+  return null;
+}
 
 export async function createUserServerSupabaseClient(): Promise<SupabaseClient> {
   const cookieStore = await cookies();
+  const bearerToken = await extractBearerTokenFromHeaders();
   const env = getPublicEnv();
 
   return createServerClient(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
+      ...(bearerToken
+        ? {
+            global: {
+              headers: {
+                Authorization: `Bearer ${bearerToken}`,
+              },
+            },
+          }
+        : {}),
       cookies: {
         getAll() {
           return cookieStore.getAll();

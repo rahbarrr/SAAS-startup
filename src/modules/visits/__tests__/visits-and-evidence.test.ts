@@ -30,9 +30,11 @@ import {
   type VisitChecklistItem,
   type VisitDetail,
   type VisitEvidence,
+  type VisitGeofenceEvent,
 } from "@/modules/visits/domain";
 import type {
   PaginatedVisitsResult,
+  RecordGeofenceEventParams,
   TripStopExecutionContext,
   VisitsRepository,
 } from "@/modules/visits/repository";
@@ -492,6 +494,39 @@ class InMemoryVisitsRepo implements VisitsRepository {
     const detail = await this.getVisitDetail(params.orgId, params.visitId);
     if (!detail) throw new Error("Missing detail");
     return detail;
+  }
+
+  async recordGeofenceEvent(
+    params: RecordGeofenceEventParams
+  ): Promise<VisitGeofenceEvent> {
+    return {
+      id: "mock-ge",
+      orgId: params.orgId,
+      tripId: params.tripId,
+      tripStopId: params.tripStopId,
+      storeId: params.storeId,
+      employeeUserId: params.employeeUserId,
+      visitId: params.visitId,
+      eventType: params.eventType,
+      clientEventId: params.clientEventId,
+      deviceRecordedAt: params.deviceRecordedAt,
+      serverReceivedAt: params.serverReceivedAt,
+      latitude: params.latitude,
+      longitude: params.longitude,
+      accuracyMeters: params.accuracyMeters,
+      geofenceRadiusMeters: params.geofenceRadiusMeters,
+      dwellTimeSeconds: params.dwellTimeSeconds,
+      status: params.status,
+      rejectionReason: params.rejectionReason,
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  async getGeofenceEventByClientId(
+    _orgId: string,
+    _clientEventId: string
+  ): Promise<VisitGeofenceEvent | null> {
+    return null;
   }
 }
 

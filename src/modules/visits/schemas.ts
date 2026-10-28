@@ -4,6 +4,7 @@ import {
   ALLOWED_EVIDENCE_MIME_TYPES,
   CHECKLIST_ANSWER_TYPES,
   MAX_EVIDENCE_FILE_SIZE_BYTES,
+  VISIT_EVENT_SOURCES,
   VISIT_LOCATION_STATUSES,
   VISIT_STATUSES,
 } from "./domain";
@@ -77,10 +78,44 @@ export const checkInStopInputSchema = z
     tripStopId: z.string().uuid("tripStopId must be a valid UUID"),
     idempotencyKey: idempotencyKeySchema.optional(),
     location: deviceLocationInputSchema.optional(),
+    eventSource: z.enum(VISIT_EVENT_SOURCES).optional(),
+    deviceRecordedAt: z.string().datetime().optional(),
+    geofenceRadiusMeters: z.number().min(10).max(1000).optional(),
   })
   .strict();
 
 export type CheckInStopInput = z.infer<typeof checkInStopInputSchema>;
+
+export const processGeofenceEventInputSchema = z
+  .object({
+    eventType: z.enum(["geofence_entry", "geofence_exit"]),
+    tripId: z.string().uuid("tripId must be a valid UUID"),
+    tripStopId: z.string().uuid("tripStopId must be a valid UUID"),
+    storeId: z.string().uuid("storeId must be a valid UUID"),
+    clientEventId: idempotencyKeySchema,
+    deviceRecordedAt: z
+      .string()
+      .datetime({ message: "deviceRecordedAt must be a valid ISO datetime string" }),
+    latitude: z
+      .number()
+      .min(-90, "Latitude must be between -90 and 90")
+      .max(90, "Latitude must be between -90 and 90"),
+    longitude: z
+      .number()
+      .min(-180, "Longitude must be between -180 and 180")
+      .max(180, "Longitude must be between -180 and 180"),
+    accuracyMeters: z
+      .number()
+      .min(0, "Accuracy must be non-negative")
+      .max(100000, "Accuracy exceeds threshold")
+      .nullable()
+      .optional(),
+    geofenceRadiusMeters: z.number().min(10).max(1000).default(120),
+    dwellTimeSeconds: z.number().min(0).max(86400).nullable().optional(),
+  })
+  .strict();
+
+export type ProcessGeofenceEventInput = z.infer<typeof processGeofenceEventInputSchema>;
 
 export const checklistAnswerItemInputSchema = z
   .object({
@@ -162,6 +197,8 @@ export const checkOutVisitInputSchema = z
     notes: z.string().trim().max(2000).optional(),
     idempotencyKey: idempotencyKeySchema.optional(),
     location: deviceLocationInputSchema.optional(),
+    eventSource: z.enum(VISIT_EVENT_SOURCES).optional(),
+    deviceRecordedAt: z.string().datetime().optional(),
   })
   .strict();
 

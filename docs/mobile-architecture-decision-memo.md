@@ -1,8 +1,8 @@
 # Decision Memo: Responsive Web/PWA vs. Expo React Native for FieldTrack
 
-**Date:** 2026-10-22  
-**Document Status:** Ready for Review & Decision  
-**Decision Target:** Architecture selection for mobile field execution (Option A vs. Option B)
+**Date:** 2026-10-22 (Updated for Phase 11: 2026-10-28)  
+**Document Status:** Approved & Active (Phase 11 Native Mobile Client with Targeted Geofencing)  
+**Decision Target:** Architecture selection for mobile field execution (Option B Approved for Mobile Field Client)
 
 ---
 
@@ -52,11 +52,17 @@ This memo evaluates whether to:
 - **Web/PWA Reality:** Web Push on iOS requires iOS 16.4+, PWA installation to Home Screen, and explicit user opt-in. Field employees rarely perform the 3-step "Share -> Add to Home Screen" dance without hands-on IT provisioning.
 - **Expo React Native Reality:** Standard native push notifications via Apple Push Notification service (APNs) and Firebase Cloud Messaging (FCM). Managers approving trips or requesting changes trigger near-instant native push banners with badges and sounds.
 
-### 4. Background Location Tracking (Explicit Policy)
-> [!CAUTION]
-> **No Background Location Tracking:** Regardless of whether Option A or Option B is selected, FieldTrack will **not** implement continuous background location tracking (geofencing or persistent GPS breadcrumbs). 
-> - **Product Policy:** Location is captured *exclusively* as an unverified point-in-time timestamped event at the moment the employee taps "Check In" or "Check Out".
-> - **Privacy & Battery:** Continuous background tracking drains battery during 8-hour field shifts, triggers severe iOS/Android OS background permission scrutinies, and raises intrusive employee surveillance liabilities.
+### 4. Background Location Tracking & Geofencing (Phase 11 Scoped Policy)
+> [!IMPORTANT]
+> **Phase 11 Evolution — Targeted Active Trip Geofencing:**
+> In Phase 11, FieldTrack introduces automatic visit arrival and departure recording through native mobile geofencing (`apps/mobile`), while strictly avoiding untargeted all-day surveillance.
+>
+> - **Scoped Scope of Geofencing:** Native OS geofencing (`expo-location` and `expo-task-manager`) is activated **only** for the planned store stops of the employee's currently authorized, active work trip.
+> - **Region Limits:** Monitored regions are capped at a maximum of 20 concurrent geofences (standard iOS/Android native limit), with a default radius of 120 metres (configurable 50m–500m for testing).
+> - **Two-Stage Consent & Permissions:** The mobile client requires explicit employee consent and strictly requests foreground location permissions before requesting background location access.
+> - **Lifecycle Teardown:** When an active trip is completed, cancelled, or when the employee revokes consent, all registered geofences are immediately deregistered and monitoring terminates.
+> - **Zero All-Day Surveillance:** Continuous GPS breadcrumb trails and monitoring of unassigned stores remain strictly prohibited. Point-in-time entry/exit timestamps, device accuracy, and server sync times are stored with full multi-tenant isolation.
+> - **Resilient Manual Fallback:** If background permissions are denied, battery-saver restricts background tasks, or GPS accuracy is degraded, the manual check-in/check-out workflow remains 100% operational.
 
 ---
 

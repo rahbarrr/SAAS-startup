@@ -9,6 +9,8 @@ import {
   type Visit,
   type VisitChecklistItem,
   type VisitEvidence,
+  type VisitEventSource,
+  type VisitVerificationStatus,
 } from "@/modules/visits/domain";
 import type {
   DbStoreRow,
@@ -109,6 +111,14 @@ function mapVisit(row: DbVisitRow): Visit {
     }),
     checkInIdempotencyKey: row.check_in_idempotency_key ?? null,
     checkOutIdempotencyKey: row.check_out_idempotency_key ?? null,
+    checkInSource: (row.check_in_source as VisitEventSource) ?? "manual",
+    checkOutSource: (row.check_out_source as VisitEventSource) ?? null,
+    checkInDeviceTimestamp: row.check_in_device_timestamp ?? null,
+    checkOutDeviceTimestamp: row.check_out_device_timestamp ?? null,
+    verificationStatus:
+      (row.verification_status as VisitVerificationStatus) ?? "verified",
+    verificationNotes: row.verification_notes ?? null,
+    geofenceRadiusMeters: row.geofence_radius_meters ?? null,
     notes: row.notes,
     status: row.status,
     createdAt: row.created_at,

@@ -1,0 +1,69 @@
+{
+  "expo": {
+    "name": "FieldTrack Mobile",
+    "slug": "fieldtrack-mobile",
+    "scheme": "fieldtrack",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.fieldtrack.mobile",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "location"
+        ],
+        "NSLocationWhenInUseUsageDescription": "FieldTrack needs your location while using the app to identify when you arrive at planned store stops on your active trip.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "FieldTrack uses background location strictly to automatically register store visit arrivals and departures for planned stops during your active authorized work trip.",
+        "NSLocationAlwaysUsageDescription": "FieldTrack requires background location to trigger automatic check-in when entering planned store geofences during active trips."
+      }
+    },
+    "android": {
+      "package": "com.fieldtrack.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "FieldTrack uses background location strictly to automatically register store visit arrivals and departures for planned stops during your active authorized work trip.",
+          "locationAlwaysPermission": "FieldTrack requires background location to trigger automatic check-in when entering planned store geofences during active trips.",
+          "locationWhenInUsePermission": "FieldTrack needs your location while using the app to identify when you arrive at planned store stops on your active trip.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      "expo-asset",
+      "expo-dev-client"
+    ],
+    "extra": {
+      "geofenceDefaultRadiusMeters": 120,
+      "geofenceMinRadiusMeters": 50,
+      "geofenceMaxRadiusMeters": 500,
+      "maxConcurrentRegions": 20,
+      "eas": {
+        "projectId": "9ec1c254-48c7-45d4-937e-d4b15ae050fb"
+      }
+    },
+    "owner": "rahbarrrs-team"
+  }
+}

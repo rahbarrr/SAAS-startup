@@ -27,6 +27,16 @@ export const EVIDENCE_STORAGE_BUCKET = "visit-evidence";
 export type LocationCapturePolicy =
   "allow_without_location_with_explanation" | "require_location";
 
+export const VISIT_EVENT_SOURCES = ["manual", "automatic_geofence"] as const;
+export type VisitEventSource = (typeof VISIT_EVENT_SOURCES)[number];
+
+export const VISIT_VERIFICATION_STATUSES = [
+  "verified",
+  "pending_review",
+  "manual_override",
+] as const;
+export type VisitVerificationStatus = (typeof VISIT_VERIFICATION_STATUSES)[number];
+
 export interface UnverifiedDeviceLocation {
   latitude: number | null;
   longitude: number | null;
@@ -45,12 +55,43 @@ export interface Visit {
   checkedOutAt: string | null;
   checkInLocation: UnverifiedDeviceLocation;
   checkOutLocation: UnverifiedDeviceLocation;
-  checkInIdempotencyKey: string | null;
-  checkOutIdempotencyKey: string | null;
+  checkInIdempotencyKey?: string | null;
+  checkOutIdempotencyKey?: string | null;
+  checkInSource?: VisitEventSource;
+  checkOutSource?: VisitEventSource | null;
+  checkInDeviceTimestamp?: string | null;
+  checkOutDeviceTimestamp?: string | null;
+  verificationStatus?: VisitVerificationStatus;
+  verificationNotes?: string | null;
+  geofenceRadiusMeters?: number | null;
   notes: string;
   status: VisitStatus;
   createdAt: string;
   updatedAt: string;
+}
+
+export type GeofenceEventType = "geofence_entry" | "geofence_exit";
+
+export interface VisitGeofenceEvent {
+  id: string;
+  orgId: string;
+  tripId: string;
+  tripStopId: string;
+  storeId: string;
+  employeeUserId: string;
+  visitId: string | null;
+  eventType: GeofenceEventType;
+  clientEventId: string;
+  deviceRecordedAt: string;
+  serverReceivedAt: string;
+  latitude: number;
+  longitude: number;
+  accuracyMeters: number | null;
+  geofenceRadiusMeters: number;
+  dwellTimeSeconds: number | null;
+  status: "processed" | "pending_review" | "rejected" | "duplicate";
+  rejectionReason: string | null;
+  createdAt: string;
 }
 
 export interface VisitChecklistItem {

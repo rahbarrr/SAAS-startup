@@ -964,6 +964,87 @@ describe("PostgreSQL Schema, Migrations, RLS Policies, and Workflow Triggers", (
     ).rejects.toThrow(/Invalid rate limit parameters/);
   });
 
+  it("[PHASE-11] visit_geofence_events enforces RLS, append-only immutability, same-org composite FKs, and idempotency", async () => {
+    const APPROVED_TRIP_A = "50000000-0000-4000-8000-000000000004";
+    const STOP_A = "60000000-0000-4000-8000-000000000003";
+    const STORE_A = "40000000-0000-4000-8000-000000000002";
+
+    // 1. Fiona inserts a valid geofence event for her stop in Org A
+    await runAsAuthenticatedUser(FIONA_FIELD_ORG_A, async () => {
+      const inserted = await db.query<{ id: string; status: string }>(
+        `insert into public.visit_geofence_events (
+          organization_id, trip_id, trip_stop_id, store_id, employee_user_id,
+          event_type, client_event_id, device_recorded_at, latitude, longitude,
+          accuracy_meters, geofence_radius_meters, dwell_time_seconds, status
+        ) values ($1, $2, $3, $4, $5, 'geofence_entry', 'pglite-evt-001', now(), 41.8975, -87.6196, 12.0, 120, 45, 'processed')
+        returning id, status`,
+        [ORG_A_ID, APPROVED_TRIP_A, STOP_A, STORE_A, FIONA_FIELD_ORG_A]
+      );
+      expect(inserted.rows).toHaveLength(1);
+      expect(inserted.rows[0]?.status).toBe("processed");
+    });
+
+    // 2. Duplicate (organization_id, client_event_id) is rejected by unique index
+    await expect(
+      runAsAuthenticatedUser(FIONA_FIELD_ORG_A, async () => {
+        await db.query(
+          `insert into public.visit_geofence_events (
+            organization_id, trip_id, trip_stop_id, store_id, employee_user_id,
+            event_type, client_event_id, device_recorded_at, latitude, longitude,
+            geofence_radius_meters, status
+          ) values ($1, $2, $3, $4, $5, 'geofence_entry', 'pglite-evt-001', now(), 41.8975, -87.6196, 120, 'processed')`,
+          [ORG_A_ID, APPROVED_TRIP_A, STOP_A, STORE_A, FIONA_FIELD_ORG_A]
+        );
+      })
+    ).rejects.toThrow(/idx_visit_geofence_events_idempotency/);
+
+    // 3. Cross-org store reference is rejected by composite foreign key
+    await expect(
+      runAsAuthenticatedUser(FIONA_FIELD_ORG_A, async () => {
+        await db.query(
+          `insert into public.visit_geofence_events (
+            organization_id, trip_id, trip_stop_id, store_id, employee_user_id,
+            event_type, client_event_id, device_recorded_at, latitude, longitude,
+            geofence_radius_meters, status
+          ) values ($1, $2, $3, $4, $5, 'geofence_entry', 'pglite-evt-cross-org', now(), 41.8975, -87.6196, 120, 'processed')`,
+          [ORG_A_ID, APPROVED_TRIP_A, STOP_A, STORE_ORG_B, FIONA_FIELD_ORG_A]
+        );
+      })
+    ).rejects.toThrow(/visit_geofence_events_same_org_store_fk/);
+
+    // 4. Append-only immutability trigger rejects UPDATE and DELETE
+    await expect(
+      db.query(
+        `update public.visit_geofence_events set status = 'rejected' where client_event_id = 'pglite-evt-001'`
+      )
+    ).rejects.toThrow(/visit_geofence_events is append-only/);
+
+    await expect(
+      db.query(
+        `delete from public.visit_geofence_events where client_event_id = 'pglite-evt-001'`
+      )
+    ).rejects.toThrow(/visit_geofence_events is append-only/);
+
+    // 5. Cross-tenant RLS isolation: Org B manager sees 0 geofence events from Org A
+    await runAsAuthenticatedUser(BRENDA_MANAGER_ORG_B, async () => {
+      const rows = await db.query(
+        `select id from public.visit_geofence_events where organization_id = $1`,
+        [ORG_A_ID]
+      );
+      expect(rows.rows).toHaveLength(0);
+    });
+
+    // 6. Visit lifecycle trigger protects check_in_source immutability on UPDATE
+    await expect(
+      db.query(
+        `update public.visits set check_in_source = 'automatic_geofence' where id = $1`,
+        [FIONA_VISIT_ID]
+      )
+    ).rejects.toThrow(
+      /Visit check-in telemetry, source, and idempotency key are immutable/
+    );
+  });
+
   it("[RELEASE] post-release verification SQL passes on the fully migrated schema and detects an RLS gap", async () => {
     const verification = fs.readFileSync(
       path.resolve(process.cwd(), "supabase/verification/post-release.sql"),

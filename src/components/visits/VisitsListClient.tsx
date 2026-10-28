@@ -12,16 +12,43 @@ export interface VisitsListClientProps {
   activeOrgId?: string;
 }
 
+function formatDuration(checkIn: string | null, checkOut: string | null): string | null {
+  if (!checkIn || !checkOut) return null;
+  const ms = new Date(checkOut).getTime() - new Date(checkIn).getTime();
+  if (ms < 0) return null;
+  const minutes = Math.round(ms / 60000);
+  if (minutes < 60) return `${minutes} min${minutes === 1 ? "" : "s"}`;
+  const hours = Math.floor(minutes / 60);
+  const remMinutes = minutes % 60;
+  return `${hours} hr${hours === 1 ? "" : "s"} ${remMinutes} min${remMinutes === 1 ? "" : "s"}`;
+}
+
 export function VisitsListClient({
   initialVisits = [],
   activeOrgName,
   activeOrgId: _activeOrgId,
 }: VisitsListClientProps): ReactNode {
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
 
   const filteredVisits = initialVisits.filter((v) => {
     if (statusFilter !== "all" && v.status !== statusFilter) return false;
+    if (sourceFilter === "automatic_geofence") {
+      if (
+        v.checkInSource !== "automatic_geofence" &&
+        v.checkOutSource !== "automatic_geofence"
+      ) {
+        return false;
+      }
+    } else if (sourceFilter === "manual") {
+      if (
+        v.checkInSource === "automatic_geofence" ||
+        v.checkOutSource === "automatic_geofence"
+      ) {
+        return false;
+      }
+    }
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       return (
@@ -38,6 +65,11 @@ export function VisitsListClient({
     submitted: initialVisits.filter((v) => v.status === "submitted").length,
     reviewed: initialVisits.filter((v) => v.status === "reviewed").length,
     inProgress: initialVisits.filter((v) => v.status === "in_progress").length,
+    autoGeofence: initialVisits.filter(
+      (v) =>
+        v.checkInSource === "automatic_geofence" ||
+        v.checkOutSource === "automatic_geofence"
+    ).length,
   };
 
   return (
@@ -162,6 +194,27 @@ export function VisitsListClient({
             {counts.reviewed}
           </span>
         </div>
+        <div
+          className="card"
+          style={{ padding: "0.875rem 1rem", borderLeft: "3px solid #10B981" }}
+        >
+          <span
+            className="card-meta"
+            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
+          >
+            Auto Geofenced
+          </span>
+          <span
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: 700,
+              fontFamily: "var(--font-heading)",
+              color: "#10B981",
+            }}
+          >
+            {counts.autoGeofence}
+          </span>
+        </div>
       </div>
 
       {/* Telemetry Disclosure Notice */}
@@ -221,6 +274,29 @@ export function VisitsListClient({
             <option value="reviewed">Reviewed</option>
           </select>
         </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <label
+            htmlFor="visit-source-filter"
+            className="form-label"
+            style={{ margin: 0 }}
+          >
+            Source:
+          </label>
+          <select
+            id="visit-source-filter"
+            value={sourceFilter}
+            onChange={(e) => setSourceFilter(e.target.value)}
+            className="form-select"
+            style={{ minWidth: "11rem" }}
+          >
+            <option value="all">All Sources ({initialVisits.length})</option>
+            <option value="automatic_geofence">
+              Auto Geofence ({counts.autoGeofence})
+            </option>
+            <option value="manual">Manual Only</option>
+          </select>
+        </div>
       </section>
 
       {/* Visits List */}
@@ -275,7 +351,75 @@ export function VisitsListClient({
                     Stop ID: <strong>{visit.tripStopId.slice(0, 8)}</strong>
                   </p>
                 </div>
-                <StatusBadge descriptor={getApprovalStatusDescriptor(visit.status)} />
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.375rem",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {visit.checkInSource === "automatic_geofence" ||
+                  visit.checkOutSource === "automatic_geofence" ? (
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        padding: "0.2rem 0.5rem",
+                        borderRadius: "var(--radius-sm)",
+                        background: "#ECFDF5",
+                        color: "#065F46",
+                        border: "1px solid #A7F3D0",
+                      }}
+                    >
+                      📡 Auto Geofence
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        padding: "0.2rem 0.5rem",
+                        borderRadius: "var(--radius-sm)",
+                        background: "var(--bg-subtle)",
+                        color: "var(--text-secondary)",
+                        border: "1px solid var(--border-default)",
+                      }}
+                    >
+                      👤 Manual
+                    </span>
+                  )}
+                  {visit.verificationStatus === "pending_review" ? (
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        padding: "0.2rem 0.5rem",
+                        borderRadius: "var(--radius-sm)",
+                        background: "#FEF3C7",
+                        color: "#92400E",
+                        border: "1px solid #FDE68A",
+                      }}
+                    >
+                      ⚠️ Pending Review
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        padding: "0.2rem 0.5rem",
+                        borderRadius: "var(--radius-sm)",
+                        background: "#F0FDF4",
+                        color: "#166534",
+                        border: "1px solid #BBF7D0",
+                      }}
+                    >
+                      ✓ Verified
+                    </span>
+                  )}
+                  <StatusBadge descriptor={getApprovalStatusDescriptor(visit.status)} />
+                </div>
               </div>
 
               <div
@@ -299,6 +443,14 @@ export function VisitsListClient({
                     ? new Date(visit.checkedOutAt).toLocaleString()
                     : "Not Checked Out"}
                 </span>
+                {formatDuration(visit.checkedInAt, visit.checkedOutAt) ? (
+                  <span>
+                    Duration:{" "}
+                    <strong>
+                      {formatDuration(visit.checkedInAt, visit.checkedOutAt)}
+                    </strong>
+                  </span>
+                ) : null}
                 {visit.checkInLocation ? (
                   <span style={{ color: "var(--status-success)", fontWeight: 600 }}>
                     ✓ GPS Telemetry Recorded (±
@@ -306,6 +458,21 @@ export function VisitsListClient({
                   </span>
                 ) : null}
               </div>
+
+              {visit.verificationNotes ? (
+                <div
+                  style={{
+                    fontSize: "0.8125rem",
+                    color: "#92400E",
+                    background: "#FFFBEB",
+                    border: "1px solid #FDE68A",
+                    padding: "0.5rem 0.75rem",
+                    borderRadius: "var(--radius-sm)",
+                  }}
+                >
+                  <strong>Verification Note:</strong> {visit.verificationNotes}
+                </div>
+              ) : null}
 
               {visit.notes ? (
                 <p

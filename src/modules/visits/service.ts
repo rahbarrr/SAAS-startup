@@ -7,6 +7,8 @@ import {
 } from "@/modules/tenancy/authorization";
 import type { AuthenticatedUser } from "@/modules/tenancy/domain";
 import type { TenancyRepository } from "@/modules/tenancy/repository";
+import { calculateHaversineMeters } from "@/modules/routing/provider";
+import type { StoresRepository } from "@/modules/stores/repository";
 import {
   buildUnverifiedDeviceLocation,
   type LocationCapturePolicy,
@@ -14,6 +16,7 @@ import {
   type SignedEvidenceUploadTicket,
   type VisitDetail,
   type VisitEvidence,
+  type VisitGeofenceEvent,
 } from "./domain";
 import type { PaginatedVisitsResult, VisitsRepository } from "./repository";
 import {
@@ -23,6 +26,7 @@ import {
   type DeviceLocationInput,
   evidenceIdParamSchema,
   listVisitsQuerySchema,
+  processGeofenceEventInputSchema,
   requestEvidenceUploadTicketInputSchema,
   updateVisitExecutionInputSchema,
   visitIdParamSchema,
@@ -238,6 +242,9 @@ export async function checkInStopForOrg(params: {
     checkedInAt: nowIso,
     idempotencyKey: input.idempotencyKey ?? null,
     location,
+    source: input.eventSource ?? "manual",
+    deviceTimestamp: input.deviceRecordedAt ?? null,
+    radiusMeters: input.geofenceRadiusMeters ?? null,
   });
 }
 
@@ -621,5 +628,449 @@ export async function checkOutVisitForOrg(params: {
     notes: input.notes,
     idempotencyKey: input.idempotencyKey ?? null,
     location,
+    source: input.eventSource ?? "manual",
+    deviceTimestamp: input.deviceRecordedAt ?? null,
   });
+}
+
+export interface ProcessGeofenceEventResult {
+  success: boolean;
+  visitId?: string;
+  status: "processed" | "pending_review" | "rejected" | "duplicate";
+  serverReceivedAt: string;
+  syncDelayMs: number;
+  message?: string;
+  geofenceEvent: VisitGeofenceEvent;
+}
+
+export async function processGeofenceEventForOrg(params: {
+  user: AuthenticatedUser | null;
+  candidateOrgId: unknown;
+  rawInput: unknown;
+  tenancyRepository: TenancyRepository;
+  visitsRepository: VisitsRepository;
+  storesRepository?: Pick<StoresRepository, "getStoreById">;
+  now?: Date;
+}): Promise<ProcessGeofenceEventResult> {
+  const context = await resolveTenantContext({
+    user: params.user,
+    candidateOrgId: params.candidateOrgId,
+    repository: params.tenancyRepository,
+  });
+
+  requireOrgPermission(context, "visits:record_own");
+
+  const input = processGeofenceEventInputSchema.parse(params.rawInput);
+  const now = params.now ?? new Date();
+  const serverReceivedAt = now.toISOString();
+  const deviceTime = new Date(input.deviceRecordedAt);
+  const syncDelayMs = Math.max(0, now.getTime() - deviceTime.getTime());
+  const isDelayedSync = syncDelayMs > 300_000; // > 5 minutes
+
+  // 1. Server-side idempotency check
+  const existingEvent = await params.visitsRepository.getGeofenceEventByClientId(
+    context.orgId,
+    input.clientEventId
+  );
+  if (existingEvent) {
+    return {
+      success: existingEvent.status !== "rejected",
+      visitId: existingEvent.visitId ?? undefined,
+      status: "duplicate",
+      serverReceivedAt: existingEvent.serverReceivedAt,
+      syncDelayMs: Math.max(
+        0,
+        new Date(existingEvent.serverReceivedAt).getTime() - deviceTime.getTime()
+      ),
+      message: "Geofence event was already recorded (idempotent duplicate).",
+      geofenceEvent: existingEvent,
+    };
+  }
+
+  // 2. Resolve stop execution context & verify ownership
+  const stopContext = await params.visitsRepository.getTripStopExecutionContext(
+    context.orgId,
+    input.tripStopId
+  );
+
+  if (!stopContext) {
+    throw new AppError("NOT_FOUND", "Trip stop not found in active organization", 404);
+  }
+
+  if (
+    stopContext.stop.tripId !== input.tripId ||
+    stopContext.stop.storeId !== input.storeId
+  ) {
+    throw new AppError(
+      "CONFLICT",
+      "Stop does not belong to the requested trip or store",
+      409
+    );
+  }
+
+  if (stopContext.trip.ownerUserId !== context.user.id) {
+    await params.visitsRepository.recordGeofenceEvent({
+      orgId: context.orgId,
+      tripId: input.tripId,
+      tripStopId: input.tripStopId,
+      storeId: input.storeId,
+      employeeUserId: context.user.id,
+      visitId: null,
+      eventType: input.eventType,
+      clientEventId: input.clientEventId,
+      deviceRecordedAt: input.deviceRecordedAt,
+      serverReceivedAt,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      accuracyMeters: input.accuracyMeters ?? null,
+      geofenceRadiusMeters: input.geofenceRadiusMeters,
+      dwellTimeSeconds: input.dwellTimeSeconds ?? null,
+      status: "rejected",
+      rejectionReason: "Unauthorized: only assigned trip owner can record visit events",
+    });
+
+    throw new AppError(
+      "FORBIDDEN_INSUFFICIENT_ROLE",
+      "Only the assigned trip employee can record visit events for this trip",
+      403
+    );
+  }
+
+  if (
+    stopContext.trip.status !== "approved" &&
+    stopContext.trip.status !== "in_progress"
+  ) {
+    await params.visitsRepository.recordGeofenceEvent({
+      orgId: context.orgId,
+      tripId: input.tripId,
+      tripStopId: input.tripStopId,
+      storeId: input.storeId,
+      employeeUserId: context.user.id,
+      visitId: null,
+      eventType: input.eventType,
+      clientEventId: input.clientEventId,
+      deviceRecordedAt: input.deviceRecordedAt,
+      serverReceivedAt,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      accuracyMeters: input.accuracyMeters ?? null,
+      geofenceRadiusMeters: input.geofenceRadiusMeters,
+      dwellTimeSeconds: input.dwellTimeSeconds ?? null,
+      status: "rejected",
+      rejectionReason: `Trip is not executable (current status: '${stopContext.trip.status}')`,
+    });
+
+    throw new AppError(
+      "CONFLICT",
+      `Cannot record visit geofence event when parent trip status is '${stopContext.trip.status}'`,
+      409
+    );
+  }
+
+  // 3. Location evidence validation
+  let isAmbiguous = false;
+  const ambiguityReasons: string[] = [];
+
+  if (
+    input.accuracyMeters !== null &&
+    input.accuracyMeters !== undefined &&
+    input.accuracyMeters > 200
+  ) {
+    isAmbiguous = true;
+    ambiguityReasons.push(
+      `Reported GPS accuracy (${Math.round(input.accuracyMeters)}m) exceeds reliable threshold (200m)`
+    );
+  }
+
+  if (params.storesRepository) {
+    const store = await params.storesRepository.getStoreById(
+      context.orgId,
+      input.storeId
+    );
+    if (store && store.latitude !== null && store.longitude !== null) {
+      const distMeters = calculateHaversineMeters(
+        { latitude: input.latitude, longitude: input.longitude },
+        { latitude: store.latitude, longitude: store.longitude }
+      );
+      if (distMeters > input.geofenceRadiusMeters + 150) {
+        isAmbiguous = true;
+        ambiguityReasons.push(
+          `Device location (${Math.round(distMeters)}m) exceeded geofence radius (${input.geofenceRadiusMeters}m)`
+        );
+      }
+    }
+  }
+
+  if (isDelayedSync) {
+    isAmbiguous = true;
+    ambiguityReasons.push(`Delayed sync (${Math.round(syncDelayMs / 1000)}s latency)`);
+  }
+
+  const verificationStatus = isAmbiguous ? "pending_review" : "verified";
+  const verificationNotes =
+    ambiguityReasons.length > 0 ? ambiguityReasons.join("; ") : null;
+
+  // 4. Handle arrival
+  if (input.eventType === "geofence_entry") {
+    const existingForStop = await params.visitsRepository.getVisitByTripStopId(
+      context.orgId,
+      input.tripStopId
+    );
+
+    if (existingForStop) {
+      const ge = await params.visitsRepository.recordGeofenceEvent({
+        orgId: context.orgId,
+        tripId: input.tripId,
+        tripStopId: input.tripStopId,
+        storeId: input.storeId,
+        employeeUserId: context.user.id,
+        visitId: existingForStop.id,
+        eventType: "geofence_entry",
+        clientEventId: input.clientEventId,
+        deviceRecordedAt: input.deviceRecordedAt,
+        serverReceivedAt,
+        latitude: input.latitude,
+        longitude: input.longitude,
+        accuracyMeters: input.accuracyMeters ?? null,
+        geofenceRadiusMeters: input.geofenceRadiusMeters,
+        dwellTimeSeconds: input.dwellTimeSeconds ?? null,
+        status: "duplicate",
+        rejectionReason: "Visit already exists for this trip stop",
+      });
+
+      return {
+        success: true,
+        visitId: existingForStop.id,
+        status: "duplicate",
+        serverReceivedAt,
+        syncDelayMs,
+        message: "Visit already active for this stop.",
+        geofenceEvent: ge,
+      };
+    }
+
+    const existingActiveVisit = await params.visitsRepository.getActiveVisitForEmployee(
+      context.orgId,
+      context.user.id
+    );
+
+    if (existingActiveVisit && existingActiveVisit.tripStopId !== input.tripStopId) {
+      const ge = await params.visitsRepository.recordGeofenceEvent({
+        orgId: context.orgId,
+        tripId: input.tripId,
+        tripStopId: input.tripStopId,
+        storeId: input.storeId,
+        employeeUserId: context.user.id,
+        visitId: null,
+        eventType: "geofence_entry",
+        clientEventId: input.clientEventId,
+        deviceRecordedAt: input.deviceRecordedAt,
+        serverReceivedAt,
+        latitude: input.latitude,
+        longitude: input.longitude,
+        accuracyMeters: input.accuracyMeters ?? null,
+        geofenceRadiusMeters: input.geofenceRadiusMeters,
+        dwellTimeSeconds: input.dwellTimeSeconds ?? null,
+        status: "pending_review",
+        rejectionReason: `Another visit (${existingActiveVisit.id}) is currently in progress at stop ${existingActiveVisit.tripStopId}`,
+      });
+
+      return {
+        success: false,
+        status: "pending_review",
+        serverReceivedAt,
+        syncDelayMs,
+        message:
+          "Arrival recorded as pending review: employee currently has another active stop visit.",
+        geofenceEvent: ge,
+      };
+    }
+
+    const visitDetail = await params.visitsRepository.checkInStopAtomic({
+      orgId: context.orgId,
+      tripStopId: input.tripStopId,
+      employeeUserId: context.user.id,
+      checkedInAt: serverReceivedAt,
+      idempotencyKey: input.clientEventId,
+      location: buildUnverifiedDeviceLocation({
+        lat: input.latitude,
+        lng: input.longitude,
+        accuracyMeters: input.accuracyMeters ?? null,
+        status: "captured_unverified",
+      }),
+      source: "automatic_geofence",
+      deviceTimestamp: input.deviceRecordedAt,
+      radiusMeters: input.geofenceRadiusMeters,
+      verificationStatus,
+      verificationNotes,
+    });
+
+    const ge = await params.visitsRepository.recordGeofenceEvent({
+      orgId: context.orgId,
+      tripId: input.tripId,
+      tripStopId: input.tripStopId,
+      storeId: input.storeId,
+      employeeUserId: context.user.id,
+      visitId: visitDetail.visit.id,
+      eventType: "geofence_entry",
+      clientEventId: input.clientEventId,
+      deviceRecordedAt: input.deviceRecordedAt,
+      serverReceivedAt,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      accuracyMeters: input.accuracyMeters ?? null,
+      geofenceRadiusMeters: input.geofenceRadiusMeters,
+      dwellTimeSeconds: input.dwellTimeSeconds ?? null,
+      status: isAmbiguous ? "pending_review" : "processed",
+      rejectionReason: isAmbiguous ? verificationNotes : null,
+    });
+
+    return {
+      success: true,
+      visitId: visitDetail.visit.id,
+      status: isAmbiguous ? "pending_review" : "processed",
+      serverReceivedAt,
+      syncDelayMs,
+      message: isAmbiguous
+        ? `Automatic check-in recorded as pending review: ${verificationNotes}`
+        : "Automatic geofence check-in verified successfully.",
+      geofenceEvent: ge,
+    };
+  }
+
+  // 5. Handle departure (geofence_exit)
+  const existingForStop = await params.visitsRepository.getVisitByTripStopId(
+    context.orgId,
+    input.tripStopId
+  );
+
+  if (!existingForStop || existingForStop.status !== "in_progress") {
+    const ge = await params.visitsRepository.recordGeofenceEvent({
+      orgId: context.orgId,
+      tripId: input.tripId,
+      tripStopId: input.tripStopId,
+      storeId: input.storeId,
+      employeeUserId: context.user.id,
+      visitId: existingForStop?.id ?? null,
+      eventType: "geofence_exit",
+      clientEventId: input.clientEventId,
+      deviceRecordedAt: input.deviceRecordedAt,
+      serverReceivedAt,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      accuracyMeters: input.accuracyMeters ?? null,
+      geofenceRadiusMeters: input.geofenceRadiusMeters,
+      dwellTimeSeconds: input.dwellTimeSeconds ?? null,
+      status: "rejected",
+      rejectionReason: !existingForStop
+        ? "No visit found for this stop to check out"
+        : `Visit is already in '${existingForStop.status}' status`,
+    });
+
+    return {
+      success: false,
+      status: "rejected",
+      serverReceivedAt,
+      syncDelayMs,
+      message: "Cannot check out: no in-progress visit found for this stop.",
+      geofenceEvent: ge,
+    };
+  }
+
+  const visitDetail = await params.visitsRepository.getVisitDetail(
+    context.orgId,
+    existingForStop.id
+  );
+  const incompleteRequired = (visitDetail?.checklistItems ?? []).filter(
+    (item) => item.required && !item.completedAt
+  );
+
+  if (incompleteRequired.length > 0) {
+    const reason = `Departure detected while ${incompleteRequired.length} required checklist item(s) remained incomplete (${incompleteRequired.map((i) => i.questionKey).join(", ")})`;
+    await params.visitsRepository.markVisitVerificationStatus?.({
+      orgId: context.orgId,
+      visitId: existingForStop.id,
+      verificationStatus: "pending_review",
+      verificationNotes: reason,
+    });
+    const ge = await params.visitsRepository.recordGeofenceEvent({
+      orgId: context.orgId,
+      tripId: input.tripId,
+      tripStopId: input.tripStopId,
+      storeId: input.storeId,
+      employeeUserId: context.user.id,
+      visitId: existingForStop.id,
+      eventType: "geofence_exit",
+      clientEventId: input.clientEventId,
+      deviceRecordedAt: input.deviceRecordedAt,
+      serverReceivedAt,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      accuracyMeters: input.accuracyMeters ?? null,
+      geofenceRadiusMeters: input.geofenceRadiusMeters,
+      dwellTimeSeconds: input.dwellTimeSeconds ?? null,
+      status: "pending_review",
+      rejectionReason: reason,
+    });
+
+    return {
+      success: true,
+      visitId: existingForStop.id,
+      status: "pending_review",
+      serverReceivedAt,
+      syncDelayMs,
+      message: reason,
+      geofenceEvent: ge,
+    };
+  }
+
+  await params.visitsRepository.checkOutVisitAtomic({
+    orgId: context.orgId,
+    visitId: existingForStop.id,
+    employeeUserId: context.user.id,
+    checkedOutAt: serverReceivedAt,
+    idempotencyKey: input.clientEventId,
+    location: buildUnverifiedDeviceLocation({
+      lat: input.latitude,
+      lng: input.longitude,
+      accuracyMeters: input.accuracyMeters ?? null,
+      status: "captured_unverified",
+    }),
+    source: "automatic_geofence",
+    deviceTimestamp: input.deviceRecordedAt,
+    verificationStatus,
+    verificationNotes: isAmbiguous ? verificationNotes : null,
+  });
+
+  const ge = await params.visitsRepository.recordGeofenceEvent({
+    orgId: context.orgId,
+    tripId: input.tripId,
+    tripStopId: input.tripStopId,
+    storeId: input.storeId,
+    employeeUserId: context.user.id,
+    visitId: existingForStop.id,
+    eventType: "geofence_exit",
+    clientEventId: input.clientEventId,
+    deviceRecordedAt: input.deviceRecordedAt,
+    serverReceivedAt,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    accuracyMeters: input.accuracyMeters ?? null,
+    geofenceRadiusMeters: input.geofenceRadiusMeters,
+    dwellTimeSeconds: input.dwellTimeSeconds ?? null,
+    status: isAmbiguous ? "pending_review" : "processed",
+    rejectionReason: isAmbiguous ? verificationNotes : null,
+  });
+
+  return {
+    success: true,
+    visitId: existingForStop.id,
+    status: isAmbiguous ? "pending_review" : "processed",
+    serverReceivedAt,
+    syncDelayMs,
+    message: isAmbiguous
+      ? `Automatic check-out recorded as pending review: ${verificationNotes}`
+      : "Automatic geofence check-out verified successfully.",
+    geofenceEvent: ge,
+  };
 }

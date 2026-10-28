@@ -21,6 +21,30 @@ interface VisitDetailPageProps {
   params: Promise<{ visitId: string }>;
 }
 
+function formatDuration(checkIn: string | null, checkOut: string | null): string | null {
+  if (!checkIn || !checkOut) return null;
+  const ms = new Date(checkOut).getTime() - new Date(checkIn).getTime();
+  if (ms < 0) return null;
+  const minutes = Math.round(ms / 60000);
+  if (minutes < 60) return `${minutes} min${minutes === 1 ? "" : "s"}`;
+  const hours = Math.floor(minutes / 60);
+  const remMinutes = minutes % 60;
+  return `${hours} hr${hours === 1 ? "" : "s"} ${remMinutes} min${remMinutes === 1 ? "" : "s"}`;
+}
+
+function formatTimeWithLatency(
+  serverIso: string | null,
+  deviceIso: string | null
+): string {
+  if (!serverIso) return "Not recorded";
+  const serverStr = new Date(serverIso).toLocaleString();
+  if (!deviceIso) return serverStr;
+  const latencyMs = new Date(serverIso).getTime() - new Date(deviceIso).getTime();
+  const latencySec = Math.round(latencyMs / 1000);
+  if (Math.abs(latencySec) < 5) return serverStr;
+  return `${serverStr} (Device logged: ${new Date(deviceIso).toLocaleTimeString()}, sync latency: ${latencySec}s)`;
+}
+
 export default async function VisitDetailPage(
   props: VisitDetailPageProps
 ): Promise<ReactNode> {
@@ -139,11 +163,105 @@ export default async function VisitDetailPage(
             }}
           >
             <dt style={{ color: "var(--text-secondary)" }}>Planned Arrival:</dt>
-            <dd style={{ margin: 0 }}>{stop.plannedAt ?? "Unscheduled"}</dd>
+            <dd style={{ margin: 0 }}>
+              {stop.plannedAt ? new Date(stop.plannedAt).toLocaleString() : "Unscheduled"}
+            </dd>
             <dt style={{ color: "var(--text-secondary)" }}>Actual Check-In:</dt>
-            <dd style={{ margin: 0 }}>{visit.checkedInAt ?? "Not checked in"}</dd>
+            <dd style={{ margin: 0 }}>
+              {formatTimeWithLatency(
+                visit.checkedInAt,
+                visit.checkInDeviceTimestamp ?? null
+              )}{" "}
+              <span
+                style={{
+                  fontSize: "0.75rem",
+                  padding: "0.125rem 0.375rem",
+                  borderRadius: "var(--radius-sm)",
+                  background:
+                    visit.checkInSource === "automatic_geofence"
+                      ? "#ECFDF5"
+                      : "var(--bg-subtle)",
+                  color:
+                    visit.checkInSource === "automatic_geofence"
+                      ? "#065F46"
+                      : "var(--text-secondary)",
+                  fontWeight: 600,
+                }}
+              >
+                {visit.checkInSource === "automatic_geofence"
+                  ? "📡 Auto Geofence"
+                  : "👤 Manual"}
+              </span>
+            </dd>
             <dt style={{ color: "var(--text-secondary)" }}>Actual Check-Out:</dt>
-            <dd style={{ margin: 0 }}>{visit.checkedOutAt ?? "Not checked out"}</dd>
+            <dd style={{ margin: 0 }}>
+              {formatTimeWithLatency(
+                visit.checkedOutAt,
+                visit.checkOutDeviceTimestamp ?? null
+              )}{" "}
+              {visit.checkedOutAt ? (
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    padding: "0.125rem 0.375rem",
+                    borderRadius: "var(--radius-sm)",
+                    background:
+                      visit.checkOutSource === "automatic_geofence"
+                        ? "#ECFDF5"
+                        : "var(--bg-subtle)",
+                    color:
+                      visit.checkOutSource === "automatic_geofence"
+                        ? "#065F46"
+                        : "var(--text-secondary)",
+                    fontWeight: 600,
+                  }}
+                >
+                  {visit.checkOutSource === "automatic_geofence"
+                    ? "📡 Auto Geofence"
+                    : "👤 Manual"}
+                </span>
+              ) : null}
+            </dd>
+            <dt style={{ color: "var(--text-secondary)" }}>Visit Duration:</dt>
+            <dd style={{ margin: 0, fontWeight: 600 }}>
+              {formatDuration(visit.checkedInAt, visit.checkedOutAt) ??
+                "In progress / Pending"}
+            </dd>
+            <dt style={{ color: "var(--text-secondary)" }}>Verification:</dt>
+            <dd style={{ margin: 0 }}>
+              <span
+                style={{
+                  fontSize: "0.75rem",
+                  padding: "0.125rem 0.5rem",
+                  borderRadius: "var(--radius-sm)",
+                  fontWeight: 600,
+                  background:
+                    visit.verificationStatus === "pending_review" ? "#FEF3C7" : "#F0FDF4",
+                  color:
+                    visit.verificationStatus === "pending_review" ? "#92400E" : "#166534",
+                  border:
+                    visit.verificationStatus === "pending_review"
+                      ? "1px solid #FDE68A"
+                      : "1px solid #BBF7D0",
+                }}
+              >
+                {visit.verificationStatus === "pending_review"
+                  ? "⚠️ Pending Review"
+                  : "✓ Verified"}
+              </span>
+              {visit.verificationNotes ? (
+                <span
+                  style={{
+                    display: "block",
+                    marginTop: "0.25rem",
+                    color: "#92400E",
+                    fontSize: "0.8125rem",
+                  }}
+                >
+                  Note: {visit.verificationNotes}
+                </span>
+              ) : null}
+            </dd>
             <dt style={{ color: "var(--text-secondary)" }}>Assigned Executive:</dt>
             <dd style={{ margin: 0 }}>{visit.employeeUserId}</dd>
           </dl>

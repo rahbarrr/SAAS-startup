@@ -12,6 +12,7 @@ import type {
   DbTripStopRow,
   DbVisitChecklistItemRow,
   DbVisitEvidenceRow,
+  DbVisitGeofenceEventRow,
   DbVisitRow,
 } from "@/types/database";
 import {
@@ -19,6 +20,7 @@ import {
   buildUnverifiedDeviceLocation,
   EVIDENCE_STORAGE_BUCKET,
   generateSafeEvidenceObjectPath,
+  type GeofenceEventType,
   MAX_EVIDENCE_FILE_SIZE_BYTES,
   type SignedEvidenceDownloadUrl,
   type SignedEvidenceUploadTicket,
@@ -26,7 +28,10 @@ import {
   type Visit,
   type VisitChecklistItem,
   type VisitDetail,
+  type VisitEventSource,
   type VisitEvidence,
+  type VisitGeofenceEvent,
+  type VisitVerificationStatus,
 } from "./domain";
 import type { ChecklistAnswerItemInput, ListVisitsQuery } from "./schemas";
 
@@ -56,6 +61,11 @@ export interface VisitsRepository {
     checkedInAt: string;
     idempotencyKey: string | null;
     location: UnverifiedDeviceLocation;
+    source?: VisitEventSource;
+    deviceTimestamp?: string | null;
+    radiusMeters?: number | null;
+    verificationStatus?: VisitVerificationStatus;
+    verificationNotes?: string | null;
   }): Promise<VisitDetail>;
   updateVisitExecution(params: {
     orgId: string;
@@ -100,8 +110,45 @@ export interface VisitsRepository {
     notes?: string;
     idempotencyKey: string | null;
     location: UnverifiedDeviceLocation;
+    source?: VisitEventSource;
+    deviceTimestamp?: string | null;
+    verificationStatus?: VisitVerificationStatus;
+    verificationNotes?: string | null;
   }): Promise<VisitDetail>;
+  recordGeofenceEvent(params: {
+    orgId: string;
+    tripId: string;
+    tripStopId: string;
+    storeId: string;
+    employeeUserId: string;
+    visitId: string | null;
+    eventType: GeofenceEventType;
+    clientEventId: string;
+    deviceRecordedAt: string;
+    serverReceivedAt: string;
+    latitude: number;
+    longitude: number;
+    accuracyMeters: number | null;
+    geofenceRadiusMeters: number;
+    dwellTimeSeconds: number | null;
+    status: "processed" | "pending_review" | "rejected" | "duplicate";
+    rejectionReason: string | null;
+  }): Promise<VisitGeofenceEvent>;
+  getGeofenceEventByClientId(
+    orgId: string,
+    clientEventId: string
+  ): Promise<VisitGeofenceEvent | null>;
+  markVisitVerificationStatus?(params: {
+    orgId: string;
+    visitId: string;
+    verificationStatus: VisitVerificationStatus;
+    verificationNotes: string | null;
+  }): Promise<void>;
 }
+
+export type RecordGeofenceEventParams = Parameters<
+  VisitsRepository["recordGeofenceEvent"]
+>[0];
 
 function mapVisitRow(row: DbVisitRow): Visit {
   return {
@@ -125,6 +172,20 @@ function mapVisitRow(row: DbVisitRow): Visit {
     }),
     checkInIdempotencyKey: row.check_in_idempotency_key ?? null,
     checkOutIdempotencyKey: row.check_out_idempotency_key ?? null,
+    checkInSource:
+      row.check_in_source === "automatic_geofence" ? "automatic_geofence" : "manual",
+    checkOutSource:
+      row.check_out_source === "automatic_geofence" ? "automatic_geofence" : "manual",
+    checkInDeviceTimestamp: row.check_in_device_timestamp ?? null,
+    checkOutDeviceTimestamp: row.check_out_device_timestamp ?? null,
+    verificationStatus:
+      row.verification_status === "pending_review"
+        ? "pending_review"
+        : row.verification_status === "manual_override"
+          ? "manual_override"
+          : "verified",
+    verificationNotes: row.verification_notes ?? null,
+    geofenceRadiusMeters: row.geofence_radius_meters ?? null,
     notes: row.notes,
     status: row.status,
     createdAt: row.created_at,
@@ -166,8 +227,32 @@ function mapEvidenceRow(row: DbVisitEvidenceRow): VisitEvidence {
   };
 }
 
+function mapGeofenceEventRow(row: DbVisitGeofenceEventRow): VisitGeofenceEvent {
+  return {
+    id: row.id,
+    orgId: row.organization_id,
+    tripId: row.trip_id,
+    tripStopId: row.trip_stop_id,
+    storeId: row.store_id,
+    employeeUserId: row.employee_user_id,
+    visitId: row.visit_id,
+    eventType: row.event_type as GeofenceEventType,
+    clientEventId: row.client_event_id,
+    deviceRecordedAt: row.device_recorded_at,
+    serverReceivedAt: row.server_received_at,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    accuracyMeters: row.accuracy_meters,
+    geofenceRadiusMeters: row.geofence_radius_meters,
+    dwellTimeSeconds: row.dwell_time_seconds,
+    status: row.status as "processed" | "pending_review" | "rejected" | "duplicate",
+    rejectionReason: row.rejection_reason,
+    createdAt: row.created_at,
+  };
+}
+
 const VISIT_SELECT_COLUMNS =
-  "id, organization_id, trip_stop_id, employee_user_id, checked_in_at, checked_out_at, check_in_lat, check_in_lng, check_in_accuracy_m, check_in_location_status, check_out_lat, check_out_lng, check_out_accuracy_m, check_out_location_status, check_in_idempotency_key, check_out_idempotency_key, notes, status, created_at, updated_at";
+  "id, organization_id, trip_stop_id, employee_user_id, checked_in_at, checked_out_at, check_in_lat, check_in_lng, check_in_accuracy_m, check_in_location_status, check_out_lat, check_out_lng, check_out_accuracy_m, check_out_location_status, check_in_idempotency_key, check_out_idempotency_key, check_in_source, check_out_source, check_in_device_timestamp, check_out_device_timestamp, verification_status, verification_notes, geofence_radius_meters, notes, status, created_at, updated_at";
 
 export class SupabaseVisitsRepository implements VisitsRepository {
   constructor(private readonly supabase: SupabaseClient) {}
@@ -378,6 +463,11 @@ export class SupabaseVisitsRepository implements VisitsRepository {
     checkedInAt: string;
     idempotencyKey: string | null;
     location: UnverifiedDeviceLocation;
+    source?: VisitEventSource;
+    deviceTimestamp?: string | null;
+    radiusMeters?: number | null;
+    verificationStatus?: VisitVerificationStatus;
+    verificationNotes?: string | null;
   }): Promise<VisitDetail> {
     const { data: visitRow, error: rpcError } = await this.supabase
       .rpc("check_in_trip_stop", {
@@ -388,6 +478,11 @@ export class SupabaseVisitsRepository implements VisitsRepository {
         p_lng: params.location.longitude,
         p_accuracy_m: params.location.accuracyMeters,
         p_location_status: params.location.status,
+        p_source: params.source ?? "manual",
+        p_device_timestamp: params.deviceTimestamp ?? null,
+        p_radius_m: params.radiusMeters ?? null,
+        p_verification_status: params.verificationStatus ?? "verified",
+        p_verification_notes: params.verificationNotes ?? null,
       })
       .single<DbVisitRow>();
 
@@ -642,6 +737,10 @@ export class SupabaseVisitsRepository implements VisitsRepository {
     notes?: string;
     idempotencyKey: string | null;
     location: UnverifiedDeviceLocation;
+    source?: VisitEventSource;
+    deviceTimestamp?: string | null;
+    verificationStatus?: VisitVerificationStatus;
+    verificationNotes?: string | null;
   }): Promise<VisitDetail> {
     const { data: visitRow, error: rpcError } = await this.supabase
       .rpc("check_out_visit", {
@@ -653,6 +752,10 @@ export class SupabaseVisitsRepository implements VisitsRepository {
         p_lng: params.location.longitude,
         p_accuracy_m: params.location.accuracyMeters,
         p_location_status: params.location.status,
+        p_source: params.source ?? "manual",
+        p_device_timestamp: params.deviceTimestamp ?? null,
+        p_verification_status: params.verificationStatus ?? null,
+        p_verification_notes: params.verificationNotes ?? null,
       })
       .single<DbVisitRow>();
 
@@ -690,5 +793,101 @@ export class SupabaseVisitsRepository implements VisitsRepository {
       throw new AppError("NOT_FOUND", "Visit not found after check-out", 404);
     }
     return detail;
+  }
+
+  async recordGeofenceEvent(params: {
+    orgId: string;
+    tripId: string;
+    tripStopId: string;
+    storeId: string;
+    employeeUserId: string;
+    visitId: string | null;
+    eventType: GeofenceEventType;
+    clientEventId: string;
+    deviceRecordedAt: string;
+    serverReceivedAt: string;
+    latitude: number;
+    longitude: number;
+    accuracyMeters: number | null;
+    geofenceRadiusMeters: number;
+    dwellTimeSeconds: number | null;
+    status: "processed" | "pending_review" | "rejected" | "duplicate";
+    rejectionReason: string | null;
+  }): Promise<VisitGeofenceEvent> {
+    const { data, error } = await this.supabase
+      .from("visit_geofence_events")
+      .insert({
+        organization_id: params.orgId,
+        trip_id: params.tripId,
+        trip_stop_id: params.tripStopId,
+        store_id: params.storeId,
+        employee_user_id: params.employeeUserId,
+        visit_id: params.visitId,
+        event_type: params.eventType,
+        client_event_id: params.clientEventId,
+        device_recorded_at: params.deviceRecordedAt,
+        server_received_at: params.serverReceivedAt,
+        latitude: params.latitude,
+        longitude: params.longitude,
+        accuracy_meters: params.accuracyMeters,
+        geofence_radius_meters: params.geofenceRadiusMeters,
+        dwell_time_seconds: params.dwellTimeSeconds,
+        status: params.status,
+        rejection_reason: params.rejectionReason,
+      })
+      .select("*")
+      .single<DbVisitGeofenceEventRow>();
+
+    if (error || !data) {
+      if (error?.code === "23505") {
+        const existing = await this.getGeofenceEventByClientId(
+          params.orgId,
+          params.clientEventId
+        );
+        if (existing) {
+          return existing;
+        }
+      }
+      throw new AppError("INTERNAL_ERROR", "Failed to record geofence event", 500);
+    }
+
+    return mapGeofenceEventRow(data);
+  }
+
+  async markVisitVerificationStatus(params: {
+    orgId: string;
+    visitId: string;
+    verificationStatus: VisitVerificationStatus;
+    verificationNotes: string | null;
+  }): Promise<void> {
+    await this.supabase
+      .from("visits")
+      .update({
+        verification_status: params.verificationStatus,
+        verification_notes: params.verificationNotes,
+      })
+      .eq("organization_id", params.orgId)
+      .eq("id", params.visitId);
+  }
+
+  async getGeofenceEventByClientId(
+    orgId: string,
+    clientEventId: string
+  ): Promise<VisitGeofenceEvent | null> {
+    const { data, error } = await this.supabase
+      .from("visit_geofence_events")
+      .select("*")
+      .eq("organization_id", orgId)
+      .eq("client_event_id", clientEventId)
+      .maybeSingle<DbVisitGeofenceEventRow>();
+
+    if (error) {
+      throw new AppError(
+        "INTERNAL_ERROR",
+        "Failed to check geofence event idempotency",
+        500
+      );
+    }
+    return data ? mapGeofenceEventRow(data) : null;
   }
 }

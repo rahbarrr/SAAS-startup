@@ -1,11 +1,13 @@
 # Dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 
-# Next.js build output
+# Next.js & Expo build output
 /.next/
 /out/
+.expo/
+apps/mobile/dist/
 next-env.d.ts
 
 # Testing & coverage
@@ -16,9 +18,14 @@ next-env.d.ts
 .env.*
 !.env.example
 
-# OS & editor files
+# OS, editor & mobile signing files (never commit)
 .DS_Store
 *.pem
+*.p12
+*.key
+*.jks
+*.keystore
+*.mobileprovision
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

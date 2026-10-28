@@ -145,10 +145,39 @@ export interface DbVisitRow {
   check_out_location_status: DbVisitLocationStatus;
   check_in_idempotency_key: string | null;
   check_out_idempotency_key: string | null;
+  check_in_source?: string | null;
+  check_out_source?: string | null;
+  check_in_device_timestamp?: string | null;
+  check_out_device_timestamp?: string | null;
+  verification_status?: string | null;
+  verification_notes?: string | null;
+  geofence_radius_meters?: number | null;
   notes: string;
   status: DbVisitStatus;
   created_at: string;
   updated_at: string;
+}
+
+export interface DbVisitGeofenceEventRow {
+  id: string;
+  organization_id: string;
+  trip_id: string;
+  trip_stop_id: string;
+  store_id: string;
+  employee_user_id: string;
+  visit_id: string | null;
+  event_type: string;
+  client_event_id: string;
+  device_recorded_at: string;
+  server_received_at: string;
+  latitude: number;
+  longitude: number;
+  accuracy_meters: number | null;
+  geofence_radius_meters: number;
+  dwell_time_seconds: number | null;
+  status: string;
+  rejection_reason: string | null;
+  created_at: string;
 }
 
 export interface DbVisitChecklistItemRow {
