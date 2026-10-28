@@ -155,8 +155,8 @@ begin
   select
     lower(trim(u.email)),
     coalesce(
-      nullif(trim(u.raw_user_meta_data ->> 'full_name'), ''),
-      nullif(trim(u.raw_user_meta_data ->> 'name'), ''),
+      nullif(trim(to_jsonb(u) -> 'raw_user_meta_data' ->> 'full_name'), ''),
+      nullif(trim(to_jsonb(u) -> 'raw_user_meta_data' ->> 'name'), ''),
       ''
     )
   into v_email, v_full_name
