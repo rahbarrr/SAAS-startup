@@ -71,7 +71,7 @@ export function getCanonicalProductionRedirectUrl(
 
   return new URL(
     `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`,
-    canonicalOrigin,
+    canonicalOrigin
   );
 }
 
