@@ -86,7 +86,7 @@ jobs:
             echo "External backup reference: ${BACKUP_REFERENCE:-not supplied; the protected apply job creates a verified backup artifact before schema changes}"
             echo "Rollback plan: $ROLLBACK_PLAN"
             echo '```'
-            supabase db push --dry-run 2>&1
+            supabase db push --dry-run --include-all 2>&1
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
@@ -191,7 +191,7 @@ jobs:
           fi
 
       - name: Apply migrations
-        run: supabase db push
+        run: supabase db push --include-all
 
       - name: Post-release verification (RLS coverage, required functions)
         run: |
