@@ -11,21 +11,21 @@ an unknown project.
 
 1. Confirm the Supabase project reference and release target in the deployment
    system.
-2. Export a schema/data backup using the approved Supabase or `pg_dump`
-   procedure, with credentials supplied only through the secret manager.
-3. Verify the backup by checking that the export completed successfully and
-   contains `organizations`, `organization_members`, `profiles`, and
-   `organization_invitations`. Record the backup/export identifier in the
-   release ticket. A backup must not be described as complete until this check
-   passes.
-4. Review migrations 15, 16, 17, 18, 19, and this repository's migration safety lint.
+2. Review migrations 15, 16, 17, 18, 19, and this repository's migration safety lint.
    Migration 17 does not depend on application code from 15 or 16, but the
-   normal ordered release will apply all pending migrations. Confirm that the
+   normal ordered release applies all pending migrations. Confirm that the
    geofencing and billing changes are approved before proceeding.
-5. Before applying migration 18, check for duplicate pending invitations per
-   organization and email. Resolve any existing duplicates through the approved
-   release process before creating the new unique index; do not delete records
-   ad hoc.
+3. Confirm that GitHub Actions has the `PRODUCTION_DB_URL`,
+   `PRODUCTION_SUPABASE_ACCESS_TOKEN`, and
+   `PRODUCTION_SUPABASE_DB_PASSWORD` secrets, and that
+   `PRODUCTION_SUPABASE_PROJECT_REF` points to `lrolhonkrjhuwgnmcdsj`.
+4. The protected apply job will create a private PostgreSQL backup artifact and
+   verify that it contains `organizations`, `organization_members`,
+   `profiles`, and `organization_invitations` before schema changes. It fails
+   closed if the dump cannot be created, verified, or uploaded.
+5. The workflow checks for duplicate pending invitations before applying the
+   unique index. Resolve any existing duplicates through the approved release
+   process; do not delete records ad hoc.
 
 ## Release and verification
 
