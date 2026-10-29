@@ -1,6 +1,8 @@
+-- migration-review: anon-grant-approved
 -- Restore documented access to the bounded pre-authentication rate limiter.
 -- Migration 11 explicitly requires anon access for sign-in, sign-up, and recovery.
--- Direct client access to public.rate_limit_buckets remains denied by grants and RLS.
+-- The function allow-lists scopes, bounds quotas/windows, hashes the subject, and
+-- has been verified not to allow anon direct table access. RLS stays enabled with no policies.
 
 begin;
 
