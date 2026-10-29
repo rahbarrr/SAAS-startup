@@ -1,5 +1,6 @@
 import "server-only";
 import { AppError } from "@/lib/http/envelope";
+import { encryptInvitationToken } from "@/modules/auth/invitation-token-vault";
 import {
   assertValidManagerInOrg,
   generateRawInvitationToken,
@@ -228,6 +229,7 @@ export async function createInvitationForOrg(params: {
     role: input.role,
     tokenHash,
     expiresAt,
+    tokenCiphertext: encryptInvitationToken(rawToken),
   });
 
   const { tokenHash: _redactedHash, ...safeInvitation } = created;

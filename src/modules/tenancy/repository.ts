@@ -41,6 +41,7 @@ export interface CreateInvitationRecordInput {
   role: OrgRole;
   tokenHash: string;
   expiresAt: string;
+  tokenCiphertext?: string | null;
 }
 
 export interface TenancyRepository {
@@ -558,37 +559,15 @@ export class SupabaseTenancyRepository implements TenancyRepository {
     input: CreateInvitationRecordInput
   ): Promise<OrganizationInvitation> {
     const normalizedEmail = input.invitedEmail.toLowerCase().trim();
-
-    // Revoke any prior pending invitations for this email in this organization
-    const { error: revokeError } = await this.supabase
-      .from("organization_invitations")
-      .update({ status: "revoked" })
-      .eq("organization_id", input.orgId)
-      .eq("invited_email", normalizedEmail)
-      .eq("status", "pending");
-
-    if (revokeError) {
-      logger.warn("Failed to revoke prior pending invitation", {
-        orgId: input.orgId,
-        errorCode: revokeError.code,
-        message: revokeError.message,
-      });
-    }
-
     const { data, error } = await this.supabase
-      .from("organization_invitations")
-      .insert({
-        organization_id: input.orgId,
-        invited_email: normalizedEmail,
-        role: input.role,
-        token_hash: input.tokenHash,
-        invited_by: input.invitedBy,
-        status: "pending",
-        expires_at: input.expiresAt,
+      .rpc("create_organization_invitation", {
+        p_organization_id: input.orgId,
+        p_invited_email: normalizedEmail,
+        p_role: input.role,
+        p_token_hash: input.tokenHash,
+        p_expires_at: input.expiresAt,
+        p_token_ciphertext: input.tokenCiphertext ?? null,
       })
-      .select(
-        "id, organization_id, invited_email, role, token_hash, invited_by, status, expires_at, accepted_at, accepted_by, created_at, updated_at"
-      )
       .single<DbOrganizationInvitationRow>();
 
     if (error) {
@@ -610,6 +589,13 @@ export class SupabaseTenancyRepository implements TenancyRepository {
           "CONFLICT",
           "An active invitation already exists for this email address.",
           409
+        );
+      }
+      if (error.code === "22023") {
+        throw new AppError(
+          "VALIDATION_ERROR",
+          "The invitation details are invalid or expired.",
+          400
         );
       }
       if (error.code === "42501") {
@@ -640,6 +626,78 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       },
     });
     return invitation;
+  }
+
+  async claimInvitationEmailDelivery(params: {
+    orgId: string;
+    invitationId: string;
+  }): Promise<{
+    invitationId: string;
+    organizationId: string;
+    recipientEmail: string;
+    organizationName: string;
+    role: OrgRole;
+    expiresAt: string;
+    tokenCiphertext: string;
+    attempts: number;
+  } | null> {
+    const { data, error } = await this.supabase
+      .rpc("claim_organization_invitation_email", {
+        p_organization_id: params.orgId,
+        p_invitation_id: params.invitationId,
+      })
+      .maybeSingle<{
+        invitation_id: string;
+        organization_id: string;
+        recipient_email: string;
+        organization_name: string;
+        role: OrgRole;
+        expires_at: string;
+        token_ciphertext: string;
+        attempts: number;
+      }>();
+
+    if (error) {
+      throw new AppError(
+        "INTERNAL_ERROR",
+        "Unable to prepare invitation email retry",
+        500
+      );
+    }
+    if (!data) return null;
+    return {
+      invitationId: data.invitation_id,
+      organizationId: data.organization_id,
+      recipientEmail: data.recipient_email,
+      organizationName: data.organization_name,
+      role: data.role,
+      expiresAt: data.expires_at,
+      tokenCiphertext: data.token_ciphertext,
+      attempts: data.attempts,
+    };
+  }
+
+  async recordInvitationEmailDelivery(params: {
+    orgId: string;
+    invitationId: string;
+    delivered: boolean;
+    messageId: string | null;
+    error: string | null;
+  }): Promise<void> {
+    const { error } = await this.supabase.rpc("record_organization_invitation_email", {
+      p_organization_id: params.orgId,
+      p_invitation_id: params.invitationId,
+      p_delivered: params.delivered,
+      p_message_id: params.messageId,
+      p_error: params.error,
+    });
+    if (error) {
+      logger.warn("Could not record invitation email delivery state", {
+        orgId: params.orgId,
+        invitationId: params.invitationId,
+        errorCode: error.code,
+      });
+    }
   }
 
   async acceptOrgInvitationByTokenHash(params: {

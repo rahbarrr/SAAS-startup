@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { ZodError } from "zod";
 import { clearActiveOrgCookie, setActiveOrgCookie } from "@/lib/auth/active-org-cookie";
 import { getAuthenticatedUser } from "@/lib/auth/session";
+import { resolveTrustedAppOrigin } from "@/lib/auth/trusted-origin";
 import { AppError, sanitizeErrorMessage } from "@/lib/http/envelope";
 import { logger } from "@/lib/observability/logger";
 import { clientIpFromHeaders, enforceRateLimit } from "@/lib/rate-limit";
@@ -71,11 +72,23 @@ export async function signInAction(rawInput: {
     });
     const user = await signInCaller({ rawInput, authProvider });
 
-    const repository = new SupabaseTenancyRepository(supabase);
-    const memberships = await repository.listUserOrganizations(user.id);
-    const firstActive = memberships[0];
-    if (firstActive) {
-      await setActiveOrgCookie(firstActive.organization.id);
+    try {
+      const repository = new SupabaseTenancyRepository(supabase);
+      const memberships = await repository.listUserOrganizations(user.id);
+      const firstActive = memberships[0];
+      if (firstActive) {
+        await setActiveOrgCookie(firstActive.organization.id);
+      }
+    } catch (error) {
+      logger.error("Authentication succeeded but workspace resolution failed", {
+        userId: user.id,
+        errorCode: error instanceof AppError ? error.code : "INTERNAL_ERROR",
+      });
+      return {
+        ok: false,
+        error:
+          "Your credentials are valid, but workspace access is temporarily unavailable. Please try again.",
+      };
     }
 
     revalidatePath("/", "layout");
@@ -102,16 +115,15 @@ export async function signUpAction(rawInput: {
 
     let redirectToUrl: string | undefined;
     let trustedOrigin: string | undefined;
-    const appUrlValue = process.env.NEXT_PUBLIC_APP_URL?.trim();
+    const appOriginResolution = resolveTrustedAppOrigin();
     const invitationToken =
       typeof rawInput.inviteToken === "string" &&
       /^[A-Za-z0-9_-]{16,256}$/.test(rawInput.inviteToken)
         ? rawInput.inviteToken
         : null;
 
-    if (appUrlValue) {
-      const appUrl = new URL(appUrlValue);
-      trustedOrigin = appUrl.origin;
+    if (appOriginResolution.origin) {
+      trustedOrigin = appOriginResolution.origin;
       const callbackUrl = new URL("/auth/callback", trustedOrigin);
       const nextUrl = new URL("/onboarding", trustedOrigin);
       if (invitationToken) nextUrl.searchParams.set("token", invitationToken);
@@ -127,7 +139,7 @@ export async function signUpAction(rawInput: {
     } else if (invitationToken) {
       throw new AppError(
         "INTERNAL_ERROR",
-        "Email confirmation for invitation links requires NEXT_PUBLIC_APP_URL to be configured.",
+        "Account confirmation redirects are not configured safely. Please contact the workspace administrator.",
         503
       );
     }
@@ -185,8 +197,15 @@ export async function requestPasswordRecoveryAction(rawInput: {
       subject: `email:${String(rawInput.email).trim().toLowerCase()}`,
     });
     // Origin is server-trusted configuration only; never client-supplied.
-    const trustedOrigin =
-      process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000";
+    const trustedOriginResolution = resolveTrustedAppOrigin();
+    if (!trustedOriginResolution.origin) {
+      throw new AppError(
+        "INTERNAL_ERROR",
+        "Password recovery redirects are not configured safely.",
+        503
+      );
+    }
+    const trustedOrigin = trustedOriginResolution.origin;
     const result = await requestPasswordRecoveryForCaller({
       rawInput: { email: rawInput.email },
       redirectToUrl: `${trustedOrigin.replace(/\/+$/, "")}/auth/callback?next=/reset-password`,

@@ -2,7 +2,8 @@
 
 The production project `lrolhonkrjhuwgnmcdsj` was verified at migration
 `20261025000014`. The application requires the company-profile onboarding RPC
-and columns introduced by migration 17, so the release must use the approved
+and columns introduced by migration 17, plus the transactional invitation
+creation changes in migrations 18 and 19, so the release must use the approved
 database release workflow. Do not run ad-hoc SQL from a local shell pointed at
 an unknown project.
 
@@ -17,20 +18,28 @@ an unknown project.
    `organization_invitations`. Record the backup/export identifier in the
    release ticket. A backup must not be described as complete until this check
    passes.
-4. Review migrations 15, 16, 17, and this repository's migration safety lint.
+4. Review migrations 15, 16, 17, 18, 19, and this repository's migration safety lint.
    Migration 17 does not depend on application code from 15 or 16, but the
    normal ordered release will apply all pending migrations. Confirm that the
    geofencing and billing changes are approved before proceeding.
+5. Before applying migration 18, check for duplicate pending invitations per
+   organization and email. Resolve any existing duplicates through the approved
+   release process before creating the new unique index; do not delete records
+   ad hoc.
 
 ## Release and verification
 
 1. Apply pending migrations through the protected release workflow with the
    required manual approval; do not mark migrations as applied manually.
-2. Verify migration history reaches `20261028000017` (and the current release
+2. Verify migration history reaches `20261029000019` (and the current release
    head) and confirm these objects exist:
    `organizations.industry`, `organizations.company_size`,
    `organization_subscriptions`, and
-   `create_organization_with_company_profile(text,text,text,text,text,text,text)`.
+   `create_organization_with_company_profile(text,text,text,text,text,text,text)`,
+   `create_organization_invitation(uuid,text,org_role,text,timestamptz,text)`,
+   `claim_organization_invitation_email(uuid,uuid)`,
+   `record_organization_invitation_email(uuid,uuid,boolean,text,text)`, and the
+   one-pending-invitation unique index.
 3. Run the repository migration lint, typecheck, unit tests, integration tests,
    and production build.
 4. Smoke-test Google sign-in with a test account, complete company onboarding,

@@ -56,6 +56,13 @@ export async function POST(
       invitationToken: result.inviteToken,
       expiresAt: result.invitation.expiresAt,
     });
+    await repository.recordInvitationEmailDelivery({
+      orgId,
+      invitationId: result.invitation.id,
+      delivered: emailDelivery.delivered,
+      messageId: emailDelivery.messageId,
+      error: emailDelivery.error,
+    });
 
     logger.info("Successfully generated workspace invitation", {
       orgId,

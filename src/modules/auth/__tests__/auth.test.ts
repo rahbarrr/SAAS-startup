@@ -189,6 +189,9 @@ describe("Authentication, public sign-up protection, and error sanitization", ()
     expect(sanitizeRedirectPath("https://evil.example.com")).toBe("/");
     expect(sanitizeRedirectPath("//evil.example.com")).toBe("/");
     expect(sanitizeRedirectPath("/\\evil.example.com")).toBe("/");
+    expect(sanitizeRedirectPath("/onboarding?token=invite-token")).toBe(
+      "/onboarding?token=invite-token"
+    );
   });
 
   it("redacts SQL queries, RLS policy strings, JWT tokens, and 64-char token hashes from user-facing error envelopes", () => {

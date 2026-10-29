@@ -15,6 +15,11 @@ const serverEnvSchema = z.object({
     .min(3, "RESEND_FROM_EMAIL must be non-empty")
     .max(254)
     .optional(),
+  INVITATION_TOKEN_ENCRYPTION_KEY: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9_-]{43}$/, "must be a base64url-encoded 32-byte key")
+    .optional(),
   OPENAI_API_KEY: z
     .string()
     .min(1, "OPENAI_API_KEY must be a non-empty string")
@@ -92,6 +97,8 @@ export function getServerEnv(
     CRON_SECRET: envSource.CRON_SECRET || undefined,
     RESEND_API_KEY: envSource.RESEND_API_KEY || undefined,
     RESEND_FROM_EMAIL: envSource.RESEND_FROM_EMAIL || undefined,
+    INVITATION_TOKEN_ENCRYPTION_KEY:
+      envSource.INVITATION_TOKEN_ENCRYPTION_KEY || undefined,
     OPENAI_API_KEY: envSource.OPENAI_API_KEY || undefined,
     OPENAI_REPORT_MODEL: envSource.OPENAI_REPORT_MODEL || undefined,
     OPENAI_API_BASE_URL: envSource.OPENAI_API_BASE_URL || undefined,

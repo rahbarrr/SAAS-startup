@@ -99,12 +99,33 @@ jobs:
       - name: Link production project
         run: supabase link --project-ref "$PRODUCTION_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+
+      - name: Pre-release duplicate invitation check
+        run: |
+          set -euo pipefail
+          duplicates="$(psql "$PRODUCTION_DB_URL" -AtX -v ON_ERROR_STOP=1 <<'SQL'
+            select organization_id::text || ':' || lower(invited_email) || ':' || count(*)::text
+            from public.organization_invitations
+            where status = 'pending'
+            group by organization_id, lower(invited_email)
+            having count(*) > 1
+            order by organization_id, lower(invited_email);
+          SQL
+          )"
+          if [ -n "$duplicates" ]; then
+            echo "::error::Pending duplicate invitations exist; resolve them before applying the transactional invitation migration."
+            exit 1
+          fi
+
       - name: Apply migrations
         run: supabase db push
 
       - name: Post-release verification (RLS coverage, required functions)
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
           psql "$PRODUCTION_DB_URL" -v ON_ERROR_STOP=1 -f supabase/verification/post-release.sql
 
       - name: Record release

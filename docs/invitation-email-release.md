@@ -17,7 +17,9 @@ when any of these are unavailable:
 
 The invitation API passes that result to the team UI, which displays the
 warning and preserves the copy-link fallback. Secret values and provider
-errors are not returned to the browser.
+errors are not returned to the browser. `INVITATION_TOKEN_ENCRYPTION_KEY` is
+required for durable retry; without it, the initial fallback link still works
+but automatic retry is unavailable.
 
 ## Vercel environment variables
 
@@ -30,6 +32,7 @@ appropriate Vercel Environment selector when saving each value.
 NEXT_PUBLIC_APP_URL=https://saas-startup1.vercel.app
 RESEND_API_KEY=<the Resend API key, entered as a secret>
 RESEND_FROM_EMAIL=FieldTrack <invites@your-verified-domain.example>
+INVITATION_TOKEN_ENCRYPTION_KEY=<base64url-encoded 32-byte server secret>
 ```
 
 Use the real verified sender address; the example domain above is a
@@ -41,6 +44,7 @@ placeholder and must not be copied literally.
 NEXT_PUBLIC_APP_URL=https://<your-preview-domain>
 RESEND_API_KEY=<the Resend API key, entered as a secret>
 RESEND_FROM_EMAIL=FieldTrack <invites@your-verified-domain.example>
+INVITATION_TOKEN_ENCRYPTION_KEY=<base64url-encoded 32-byte server secret>
 ```
 
 For a normal Vercel Preview deployment, the server prefers Vercel's system
@@ -50,6 +54,8 @@ invent or expose them as secrets. Keeping `NEXT_PUBLIC_APP_URL` configured for
 Preview is still recommended as an explicit fallback and for local parity.
 
 Do not add `RESEND_API_KEY` to client-exposed variables, source code, or Git.
+Keep `INVITATION_TOKEN_ENCRYPTION_KEY` server-only and use a different value
+for Preview and Production.
 Do not construct invitation links from `Host` or forwarded-host headers.
 
 ## Manual steps
@@ -67,5 +73,8 @@ Do not construct invitation links from `Host` or forwarded-host headers.
 5. Confirm the recipient can accept only with the invited email address and
    that the invitation cannot be reused. If delivery is rejected, confirm the
    invitation remains present and the admin can copy the fallback link.
+6. Use the invitation retry operation only after the retry cooldown shown by
+   the API. It reuses the same invitation token and does not create a second
+   invitation record.
 
 No production database migration or deployment is performed by this change.

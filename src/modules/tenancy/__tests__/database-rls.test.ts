@@ -378,7 +378,7 @@ describe("PostgreSQL Schema, Migrations, RLS Policies, and Workflow Triggers", (
         `insert into public.organization_invitations (
            organization_id, invited_email, role, token_hash, invited_by, created_at, expires_at
          ) values (
-           $1, 'invitee@acme.local', 'field_employee', $2, $3, now() - interval '72 hours', now() - interval '24 hours'
+           $1, 'expired-invitee@acme.local', 'field_employee', $2, $3, now() - interval '72 hours', now() - interval '24 hours'
          )`,
         [ORG_A_ID, expiredTokenHash, ALICE_ADMIN_ORG_A]
       );
@@ -1077,5 +1077,52 @@ describe("PostgreSQL Schema, Migrations, RLS Policies, and Workflow Triggers", (
       /Tables without enabled\+forced RLS: __verify_probe/
     );
     await db.exec(`drop table public.__verify_probe;`);
+  });
+
+  it("serializes invitation replacement and leaves only the newest pending record", async () => {
+    const firstHash = "c".repeat(64);
+    const secondHash = "d".repeat(64);
+    let replacementOrgId = "";
+
+    await runAsAuthenticatedUser(ALICE_ADMIN_ORG_A, async () => {
+      const created = await db.query<{ id: string }>(
+        `select id
+           from public.create_organization_with_company_profile(
+             'Invitation Replacement Test',
+             'invitation-replacement-test',
+             'Retail',
+             '1-10',
+             'India',
+             null,
+             null
+           )`
+      );
+      replacementOrgId = created.rows[0]?.id ?? "";
+    });
+
+    await runAsAuthenticatedUser(ALICE_ADMIN_ORG_A, async () => {
+      await db.query(
+        `select * from public.create_organization_invitation($1, $2, $3, $4, now() + interval '48 hours', null)`,
+        [replacementOrgId, "replacement-invitee@acme.local", "manager", firstHash]
+      );
+      await db.query(
+        `select * from public.create_organization_invitation($1, $2, $3, $4, now() + interval '48 hours', null)`,
+        [replacementOrgId, "replacement-invitee@acme.local", "field_employee", secondHash]
+      );
+    });
+
+    const records = await db.query<{ token_hash: string; status: string }>(
+      `select token_hash, status
+         from public.organization_invitations
+        where organization_id = $1
+          and invited_email = $2
+        order by created_at asc`,
+      [replacementOrgId, "replacement-invitee@acme.local"]
+    );
+
+    expect(records.rows).toEqual([
+      { token_hash: firstHash, status: "revoked" },
+      { token_hash: secondHash, status: "pending" },
+    ]);
   });
 });

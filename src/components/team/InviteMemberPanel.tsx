@@ -15,6 +15,7 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [createdInvite, setCreatedInvite] = useState<{
+    invitationId: string;
     email: string;
     role: string;
     inviteToken: string;
@@ -23,6 +24,7 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
     emailStatusMessage: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   const actionGuard = createInFlightActionGuard();
 
@@ -50,7 +52,12 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
 
       const payload = (await res.json().catch(() => null)) as {
         data?: {
-          invitation: { invitedEmail: string; role: string; expiresAt: string };
+          invitation: {
+            id: string;
+            invitedEmail: string;
+            role: string;
+            expiresAt: string;
+          };
           inviteToken: string;
           emailDelivery?: { delivered: boolean; error?: string | null };
         };
@@ -71,6 +78,7 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
 
       const emailDelivered = payload.data.emailDelivery?.delivered === true;
       setCreatedInvite({
+        invitationId: payload.data.invitation.id,
         email: payload.data.invitation.invitedEmail,
         role: payload.data.invitation.role,
         inviteToken: payload.data.inviteToken,
@@ -91,6 +99,44 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
     } finally {
       setIsSubmitting(false);
       actionGuard.release();
+    }
+  }
+
+  async function handleRetryEmail() {
+    if (!createdInvite || isRetrying) return;
+    setIsRetrying(true);
+    setErrorMessage(null);
+    try {
+      const response = await fetch(
+        `/api/orgs/${orgId}/invitations/${createdInvite.invitationId}/resend`,
+        { method: "POST" }
+      );
+      const payload = (await response.json().catch(() => null)) as {
+        data?: { emailDelivery?: { delivered: boolean; error?: string | null } };
+        error?: { message?: string };
+      } | null;
+      if (!response.ok || !payload?.data?.emailDelivery?.delivered) {
+        throw new Error(
+          payload?.error?.message ??
+            payload?.data?.emailDelivery?.error ??
+            "Invitation email retry was not accepted."
+        );
+      }
+      setCreatedInvite((current) =>
+        current
+          ? {
+              ...current,
+              emailDelivered: true,
+              emailStatusMessage: "Resend accepted the invitation email for delivery.",
+            }
+          : current
+      );
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error ? err.message : "Invitation email retry failed."
+      );
+    } finally {
+      setIsRetrying(false);
     }
   }
 
@@ -162,6 +208,16 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
             : {createdInvite.email} ({createdInvite.role})
           </strong>
           <p style={{ margin: "0.5rem 0" }}>{createdInvite.emailStatusMessage}</p>
+          {!createdInvite.emailDelivered ? (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => void handleRetryEmail()}
+              disabled={isRetrying}
+            >
+              {isRetrying ? "Retrying email…" : "Retry email delivery"}
+            </button>
+          ) : null}
           <p style={{ margin: "0.5rem 0" }}>
             Fallback invitation link (expires in {expiresInHours} hours):
           </p>

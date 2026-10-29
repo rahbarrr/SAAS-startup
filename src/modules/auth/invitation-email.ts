@@ -1,4 +1,5 @@
 import "server-only";
+import { resolveTrustedAppOrigin } from "@/lib/auth/trusted-origin";
 
 export type InvitationEmailProvider = "unconfigured" | "resend";
 
@@ -19,69 +20,7 @@ export interface OrganizationInvitationEmailInput {
   expiresAt: string;
 }
 
-export interface InvitationOriginResolution {
-  origin: string | null;
-  error: string | null;
-}
-
-function parseTrustedOrigin(value: string, label: string): InvitationOriginResolution {
-  try {
-    const url = new URL(value);
-    if (url.protocol !== "https:" && url.protocol !== "http:") {
-      return { origin: null, error: `${label} must use HTTP or HTTPS.` };
-    }
-    if (url.username || url.password || url.search || url.hash || url.pathname !== "/") {
-      return {
-        origin: null,
-        error: `${label} must contain only a trusted application origin.`,
-      };
-    }
-    return { origin: url.origin, error: null };
-  } catch {
-    return { origin: null, error: `${label} must be a valid application URL.` };
-  }
-}
-
-/**
- * Resolves invitation links without consulting request Host/forwarded headers.
- * Vercel's deployment hostname is used only for Preview deployments and must
- * be an HTTPS *.vercel.app hostname. Production always uses the explicitly
- * configured canonical application URL.
- */
-export function resolveInvitationOrigin(
-  envSource: Record<string, string | undefined>
-): InvitationOriginResolution {
-  const deploymentEnvironment = envSource.VERCEL_ENV?.trim();
-  const configuredAppUrl = envSource.NEXT_PUBLIC_APP_URL?.trim();
-
-  if (deploymentEnvironment === "preview") {
-    const deploymentUrl = envSource.VERCEL_URL?.trim();
-    if (deploymentUrl) {
-      const previewUrl = deploymentUrl.startsWith("http")
-        ? deploymentUrl
-        : `https://${deploymentUrl}`;
-      const parsed = parseTrustedOrigin(previewUrl, "VERCEL_URL");
-      if (!parsed.origin) return parsed;
-      if (!new URL(parsed.origin).hostname.endsWith(".vercel.app")) {
-        return {
-          origin: null,
-          error: "VERCEL_URL must be a trusted Vercel Preview hostname.",
-        };
-      }
-      return parsed;
-    }
-  }
-
-  if (!configuredAppUrl) {
-    return {
-      origin: null,
-      error:
-        "Automatic email is not configured. Set RESEND_API_KEY, RESEND_FROM_EMAIL, and NEXT_PUBLIC_APP_URL (or VERCEL_URL for Preview).",
-    };
-  }
-
-  return parseTrustedOrigin(configuredAppUrl, "NEXT_PUBLIC_APP_URL");
-}
+export { resolveTrustedAppOrigin as resolveInvitationOrigin };
 
 function escapeHtml(value: string): string {
   return value
@@ -123,7 +62,7 @@ export async function sendOrganizationInvitationEmail(
     );
   }
 
-  const originResolution = resolveInvitationOrigin(envSource);
+  const originResolution = resolveTrustedAppOrigin(envSource);
   if (!originResolution.origin) {
     return unconfiguredResult(
       originResolution.error ?? "Invitation application URL is not configured safely.",

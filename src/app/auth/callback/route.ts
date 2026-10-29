@@ -1,20 +1,23 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { resolveTrustedAppOrigin } from "@/lib/auth/trusted-origin";
 import { logger } from "@/lib/observability/logger";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import { sanitizeRedirectPath } from "@/modules/auth/schemas";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
   const code = searchParams.get("code");
   const nextPath = sanitizeRedirectPath(searchParams.get("next"), "/onboarding");
 
-  // Determine canonical origin (handles Vercel / reverse proxy x-forwarded-host)
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const forwardedProto = request.headers.get("x-forwarded-proto") ?? "https";
-  const canonicalOrigin = forwardedHost
-    ? `${forwardedProto}://${forwardedHost}`
-    : process.env.NEXT_PUBLIC_APP_URL?.trim() || origin;
+  const originResolution = resolveTrustedAppOrigin();
+  if (!originResolution.origin) {
+    return NextResponse.json(
+      { error: "Authentication callback is not configured safely." },
+      { status: 503 }
+    );
+  }
+  const canonicalOrigin = originResolution.origin;
 
   if (code) {
     const supabase = await createUserServerSupabaseClient();

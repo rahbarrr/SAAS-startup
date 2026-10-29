@@ -24,6 +24,9 @@ begin
 
   -- Company onboarding must be present before the web deployment is promoted.
   perform 'public.create_organization_with_company_profile(text, text, text, text, text, text, text)'::regprocedure;
+  perform 'public.create_organization_invitation(uuid, text, public.org_role, text, timestamptz, text)'::regprocedure;
+  perform 'public.claim_organization_invitation_email(uuid, uuid)'::regprocedure;
+  perform 'public.record_organization_invitation_email(uuid, uuid, boolean, text, text)'::regprocedure;
   if not exists (
     select 1 from information_schema.columns
     where table_schema = 'public'
@@ -39,6 +42,15 @@ begin
       and column_name = 'company_size'
   ) then
     raise exception 'organizations.company_size is missing';
+  end if;
+  if not exists (
+    select 1
+      from pg_indexes
+     where schemaname = 'public'
+       and tablename = 'organization_invitations'
+       and indexname = 'organization_invitations_one_pending_per_email_idx'
+  ) then
+    raise exception 'organization_invitations pending uniqueness index is missing';
   end if;
 
   -- 3. Audit immutability trigger must be present.

@@ -13,7 +13,9 @@ import {
 import {
   acceptInvitationAction,
   onboardOrganizationAction,
+  signOutAction,
 } from "@/modules/auth/actions";
+import { createInFlightActionGuard } from "@/lib/ux/formatting-and-resilience";
 
 function OnboardingContent(): ReactNode {
   const searchParams = useSearchParams();
@@ -27,32 +29,18 @@ function OnboardingContent(): ReactNode {
   const [country, setCountry] = useState("India");
   const [website, setWebsite] = useState("");
   const [phone, setPhone] = useState("");
-  const invitationAutoAcceptStarted = useRef(false);
   const [orgSlug, setOrgSlug] = useState("");
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
   const [inviteToken, setInviteToken] = useState(tokenParam);
   const [error, setError] = useState<string | null>(null);
+  const [invitationEmailMismatch, setInvitationEmailMismatch] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const createOrgActionGuard = useRef(createInFlightActionGuard()).current;
 
   useEffect(() => {
-    if (!tokenParam) return;
     setInviteToken(tokenParam);
-    if (invitationAutoAcceptStarted.current) return;
-    invitationAutoAcceptStarted.current = true;
-    startTransition(async () => {
-      const result = await acceptInvitationAction({ token: tokenParam });
-      if (!result.ok) {
-        setError(
-          result.error ??
-            "Unable to accept invitation. Please sign in with the email address the invitation was sent to."
-        );
-        return;
-      }
-      setMessage(result.message ?? "Invitation accepted. Opening your workspace…");
-      window.location.assign("/");
-    });
-  }, [tokenParam, startTransition]);
+  }, [tokenParam]);
 
   function handleNameChange(val: string) {
     setOrgName(val);
@@ -68,27 +56,33 @@ function OnboardingContent(): ReactNode {
 
   function handleCreateOrg(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!createOrgActionGuard.tryAcquire()) return;
     setError(null);
     setMessage(null);
+    setInvitationEmailMismatch(false);
 
     startTransition(async () => {
-      const result = await onboardOrganizationAction({
-        name: orgName,
-        slug: orgSlug,
-        industry,
-        companySize,
-        country,
-        website,
-        phone,
-      });
-      if (!result.ok) {
-        setError(result.error ?? "Unable to create organization.");
-        return;
+      try {
+        const result = await onboardOrganizationAction({
+          name: orgName,
+          slug: orgSlug,
+          industry,
+          companySize,
+          country,
+          website,
+          phone,
+        });
+        if (!result.ok) {
+          setError(result.error ?? "Unable to create organization.");
+          return;
+        }
+        setMessage(result.message ?? "Organization created successfully.");
+        setTimeout(() => {
+          window.location.assign("/");
+        }, 1000);
+      } finally {
+        createOrgActionGuard.release();
       }
-      setMessage(result.message ?? "Organization created successfully.");
-      setTimeout(() => {
-        window.location.assign("/");
-      }, 1000);
     });
   }
 
@@ -96,17 +90,28 @@ function OnboardingContent(): ReactNode {
     event.preventDefault();
     setError(null);
     setMessage(null);
+    setInvitationEmailMismatch(false);
 
     startTransition(async () => {
       const result = await acceptInvitationAction({ token: inviteToken });
       if (!result.ok) {
         setError(result.error ?? "Unable to accept invitation.");
+        setInvitationEmailMismatch(result.error?.includes("different email") ?? false);
         return;
       }
       setMessage(result.message ?? "Invitation accepted. Redirecting to workspace…");
       setTimeout(() => {
         window.location.assign("/");
       }, 1000);
+    });
+  }
+
+  function handleSwitchInvitationAccount() {
+    startTransition(async () => {
+      await signOutAction();
+      window.location.assign(
+        `/login?next=${encodeURIComponent(`/onboarding?token=${inviteToken}`)}`
+      );
     });
   }
 
@@ -175,6 +180,17 @@ function OnboardingContent(): ReactNode {
         >
           {error}
         </div>
+      ) : null}
+
+      {invitationEmailMismatch ? (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={handleSwitchInvitationAccount}
+          disabled={isPending}
+        >
+          Sign out and use the invited account
+        </button>
       ) : null}
 
       {message ? (

@@ -1,6 +1,7 @@
 import { type CookieOptions, createServerClient } from "@supabase/ssr";
 import { isSameOriginMutation } from "@/lib/http/envelope";
 import { REQUEST_ID_HEADER, resolveRequestId } from "@/lib/observability/logger";
+import { sanitizeRedirectPath } from "@/modules/auth/schemas";
 import { type NextRequest, NextResponse } from "next/server";
 
 const PROTECTED_PREFIXES = [
@@ -131,7 +132,10 @@ async function enforceSessionAndAuth(request: NextRequest): Promise<NextResponse
   if (!user && isProtectedPath(pathname)) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
-    loginUrl.searchParams.set("next", pathname);
+    loginUrl.searchParams.set(
+      "next",
+      sanitizeRedirectPath(`${pathname}${request.nextUrl.search}`, "/")
+    );
     return NextResponse.redirect(loginUrl);
   }
 
