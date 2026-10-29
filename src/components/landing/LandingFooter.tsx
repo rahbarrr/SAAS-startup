@@ -10,7 +10,7 @@ export function LandingFooter(): ReactNode {
         <div className="footer-top-grid">
           {/* Brand Column */}
           <div className="footer-brand-col">
-            <Link href="/landing" className="landing-brand-link">
+            <Link href="/" className="landing-brand-link">
               <div className="landing-brand-icon" aria-hidden="true">
                 F
               </div>
@@ -53,7 +53,7 @@ export function LandingFooter(): ReactNode {
             <h4 className="footer-col-title">Operations</h4>
             <ul className="footer-nav-list">
               <li>
-                <Link href="/">Manager Dashboard</Link>
+                <Link href="/dashboard">Manager Dashboard</Link>
               </li>
               <li>
                 <Link href="/trips">Trip Planning</Link>

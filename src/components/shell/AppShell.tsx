@@ -25,7 +25,7 @@ function PageBreadcrumb() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
 
-  if (segments.length === 0) {
+  if (segments.length === 0 || (segments.length === 1 && segments[0] === "dashboard")) {
     return (
       <div className="flex-row-center">
         <span
@@ -38,6 +38,7 @@ function PageBreadcrumb() {
   }
 
   const formatSegment = (seg: string) => {
+    if (seg === "dashboard") return "Operations Dashboard";
     if (seg === "trips") return "Field Trips";
     if (seg === "visits") return "Store Visits";
     if (seg === "approvals") return "Approvals";
@@ -59,8 +60,8 @@ function PageBreadcrumb() {
       className="flex-row-center"
       style={{ fontSize: "0.875rem" }}
     >
-      <Link href="/" style={{ color: "var(--text-muted)", textDecoration: "none" }}>
-        Home
+      <Link href="/dashboard" style={{ color: "var(--text-muted)", textDecoration: "none" }}>
+        Dashboard
       </Link>
       {segments.map((seg, idx) => {
         const isLast = idx === segments.length - 1;
@@ -141,7 +142,8 @@ function InnerShell({
     });
   }
 
-  const isPublicLanding = pathname === "/landing" || pathname === "/welcome";
+  const isPublicLanding =
+    pathname === "/" || pathname === "/landing" || pathname === "/welcome";
 
   if (isPublicLanding) {
     return (
@@ -163,7 +165,7 @@ function InnerShell({
         {/* Desktop Fixed Left Sidebar */}
         <aside className="app-sidebar" aria-label="Sidebar navigation">
           <div className="sidebar-header">
-            <Link href="/" className="brand-badge">
+            <Link href="/dashboard" className="brand-badge">
               <div className="brand-icon-box">F</div>
               <span>FieldTrack</span>
             </Link>
@@ -242,7 +244,7 @@ function InnerShell({
         >
           <div className="sidebar-header">
             <Link
-              href="/"
+              href="/dashboard"
               className="brand-badge"
               onClick={() => setMobileMenuOpen(false)}
             >

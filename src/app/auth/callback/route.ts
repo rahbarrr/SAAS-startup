@@ -44,8 +44,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           );
 
           destination = hasActiveMembership
-            ? nextUrl.pathname === "/onboarding"
-              ? "/"
+            ? nextUrl.pathname === "/onboarding" || nextPath === "/"
+              ? "/dashboard"
               : nextPath
             : "/onboarding";
         } catch (err) {

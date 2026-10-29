@@ -15,7 +15,7 @@ import { signInAction } from "@/modules/auth/actions";
 export default function LoginPage(): ReactNode {
   const [email, setEmail] = useState("");
   const [inviteToken, setInviteToken] = useState("");
-  const [nextPath, setNextPath] = useState("/");
+  const [nextPath, setNextPath] = useState("/dashboard");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -23,7 +23,8 @@ export default function LoginPage(): ReactNode {
     if (token) setInviteToken(token);
     const candidateNext = params.get("next");
     if (candidateNext) {
-      setNextPath(sanitizeRedirectPath(candidateNext, "/"));
+      const sanitized = sanitizeRedirectPath(candidateNext, "/dashboard");
+      setNextPath(sanitized === "/" ? "/dashboard" : sanitized);
     }
   }, []);
   const [password, setPassword] = useState("");

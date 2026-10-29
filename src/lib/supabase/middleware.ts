@@ -5,6 +5,7 @@ import { sanitizeRedirectPath } from "@/modules/auth/schemas";
 import { type NextRequest, NextResponse } from "next/server";
 
 const PROTECTED_PREFIXES = [
+  "/dashboard",
   "/stores",
   "/trips",
   "/visits",
@@ -15,6 +16,7 @@ const PROTECTED_PREFIXES = [
   "/reports",
   "/ai-insights",
   "/settings",
+  "/audit",
   "/reset-password",
 ] as const;
 

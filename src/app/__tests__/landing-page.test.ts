@@ -1,10 +1,12 @@
 import React from "react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import LandingPage, { metadata } from "@/app/landing/page";
+import RootLandingPage, { metadata } from "@/app/page";
+import LandingPage from "@/app/landing/page";
 import { PLAN_CATALOG } from "@/modules/billing/domain";
+import { isAuthPublicRoute, isProtectedPath } from "@/lib/supabase/middleware";
 
-describe("FieldTrack Enterprise Landing Page", () => {
+describe("FieldTrack Enterprise Landing Page (Root Route '/')", () => {
   it("exports valid, SEO-optimized metadata with the established product name", () => {
     expect(metadata.title).toContain("FieldTrack");
     expect(metadata.description).toBeTruthy();
@@ -12,8 +14,8 @@ describe("FieldTrack Enterprise Landing Page", () => {
     expect(metadata.openGraph?.siteName).toBe("FieldTrack");
   });
 
-  it("renders all core sections from Section A through Section O", () => {
-    const html = renderToStaticMarkup(React.createElement(LandingPage));
+  it("renders all core sections from Section A through Section O directly at '/' without authentication", () => {
+    const html = renderToStaticMarkup(React.createElement(RootLandingPage));
 
     // Section A: Announcement Bar
     expect(html).toContain("Evaluation Pilot");
@@ -106,11 +108,35 @@ describe("FieldTrack Enterprise Landing Page", () => {
     // Section O: Footer
     expect(html).toContain("FieldTrack Inc.");
     expect(html).toContain(String(new Date().getFullYear()));
+    expect(html).toContain('href="/dashboard"');
+  });
+
+  it("also renders the identical landing experience at '/landing'", () => {
+    const rootHtml = renderToStaticMarkup(React.createElement(RootLandingPage));
+    const landingHtml = renderToStaticMarkup(React.createElement(LandingPage));
+    expect(landingHtml).toEqual(rootHtml);
   });
 
   it("does not contain broken empty anchor hashes (href='#')", () => {
-    const html = renderToStaticMarkup(React.createElement(LandingPage));
+    const html = renderToStaticMarkup(React.createElement(RootLandingPage));
     expect(html).not.toContain('href="#"');
     expect(html).not.toContain('href=""');
+  });
+
+  it("verifies routing policy: '/' is public and not blocked, while '/dashboard' is strictly protected", () => {
+    expect(isProtectedPath("/")).toBe(false);
+    expect(isProtectedPath("/landing")).toBe(false);
+    expect(isProtectedPath("/welcome")).toBe(false);
+    expect(isProtectedPath("/invite/12345")).toBe(false);
+
+    expect(isProtectedPath("/dashboard")).toBe(true);
+    expect(isProtectedPath("/dashboard/filters")).toBe(true);
+    expect(isProtectedPath("/trips")).toBe(true);
+    expect(isProtectedPath("/approvals")).toBe(true);
+
+    expect(isAuthPublicRoute("/")).toBe(false);
+    expect(isAuthPublicRoute("/dashboard")).toBe(false);
+    expect(isAuthPublicRoute("/login")).toBe(true);
+    expect(isAuthPublicRoute("/signup")).toBe(true);
   });
 });

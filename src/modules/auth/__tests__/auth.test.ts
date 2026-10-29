@@ -173,16 +173,23 @@ describe("Authentication, public sign-up protection, and error sanitization", ()
   });
 
   it("classifies protected vs public auth paths and blocks open redirects", () => {
+    expect(isProtectedPath("/dashboard")).toBe(true);
+    expect(isProtectedPath("/dashboard/metrics")).toBe(true);
     expect(isProtectedPath("/trips")).toBe(true);
     expect(isProtectedPath("/visits/123")).toBe(true);
     expect(isProtectedPath("/approvals")).toBe(true);
     expect(isProtectedPath("/team")).toBe(true);
     expect(isProtectedPath("/onboarding")).toBe(true);
     expect(isProtectedPath("/login")).toBe(false);
+    expect(isProtectedPath("/")).toBe(false);
+    expect(isProtectedPath("/landing")).toBe(false);
+    expect(isProtectedPath("/invite/test-token")).toBe(false);
 
     expect(isAuthPublicRoute("/login")).toBe(true);
     expect(isAuthPublicRoute("/signup")).toBe(true);
     expect(isAuthPublicRoute("/forgot-password")).toBe(true);
+    expect(isAuthPublicRoute("/")).toBe(false);
+    expect(isAuthPublicRoute("/dashboard")).toBe(false);
 
     // Sanitizes open redirect attempts
     expect(sanitizeRedirectPath("/trips")).toBe("/trips");

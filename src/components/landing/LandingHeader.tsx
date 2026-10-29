@@ -64,7 +64,7 @@ export function LandingHeader(): ReactNode {
       <div className="landing-header-container">
         {/* Brand logo */}
         <Link
-          href="/landing"
+          href="/"
           className="landing-brand-link"
           aria-label="FieldTrack Home"
           onClick={closeMenu}
@@ -95,7 +95,7 @@ export function LandingHeader(): ReactNode {
         <div className="landing-actions">
           {isAuthenticated ? (
             <Link
-              href="/"
+              href="/dashboard"
               className="btn btn-primary landing-cta-btn"
               title={`Logged in as ${currentRole}`}
             >
@@ -181,7 +181,7 @@ export function LandingHeader(): ReactNode {
       >
         <div className="landing-drawer-header">
           <Link
-            href="/landing"
+            href="/"
             className="landing-brand-link"
             onClick={closeMenu}
           >
@@ -219,7 +219,7 @@ export function LandingHeader(): ReactNode {
         <div className="landing-drawer-footer">
           {isAuthenticated ? (
             <Link
-              href="/"
+              href="/dashboard"
               className="btn btn-primary"
               style={{ width: "100%" }}
               onClick={closeMenu}

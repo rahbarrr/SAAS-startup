@@ -37,7 +37,7 @@ export const SIDEBAR_NAV_SECTIONS: NavSection[] = [
   {
     title: "Field Operations",
     items: [
-      { href: "/", label: "Overview", icon: "grid" },
+      { href: "/dashboard", label: "Overview", icon: "grid" },
       { href: "/trips", label: "Trips", icon: "map-pin", badge: "5" },
       {
         href: "/approvals",
@@ -69,7 +69,7 @@ export const SIDEBAR_NAV_SECTIONS: NavSection[] = [
         allowedRoles: ["admin", "manager"],
       },
       { href: "/settings", label: "Settings", icon: "settings" },
-      { href: "/landing", label: "Public Landing Page", icon: "external-link" },
+      { href: "/", label: "Public Landing Page", icon: "external-link" },
     ],
   },
 ];
@@ -304,7 +304,9 @@ export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
                 const isActive =
                   item.href === "/"
                     ? pathname === "/"
-                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                    : item.href === "/dashboard"
+                      ? pathname === "/dashboard"
+                      : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                 return (
                   <li key={item.href}>
