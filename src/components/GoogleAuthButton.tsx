@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import {
   AuthRedirectConfigurationError,
   createAuthCallbackUrl,
+  getCanonicalProductionRedirectUrl,
 } from "@/modules/auth/callback-url";
 
 type GoogleAuthButtonProps = {
@@ -20,6 +21,23 @@ export function GoogleAuthButton({
 }: GoogleAuthButtonProps): ReactNode {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const canonicalUrl = getCanonicalProductionRedirectUrl(
+        process.env.NEXT_PUBLIC_APP_URL,
+        window.location.href,
+        process.env.NEXT_PUBLIC_VERCEL_ENV
+      );
+      if (canonicalUrl) {
+        // Move to the canonical host before beginning OAuth so the PKCE
+        // verifier and callback session remain on the same browser origin.
+        window.location.replace(canonicalUrl.toString());
+      }
+    } catch {
+      // Invalid configuration remains visible through the normal sign-in error.
+    }
+  }, []);
 
   async function handleGoogleAuth(): Promise<void> {
     setIsPending(true);
