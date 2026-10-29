@@ -50,4 +50,19 @@ describe("OAuth callback URL", () => {
     expect(callbackUrl.origin).toBe("https://saas-startup1.vercel.app");
     expect(callbackUrl.searchParams.get("next")).toBe("/onboarding");
   });
+
+  it("prefers the configured public Production URL when Vercel reports another production alias", () => {
+    const callbackUrl = createAuthCallbackUrl(
+      "https://saas-startup1.vercel.app",
+      "https://saas-startup1.vercel.app",
+      "/login",
+      {
+        vercelEnvironment: "production",
+        vercelProjectProductionUrl: "saas-startup1-rahbar1.vercel.app",
+      }
+    );
+
+    expect(callbackUrl.origin).toBe("https://saas-startup1.vercel.app");
+    expect(callbackUrl.pathname).toBe("/auth/callback");
+  });
 });
