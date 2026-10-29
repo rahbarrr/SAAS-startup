@@ -1,15 +1,113 @@
+import { sanitizeRedirectPath } from "./schemas";
+
+export class AuthRedirectConfigurationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AuthRedirectConfigurationError";
+  }
+}
+
+export interface AuthCallbackDeploymentInfo {
+  vercelEnvironment?: string;
+  vercelUrl?: string;
+  vercelProjectProductionUrl?: string;
+}
+
+function normalizeOrigin(value: string, label: string): string {
+  try {
+    const url = new URL(value);
+    if (
+      (url.protocol !== "https:" && url.protocol !== "http:") ||
+      url.username ||
+      url.password ||
+      url.pathname !== "/" ||
+      url.search ||
+      url.hash
+    ) {
+      throw new Error("invalid origin");
+    }
+    return url.origin;
+  } catch {
+    throw new AuthRedirectConfigurationError(
+      `${label} must be a valid application origin. Check the deployment URL configuration.`
+    );
+  }
+}
+
+function originFromVercelDomain(domain: string, label: string): string {
+  const candidate = domain.startsWith("http") ? domain : `https://${domain}`;
+  const origin = normalizeOrigin(candidate, label);
+  if (!origin.startsWith("https://")) {
+    throw new AuthRedirectConfigurationError(`${label} must use HTTPS.`);
+  }
+  return origin;
+}
+
 /**
- * Builds the OAuth return URL on the same canonical host used by the callback
- * handler. Supabase session cookies are host-scoped, so switching hosts after
- * code exchange would make the new session appear to be missing.
+ * Builds the OAuth return URL on the same host that served the sign-in page.
+ * Production uses Vercel's project Production domain (never VERCEL_URL, which
+ * points at a deployment). A mismatch fails before leaving FieldTrack because
+ * Supabase cookies cannot move between hosts after the code exchange.
  */
 export function createAuthCallbackUrl(
   configuredAppUrl: string | undefined,
   currentOrigin: string,
-  nextPath: string
+  nextPath: string,
+  deployment: AuthCallbackDeploymentInfo = {}
 ): URL {
-  const appOrigin = configuredAppUrl?.trim() || currentOrigin;
+  const currentAppOrigin = normalizeOrigin(currentOrigin, "Current application URL");
+  const configuredOrigin = configuredAppUrl?.trim()
+    ? normalizeOrigin(configuredAppUrl.trim(), "NEXT_PUBLIC_APP_URL")
+    : null;
+  const environment = deployment.vercelEnvironment?.trim();
+
+  let appOrigin = configuredOrigin ?? currentAppOrigin;
+
+  if (environment === "production") {
+    const productionOrigin = deployment.vercelProjectProductionUrl?.trim()
+      ? originFromVercelDomain(
+          deployment.vercelProjectProductionUrl.trim(),
+          "VERCEL_PROJECT_PRODUCTION_URL"
+        )
+      : configuredOrigin;
+    if (!productionOrigin) {
+      throw new AuthRedirectConfigurationError(
+        "Production sign-in is not configured. Set NEXT_PUBLIC_APP_URL to the public Production domain."
+      );
+    }
+    if (configuredOrigin && configuredOrigin !== productionOrigin) {
+      throw new AuthRedirectConfigurationError(
+        "Production sign-in URL does not match the Vercel Production domain. Correct NEXT_PUBLIC_APP_URL and redeploy."
+      );
+    }
+    if (currentAppOrigin !== productionOrigin) {
+      throw new AuthRedirectConfigurationError(
+        "Open FieldTrack at its public Production URL before signing in. This deployment URL cannot receive the Production session."
+      );
+    }
+    appOrigin = productionOrigin;
+  } else if (environment === "preview" && !configuredOrigin) {
+    if (deployment.vercelUrl?.trim()) {
+      const previewOrigin = originFromVercelDomain(
+        deployment.vercelUrl.trim(),
+        "VERCEL_URL"
+      );
+      if (!new URL(previewOrigin).hostname.endsWith(".vercel.app")) {
+        throw new AuthRedirectConfigurationError(
+          "VERCEL_URL must be a Vercel Preview hostname."
+        );
+      }
+      appOrigin = previewOrigin;
+    }
+  }
+
+  if (currentAppOrigin !== appOrigin) {
+    throw new AuthRedirectConfigurationError(
+      "The configured sign-in URL does not match this page. Open FieldTrack at its configured application URL and try again."
+    );
+  }
+
   const callbackUrl = new URL("/auth/callback", appOrigin);
-  callbackUrl.searchParams.set("next", nextPath);
+  callbackUrl.searchParams.set("next", sanitizeRedirectPath(nextPath, "/onboarding"));
   return callbackUrl;
 }
