@@ -64,6 +64,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<OrgRole, ReadonlySet<OrgAction>>>
 export interface AuthenticatedUser {
   id: string;
   email: string;
+  fullName?: string | null;
 }
 
 export interface Organization {

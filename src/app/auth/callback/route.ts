@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/observability/logger";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import { sanitizeRedirectPath } from "@/modules/auth/schemas";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
@@ -8,12 +9,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const code = searchParams.get("code");
   const nextPath = sanitizeRedirectPath(searchParams.get("next"), "/onboarding");
 
+  // Determine canonical origin (handles Vercel / reverse proxy x-forwarded-host)
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") ?? "https";
+  const canonicalOrigin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : process.env.NEXT_PUBLIC_APP_URL?.trim() || origin;
+
   if (code) {
     const supabase = await createUserServerSupabaseClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       let destination = nextPath;
-      const nextUrl = new URL(nextPath, origin);
+      const nextUrl = new URL(nextPath, canonicalOrigin);
       const hasInvitationToken =
         nextUrl.pathname === "/onboarding" && nextUrl.searchParams.has("token");
 
@@ -37,16 +45,24 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               ? "/"
               : nextPath
             : "/onboarding";
-        } catch {
+        } catch (err) {
+          logger.warn("Could not check organization memberships during OAuth callback", {
+            error: err instanceof Error ? err.message : String(err),
+          });
           destination = "/onboarding";
         }
       }
 
-      return NextResponse.redirect(new URL(destination, origin));
+      return NextResponse.redirect(new URL(destination, canonicalOrigin));
+    } else {
+      logger.error("OAuth code exchange failed", {
+        errorCode: error.code,
+        errorMessage: error.message,
+      });
     }
   }
 
   return NextResponse.redirect(
-    `${origin}/login?error=Unable+to+verify+authentication+link`
+    `${canonicalOrigin}/login?error=Unable+to+verify+authentication+link`
   );
 }

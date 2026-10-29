@@ -40,8 +40,17 @@ export async function getAuthenticatedUser(
     return null;
   }
 
+  const rawMeta = user.user_metadata as Record<string, unknown> | undefined;
+  const fullName =
+    typeof rawMeta?.full_name === "string" && rawMeta.full_name.trim()
+      ? rawMeta.full_name.trim()
+      : typeof rawMeta?.name === "string" && rawMeta.name.trim()
+        ? rawMeta.name.trim()
+        : null;
+
   return {
     id: user.id,
     email: user.email,
+    fullName,
   };
 }

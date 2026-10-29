@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { ZodError } from "zod";
 import { clearActiveOrgCookie, setActiveOrgCookie } from "@/lib/auth/active-org-cookie";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { AppError, sanitizeErrorMessage } from "@/lib/http/envelope";
+import { logger } from "@/lib/observability/logger";
 import { clientIpFromHeaders, enforceRateLimit } from "@/lib/rate-limit";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
@@ -36,6 +38,17 @@ function toFriendlyActionError(error: unknown): ActionState<never> {
       error: sanitizeErrorMessage(error.message),
     };
   }
+  if (error instanceof ZodError) {
+    const first = error.issues[0];
+    return {
+      ok: false,
+      error: sanitizeErrorMessage(first?.message || "Invalid input provided."),
+    };
+  }
+  logger.error("Unhandled server action failure", {
+    error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+  });
   return {
     ok: false,
     error: "Please check your input and try again.",

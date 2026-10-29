@@ -18,6 +18,7 @@ export interface AppShellProps {
   activeRole?: OrgRole;
   organizations?: readonly OrgSwitcherOption[];
   userEmail?: string | null;
+  userName?: string | null;
 }
 
 function PageBreadcrumb() {
@@ -125,7 +126,7 @@ function InnerShell({
   children,
   activeOrgId,
   activeOrgName = "",
-  activeRole = "field_employee",
+  activeRole,
   organizations = [],
   userEmail = null,
 }: AppShellProps) {
@@ -195,7 +196,7 @@ function InnerShell({
                     className="text-truncate text-muted"
                     style={{ fontSize: "0.6875rem", textTransform: "capitalize" }}
                   >
-                    {profile.role.replace("_", " ")}
+                    {profile.role ? profile.role.replace("_", " ") : "No Workspace"}
                   </span>
                 </div>
               </div>
@@ -270,7 +271,7 @@ function InnerShell({
                     className="text-truncate text-muted"
                     style={{ fontSize: "0.6875rem", textTransform: "capitalize" }}
                   >
-                    {profile.role.replace("_", " ")}
+                    {profile.role ? profile.role.replace("_", " ") : "No Workspace"}
                   </span>
                 </div>
               </div>
@@ -385,6 +386,7 @@ export function AppShell(props: AppShellProps): ReactNode {
     <RoleProvider
       authenticatedEmail={props.userEmail}
       authenticatedRole={props.activeRole}
+      userName={props.userName}
     >
       <ToastProvider>
         <InnerShell {...props} />

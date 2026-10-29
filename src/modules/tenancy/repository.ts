@@ -120,6 +120,31 @@ function mapInvitationRow(row: DbOrganizationInvitationRow): OrganizationInvitat
 export class SupabaseTenancyRepository implements TenancyRepository {
   constructor(private readonly supabase: SupabaseClient) {}
 
+  private throwIfOnboardingSchemaError(error: {
+    code?: string | null;
+    message?: string | null;
+  }): void {
+    const errorCode = error.code ?? "";
+    const msg = error.message ?? "";
+    if (
+      !["PGRST202", "PGRST204", "42703", "42P01", "42883"].includes(errorCode) &&
+      !msg.includes("does not exist") &&
+      !msg.includes("schema cache")
+    ) {
+      return;
+    }
+
+    logger.error("Onboarding database schema is unavailable", {
+      errorCode,
+      errorMessage: msg,
+    });
+    throw new AppError(
+      "INTERNAL_ERROR",
+      "Workspace setup is temporarily unavailable because the onboarding database migration is not applied.",
+      503
+    );
+  }
+
   private async tryRecordAuditEvent(params: {
     orgId: string;
     actorUserId: string | null;
@@ -166,43 +191,129 @@ export class SupabaseTenancyRepository implements TenancyRepository {
   }
 
   async listUserOrganizations(userId: string): Promise<UserOrganizationSummary[]> {
-    const { data, error } = await this.supabase
-      .from("organization_members")
-      .select(
-        `
+    const selectWithCompanyProfile = `
+      id,
+      organization_id,
+      user_id,
+      role,
+      status,
+      manager_user_id,
+      created_at,
+      updated_at,
+      organizations!inner (
         id,
-        organization_id,
-        user_id,
-        role,
+        name,
+        slug,
         status,
-        manager_user_id,
+        created_by,
+        industry,
+        company_size,
+        country,
+        website,
+        phone,
         created_at,
-        updated_at,
-        organizations!inner (
-          id,
-          name,
-          slug,
-          status,
-          created_by,
-          industry,
-          company_size,
-          country,
-          website,
-          phone,
-          created_at,
-          updated_at
-        )
-      `
+        updated_at
       )
+    `;
+
+    const selectBase = `
+      id,
+      organization_id,
+      user_id,
+      role,
+      status,
+      manager_user_id,
+      created_at,
+      updated_at,
+      organizations!inner (
+        id,
+        name,
+        slug,
+        status,
+        created_by,
+        created_at,
+        updated_at
+      )
+    `;
+
+    let rows: Record<string, unknown>[] | null = null;
+    let queryError: {
+      code?: string | null;
+      message?: string | null;
+      details?: string | null;
+      hint?: string | null;
+    } | null = null;
+
+    const initial = await this.supabase
+      .from("organization_members")
+      .select(selectWithCompanyProfile)
       .eq("user_id", userId)
       .eq("status", "active")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      throw new AppError("INTERNAL_ERROR", "Failed to list user organizations", 500);
+    if (initial.error) {
+      const code = initial.error.code ?? "";
+      const msg = initial.error.message ?? "";
+      if (code === "42703" || code === "PGRST204" || msg.includes("does not exist")) {
+        logger.warn("Querying organizations with base schema fallback", {
+          userId,
+          errorCode: code,
+          errorMessage: msg,
+        });
+        const fallback = await this.supabase
+          .from("organization_members")
+          .select(selectBase)
+          .eq("user_id", userId)
+          .eq("status", "active")
+          .order("created_at", { ascending: false });
+
+        if (fallback.error) {
+          queryError = fallback.error;
+        } else {
+          rows = (fallback.data as unknown as Record<string, unknown>[]) ?? null;
+        }
+      } else {
+        queryError = initial.error;
+      }
+    } else {
+      rows = (initial.data as unknown as Record<string, unknown>[]) ?? null;
     }
 
-    return (data ?? []).map((row) => {
+    if (queryError) {
+      const err = queryError;
+      logger.error("Failed to list user organizations from Supabase", {
+        userId,
+        errorCode: err.code,
+        errorMessage: err.message,
+        details: err.details,
+      });
+
+      this.throwIfOnboardingSchemaError(err);
+
+      if (err.code === "42501" || err.message?.includes("permission denied")) {
+        throw new AppError(
+          "FORBIDDEN_ORG_ACCESS",
+          "You do not have permission to view organizations for this account.",
+          403
+        );
+      }
+
+      if (err.code === "PGRST301" || err.message?.includes("JWT")) {
+        throw new AppError(
+          "UNAUTHENTICATED",
+          "Your session has expired. Please sign in again.",
+          401
+        );
+      }
+
+      throw new AppError(
+        "INTERNAL_ERROR",
+        "Failed to load user organizations. Please refresh the page.",
+        500
+      );
+    }
+
+    return (rows ?? []).map((row) => {
       const orgData = Array.isArray(row.organizations)
         ? row.organizations[0]
         : row.organizations;
@@ -249,13 +360,7 @@ export class SupabaseTenancyRepository implements TenancyRepository {
         errorCode: error.code,
         errorMessage: msg,
       });
-      if (["PGRST202", "42883", "42703", "42P01"].includes(error.code ?? "")) {
-        throw new AppError(
-          "INTERNAL_ERROR",
-          "Workspace setup is temporarily unavailable because the onboarding database migration is not applied.",
-          503
-        );
-      }
+      this.throwIfOnboardingSchemaError(error);
       if (msg.includes("Organization subscription is inactive or expired")) {
         throw new AppError("BILLING_SUBSCRIPTION_INACTIVE", msg, 402);
       }
@@ -279,18 +384,26 @@ export class SupabaseTenancyRepository implements TenancyRepository {
       if (error.code === "22023") {
         throw new AppError(
           "VALIDATION_ERROR",
-          "Please check the company information and try again.",
+          msg || "Please check the company information and try again.",
           400
         );
       }
-      if (error.code === "23505") {
+      if (
+        error.code === "23505" ||
+        msg.includes("unique") ||
+        msg.includes("already taken")
+      ) {
         throw new AppError(
           "CONFLICT",
           `Organization slug '${input.slug}' is already taken`,
           409
         );
       }
-      throw new AppError("INTERNAL_ERROR", "Failed to create organization", 500);
+      throw new AppError(
+        "INTERNAL_ERROR",
+        "Failed to create organization. Please try again.",
+        500
+      );
     }
 
     const organization = mapOrganizationRow(data);

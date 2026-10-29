@@ -4,6 +4,7 @@ import { AppShell } from "@/components/shell/AppShell";
 import type { OrgSwitcherOption } from "@/components/shell/OrgSwitcher";
 import { getActiveOrgCookie } from "@/lib/auth/active-org-cookie";
 import { getAuthenticatedUser } from "@/lib/auth/session";
+import { logger } from "@/lib/observability/logger";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import type { OrgRole } from "@/modules/tenancy/domain";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
@@ -36,30 +37,40 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   let activeRole: OrgRole | undefined;
   let organizations: OrgSwitcherOption[] = [];
   let userEmail: string | null = null;
+  let userName: string | null = null;
 
   try {
     const supabase = await createUserServerSupabaseClient();
     const user = await getAuthenticatedUser(supabase);
     if (user) {
       userEmail = user.email;
+      userName = user.fullName ?? null;
       const preferredOrgId = await getActiveOrgCookie();
       const tenancyRepository = new SupabaseTenancyRepository(supabase);
-      const workspace = await resolveActiveWorkspaceForUser({
-        user,
-        preferredOrgId,
-        repository: tenancyRepository,
-      });
 
-      if (workspace.activeOrganization) {
-        activeOrgId = workspace.activeOrganization.organization.id;
-        activeOrgName = workspace.activeOrganization.organization.name;
-        activeRole = workspace.activeOrganization.membership.role;
+      try {
+        const workspace = await resolveActiveWorkspaceForUser({
+          user,
+          preferredOrgId,
+          repository: tenancyRepository,
+        });
+
+        if (workspace.activeOrganization) {
+          activeOrgId = workspace.activeOrganization.organization.id;
+          activeOrgName = workspace.activeOrganization.organization.name;
+          activeRole = workspace.activeOrganization.membership.role;
+        }
+        organizations = workspace.organizations.map((item) => ({
+          orgId: item.organization.id,
+          orgName: item.organization.name,
+          role: item.membership.role,
+        }));
+      } catch (err) {
+        logger.warn("Failed to resolve active workspace in RootLayout", {
+          userId: user.id,
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
-      organizations = workspace.organizations.map((item) => ({
-        orgId: item.organization.id,
-        orgName: item.organization.name,
-        role: item.membership.role,
-      }));
     }
   } catch {
     // Non-blocking fallback for pre-auth states or unconfigured envs
@@ -74,6 +85,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           activeRole={activeRole}
           organizations={organizations}
           userEmail={userEmail}
+          userName={userName}
         >
           {children}
         </AppShell>

@@ -14,7 +14,7 @@ export interface OrgSwitcherOption {
 export interface OrgSwitcherProps {
   activeOrgId?: string;
   activeOrgName: string;
-  activeRole: OrgRole;
+  activeRole?: OrgRole;
   organizations?: readonly OrgSwitcherOption[];
   userEmail?: string | null;
 }
@@ -96,11 +96,19 @@ export function OrgSwitcher({
       ) : (
         <div
           className="org-pill"
-          aria-label={`Active organization: ${activeOrgName}, role: ${ROLE_LABELS[activeRole]}`}
+          aria-label={
+            activeRole
+              ? `Active organization: ${activeOrgName}, role: ${ROLE_LABELS[activeRole]}`
+              : `Active organization: ${activeOrgName || "No Workspace"}`
+          }
         >
           <span>{activeOrgName || "No Workspace"}</span>
-          <span aria-hidden="true">•</span>
-          <span>{ROLE_LABELS[activeRole]}</span>
+          {activeRole && (
+            <>
+              <span aria-hidden="true">•</span>
+              <span>{ROLE_LABELS[activeRole]}</span>
+            </>
+          )}
         </div>
       )}
 

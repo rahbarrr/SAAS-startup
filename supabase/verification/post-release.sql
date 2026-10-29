@@ -22,6 +22,25 @@ begin
   perform 'public.consume_rate_limit(text, text, integer, integer)'::regprocedure;
   perform 'public.decide_submitted_trip(uuid, uuid, public.trip_status, text, jsonb)'::regprocedure;
 
+  -- Company onboarding must be present before the web deployment is promoted.
+  perform 'public.create_organization_with_company_profile(text, text, text, text, text, text, text)'::regprocedure;
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'organizations'
+      and column_name = 'industry'
+  ) then
+    raise exception 'organizations.industry is missing';
+  end if;
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'organizations'
+      and column_name = 'company_size'
+  ) then
+    raise exception 'organizations.company_size is missing';
+  end if;
+
   -- 3. Audit immutability trigger must be present.
   if not exists (
     select 1 from pg_trigger t
