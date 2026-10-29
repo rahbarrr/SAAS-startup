@@ -1,7 +1,43 @@
 import { describe, expect, it } from "vitest";
-import { createAuthCallbackUrl } from "@/modules/auth/callback-url";
+import {
+  createAuthCallbackUrl,
+  getCanonicalProductionRedirectUrl,
+} from "@/modules/auth/callback-url";
 
 describe("OAuth callback URL", () => {
+  it("redirects production deployment URLs to the canonical origin and preserves query state", () => {
+    const redirectUrl = getCanonicalProductionRedirectUrl(
+      "https://saas-startup1.vercel.app",
+      "https://saas-startup1-random-rahbar1.vercel.app/signup?token=invite-token#form",
+      "production"
+    );
+
+    expect(redirectUrl?.origin).toBe("https://saas-startup1.vercel.app");
+    expect(redirectUrl?.pathname).toBe("/signup");
+    expect(redirectUrl?.searchParams.get("token")).toBe("invite-token");
+    expect(redirectUrl?.hash).toBe("#form");
+  });
+
+  it("does not redirect when already on the canonical production origin", () => {
+    expect(
+      getCanonicalProductionRedirectUrl(
+        "https://saas-startup1.vercel.app",
+        "https://saas-startup1.vercel.app/login",
+        "production"
+      )
+    ).toBeNull();
+  });
+
+  it("does not canonicalize a Preview deployment", () => {
+    expect(
+      getCanonicalProductionRedirectUrl(
+        "https://saas-startup1.vercel.app",
+        "https://saas-startup1-git-feature-rahbar1.vercel.app/login",
+        "preview"
+      )
+    ).toBeNull();
+  });
+
   it("rejects switching hosts after the sign-in page has created the OAuth flow", () => {
     expect(() =>
       createAuthCallbackUrl(
