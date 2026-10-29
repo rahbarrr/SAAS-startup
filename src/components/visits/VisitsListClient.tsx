@@ -75,25 +75,18 @@ export function VisitsListClient({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       {/* Page Header */}
-      <section aria-labelledby="visits-heading">
-        <div className="card-header" style={{ alignItems: "center" }}>
-          <div>
-            <h1
-              id="visits-heading"
-              style={{
-                margin: "0 0 0.25rem",
-                fontSize: "1.625rem",
-                fontFamily: "var(--font-heading)",
-                color: "var(--brand-dark)",
-              }}
-            >
-              Store Visits &amp; Execution
-            </h1>
-            <p className="card-meta">
-              Workspace: <strong>{activeOrgName}</strong> • Real-time store stop
-              execution, on-site telemetry, and photo evidence.
-            </p>
-          </div>
+      <section className="page-header" aria-labelledby="visits-heading">
+        <div className="page-header-text">
+          <p className="page-eyebrow">On-Site Execution</p>
+          <h1 id="visits-heading" className="page-title">
+            Store Visits &amp; Execution
+          </h1>
+          <p className="page-subtitle">
+            Workspace: <strong>{activeOrgName}</strong> • Real-time store stop execution,
+            on-site telemetry, and photo evidence.
+          </p>
+        </div>
+        <div className="page-actions">
           <Link href="/trips" className="btn btn-secondary">
             View Active Trips →
           </Link>
@@ -101,119 +94,68 @@ export function VisitsListClient({
       </section>
 
       {/* Quick Summary Cards */}
-      <div
-        className="card-grid"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(11rem, 1fr))" }}
-      >
-        <div
-          className="card"
-          style={{
-            padding: "0.875rem 1rem",
-            borderLeft: "3px solid var(--brand-primary)",
-          }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            Total Visits
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-            }}
-          >
-            {counts.total}
-          </span>
+      <div className="kpi-grid">
+        <div className="kpi-card kpi-card--primary">
+          <div className="kpi-card-top">
+            <span className="kpi-label">Total Visits</span>
+            <span className="kpi-icon" aria-hidden="true">
+              📍
+            </span>
+          </div>
+          <div className="kpi-value">{counts.total}</div>
+          <p className="kpi-footnote">All recorded stops</p>
         </div>
-        <div
-          className="card"
-          style={{
-            padding: "0.875rem 1rem",
-            borderLeft: "3px solid var(--status-success)",
-          }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            Completed
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-              color: "var(--status-success)",
-            }}
-          >
+
+        <div className="kpi-card kpi-card--success">
+          <div className="kpi-card-top">
+            <span className="kpi-label">Completed</span>
+            <span className="kpi-icon" aria-hidden="true">
+              ✓
+            </span>
+          </div>
+          <div className="kpi-value" style={{ color: "var(--status-success)" }}>
             {counts.submitted}
-          </span>
+          </div>
+          <p className="kpi-footnote">Checked out & signed</p>
         </div>
-        <div
-          className="card"
-          style={{ padding: "0.875rem 1rem", borderLeft: "3px solid #3B82F6" }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            In Progress
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-              color: "var(--brand-primary)",
-            }}
-          >
+
+        <div className="kpi-card kpi-card--info">
+          <div className="kpi-card-top">
+            <span className="kpi-label">In Progress</span>
+            <span className="kpi-icon" aria-hidden="true">
+              ⏱️
+            </span>
+          </div>
+          <div className="kpi-value" style={{ color: "var(--status-info-text)" }}>
             {counts.inProgress}
-          </span>
+          </div>
+          <p className="kpi-footnote">Actively checked in</p>
         </div>
-        <div
-          className="card"
-          style={{ padding: "0.875rem 1rem", borderLeft: "3px solid #8B5CF6" }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            Reviewed
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-              color: "#8B5CF6",
-            }}
-          >
+
+        <div className="kpi-card kpi-card--violet">
+          <div className="kpi-card-top">
+            <span className="kpi-label">Reviewed</span>
+            <span className="kpi-icon" aria-hidden="true">
+              📋
+            </span>
+          </div>
+          <div className="kpi-value" style={{ color: "var(--brand-violet-strong)" }}>
             {counts.reviewed}
-          </span>
+          </div>
+          <p className="kpi-footnote">Manager verified</p>
         </div>
-        <div
-          className="card"
-          style={{ padding: "0.875rem 1rem", borderLeft: "3px solid #10B981" }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            Auto Geofenced
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-              color: "#10B981",
-            }}
-          >
+
+        <div className="kpi-card kpi-card--success">
+          <div className="kpi-card-top">
+            <span className="kpi-label">Auto Geofenced</span>
+            <span className="kpi-icon" aria-hidden="true">
+              🎯
+            </span>
+          </div>
+          <div className="kpi-value" style={{ color: "var(--status-success)" }}>
             {counts.autoGeofence}
-          </span>
+          </div>
+          <p className="kpi-footnote">Verified perimeter</p>
         </div>
       </div>
 

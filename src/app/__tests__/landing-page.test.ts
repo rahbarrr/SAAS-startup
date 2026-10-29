@@ -32,8 +32,8 @@ describe("FieldTrack Enterprise Landing Page (Root Route '/')", () => {
     expect(html).toContain('href="/signup"');
 
     // Section C: Hero Section
-    expect(html).toContain("Your field team is on the ground.");
-    expect(html).toContain("Now see the work getting done.");
+    expect(html).toContain("Bring Every Field Trip, Store Visit");
+    expect(html).toContain("and Team Activity Into One Place.");
     expect(html).toContain("Structured trip planning and approvals");
     expect(html).toContain("Verified store visits and evidence");
     expect(html).toContain("Clear field activity and reporting");
@@ -45,7 +45,9 @@ describe("FieldTrack Enterprise Landing Page (Root Route '/')", () => {
     expect(html).toContain("Territory-Wide Visibility");
 
     // Section E: The Problem
-    expect(html).toContain("Managing field operations shouldn&#x27;t mean chasing updates all day.");
+    expect(html).toContain(
+      "Managing field operations shouldn&#x27;t mean chasing updates all day."
+    );
     expect(html).toContain("Scattered Information");
     expect(html).toContain("Limited Visibility");
     expect(html).toContain("Inconsistent Reporting");
@@ -103,7 +105,9 @@ describe("FieldTrack Enterprise Landing Page (Root Route '/')", () => {
 
     // Section N: Final CTA
     expect(html).toContain("Bring clarity to every field visit.");
-    expect(html).toContain("Bring trip planning, store visit execution, and field reporting into one structured workflow.");
+    expect(html).toContain(
+      "Bring trip planning, store visit execution, and field reporting into one structured workflow."
+    );
 
     // Section O: Footer
     expect(html).toContain("FieldTrack Inc.");

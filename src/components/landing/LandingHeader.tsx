@@ -57,10 +57,7 @@ export function LandingHeader(): ReactNode {
   }
 
   return (
-    <header
-      className={`landing-header ${isScrolled ? "is-scrolled" : ""}`}
-      role="banner"
-    >
+    <header className={`landing-header ${isScrolled ? "is-scrolled" : ""}`} role="banner">
       <div className="landing-header-container">
         {/* Brand logo */}
         <Link
@@ -76,10 +73,7 @@ export function LandingHeader(): ReactNode {
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav
-          className="landing-desktop-nav"
-          aria-label="Main product navigation"
-        >
+        <nav className="landing-desktop-nav" aria-label="Main product navigation">
           <ul className="landing-nav-list">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
@@ -104,16 +98,10 @@ export function LandingHeader(): ReactNode {
             </Link>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="landing-signin-link"
-              >
+              <Link href="/login" className="landing-signin-link">
                 Sign In
               </Link>
-              <Link
-                href="/signup"
-                className="btn btn-primary landing-cta-btn"
-              >
+              <Link href="/signup" className="btn btn-primary landing-cta-btn">
                 <span>Get Started</span>
                 <span aria-hidden="true">→</span>
               </Link>
@@ -180,11 +168,7 @@ export function LandingHeader(): ReactNode {
         aria-label="Mobile Navigation"
       >
         <div className="landing-drawer-header">
-          <Link
-            href="/"
-            className="landing-brand-link"
-            onClick={closeMenu}
-          >
+          <Link href="/" className="landing-brand-link" onClick={closeMenu}>
             <div className="landing-brand-icon" aria-hidden="true">
               F
             </div>
@@ -204,11 +188,7 @@ export function LandingHeader(): ReactNode {
           <ul className="landing-drawer-list">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
-                <a
-                  href={link.href}
-                  className="landing-drawer-link"
-                  onClick={closeMenu}
-                >
+                <a href={link.href} className="landing-drawer-link" onClick={closeMenu}>
                   {link.label}
                 </a>
               </li>
@@ -227,7 +207,14 @@ export function LandingHeader(): ReactNode {
               Go to Dashboard →
             </Link>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", width: "100%" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.75rem",
+                width: "100%",
+              }}
+            >
               <Link
                 href="/signup"
                 className="btn btn-primary"
@@ -251,4 +238,3 @@ export function LandingHeader(): ReactNode {
     </header>
   );
 }
-

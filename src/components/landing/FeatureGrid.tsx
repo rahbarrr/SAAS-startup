@@ -15,8 +15,9 @@ export function FeatureGrid(): ReactNode {
             Everything your field operations workflow needs, in one place.
           </h2>
           <p className="section-subtitle">
-            Six cohesive capabilities designed to eliminate guesswork, enforce standard operating
-            procedures, and provide reliable visibility into ground-level execution.
+            Six cohesive capabilities designed to eliminate guesswork, enforce standard
+            operating procedures, and provide reliable visibility into ground-level
+            execution.
           </p>
         </div>
 
@@ -33,8 +34,8 @@ export function FeatureGrid(): ReactNode {
 
             <h3 className="feature-title">Multi-Stop Trip Planning</h3>
             <p className="feature-desc">
-              Plan employee trips, organize store visits, sequence multi-stop itineraries, and set
-              territory schedules directly linked to your master store directory.
+              Plan employee trips, organize store visits, sequence multi-stop itineraries,
+              and set territory schedules directly linked to your master store directory.
             </p>
 
             {/* Visual Micro Preview */}
@@ -68,8 +69,9 @@ export function FeatureGrid(): ReactNode {
 
             <h3 className="feature-title">Multi-Tier Trip Approvals</h3>
             <p className="feature-desc">
-              Give managers a dedicated workflow to inspect itineraries, review travel dates,
-              approve trips, or request revisions with mandatory feedback notes. Self-approval is strictly prevented.
+              Give managers a dedicated workflow to inspect itineraries, review travel
+              dates, approve trips, or request revisions with mandatory feedback notes.
+              Self-approval is strictly prevented.
             </p>
 
             {/* Visual Micro Preview */}
@@ -96,8 +98,9 @@ export function FeatureGrid(): ReactNode {
 
             <h3 className="feature-title">Store Visit Verification</h3>
             <p className="feature-desc">
-              Record authorized GPS check-ins and check-outs with cryptographic timestamps and
-              idempotent visit tokens. Location is strictly captured with employee consent at check-in.
+              Record authorized GPS check-ins and check-outs with cryptographic timestamps
+              and idempotent visit tokens. Location is strictly captured with employee
+              consent at check-in.
             </p>
 
             {/* Visual Micro Preview */}
@@ -124,8 +127,9 @@ export function FeatureGrid(): ReactNode {
 
             <h3 className="feature-title">Checklists & Evidence Vault</h3>
             <p className="feature-desc">
-              Standardize store visit inspections with mandatory checklist items, capture aisle
-              observations, and upload photographic evidence directly into private storage buckets.
+              Standardize store visit inspections with mandatory checklist items, capture
+              aisle observations, and upload photographic evidence directly into private
+              storage buckets.
             </p>
 
             {/* Visual Micro Preview */}
@@ -152,14 +156,17 @@ export function FeatureGrid(): ReactNode {
 
             <h3 className="feature-title">Manager Dashboard & CSV Reports</h3>
             <p className="feature-desc">
-              Review live field execution, trip progress, exceptions, and planned vs. actual
-              stop metrics. Export clean, formula-injection-safe CSV files for executive reporting.
+              Review live field execution, trip progress, exceptions, and planned vs.
+              actual stop metrics. Export clean, formula-injection-safe CSV files for
+              executive reporting.
             </p>
 
             {/* Visual Micro Preview */}
             <div className="feature-micro-preview preview-reports">
               <div className="mini-stat-bar">
-                <span>Planned vs Actual: <strong>94.2%</strong></span>
+                <span>
+                  Planned vs Actual: <strong>94.2%</strong>
+                </span>
                 <span className="tag-green text-xs">Target Met</span>
               </div>
               <div className="mini-bar-track">
@@ -179,8 +186,9 @@ export function FeatureGrid(): ReactNode {
 
             <h3 className="feature-title">AI-Assisted Visit Summaries</h3>
             <p className="feature-desc">
-              Transform unstructured rep notes and checklist responses into clear, concise draft
-              briefings. Every draft requires human review and explicit acceptance before saving.
+              Transform unstructured rep notes and checklist responses into clear, concise
+              draft briefings. Every draft requires human review and explicit acceptance
+              before saving.
             </p>
 
             {/* Visual Micro Preview */}
@@ -190,7 +198,8 @@ export function FeatureGrid(): ReactNode {
                 <span className="text-xs text-muted">Pending Manager Acceptance</span>
               </div>
               <p className="ai-snippet-text">
-                &ldquo;Competitor launched temporary 20% discount on shelf B. Cooler #2 temp flagged at 12°C.&rdquo;
+                &ldquo;Competitor launched temporary 20% discount on shelf B. Cooler #2
+                temp flagged at 12°C.&rdquo;
               </p>
             </div>
           </div>
@@ -199,4 +208,3 @@ export function FeatureGrid(): ReactNode {
     </section>
   );
 }
-

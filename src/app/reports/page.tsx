@@ -96,31 +96,16 @@ export default async function ReportsPage(): Promise<ReactNode> {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
       {/* Page Heading Section */}
-      <section aria-labelledby="reports-heading">
-        <div className="card-header" style={{ alignItems: "center" }}>
-          <div>
-            <h1
-              id="reports-heading"
-              style={{
-                margin: "0 0 0.25rem",
-                fontSize: "1.625rem",
-                fontFamily: "var(--font-heading)",
-                color: "var(--brand-dark)",
-              }}
-            >
-              Operations &amp; Compliance Reports — {activeOrg.name}
-            </h1>
-            <p
-              style={{
-                margin: 0,
-                fontSize: "0.875rem",
-                color: "var(--text-secondary)",
-              }}
-            >
-              Cross-territory field trip velocity, store visit audit scores, and
-              representative performance analytics.
-            </p>
-          </div>
+      <section className="page-header" aria-labelledby="reports-heading">
+        <div className="page-header-text">
+          <p className="page-eyebrow">Enterprise Telemetry</p>
+          <h1 id="reports-heading" className="page-title">
+            Operations &amp; Compliance Reports
+          </h1>
+          <p className="page-subtitle">
+            Workspace: <strong>{activeOrg.name}</strong> • Cross-territory field trip
+            velocity, store visit audit scores, and representative performance analytics.
+          </p>
         </div>
       </section>
 

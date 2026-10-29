@@ -41,13 +41,15 @@ const FAQ_ITEMS: readonly FAQItem[] = [
   },
   {
     id: "faq-6",
-    question: "Does the platform support managers and employees with different permissions?",
+    question:
+      "Does the platform support managers and employees with different permissions?",
     answer:
       "Yes. FieldTrack implements strict role-based access control (RBAC) with three distinct roles: Administrator (workspace governance, store master data, billing, and audit logs), Manager (trip approval queue, territory execution monitoring, and performance reporting), and Field Employee (itinerary access, authorized check-in/out, checklists, and evidence submission). PostgreSQL Row-Level Security policies enforce these boundaries across all operations.",
   },
   {
     id: "faq-7",
-    question: "How does the platform handle GPS check-ins? Does it track employees continuously?",
+    question:
+      "How does the platform handle GPS check-ins? Does it track employees continuously?",
     answer:
       "FieldTrack does not track employee location in the background or monitor continuous movements. Location coordinates are queried strictly with explicit user consent at the single moment an employee triggers a store 'Check In' or 'Check Out'. This guarantees operational verification while respecting field employee privacy.",
   },
@@ -88,8 +90,8 @@ export function FAQSection(): ReactNode {
             Frequently Asked Questions
           </h2>
           <p className="section-subtitle">
-            Everything you need to know about FieldTrack, operational workflows, location practices,
-            and evaluation pilots.
+            Everything you need to know about FieldTrack, operational workflows, location
+            practices, and evaluation pilots.
           </p>
         </div>
 
@@ -98,10 +100,7 @@ export function FAQSection(): ReactNode {
           {FAQ_ITEMS.map((item) => {
             const isOpen = openId === item.id;
             return (
-              <div
-                key={item.id}
-                className={`faq-item ${isOpen ? "is-expanded" : ""}`}
-              >
+              <div key={item.id} className={`faq-item ${isOpen ? "is-expanded" : ""}`}>
                 <h3>
                   <button
                     type="button"
@@ -149,4 +148,3 @@ export function FAQSection(): ReactNode {
     </section>
   );
 }
-

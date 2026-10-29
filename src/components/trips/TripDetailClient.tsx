@@ -356,23 +356,24 @@ export function TripDetailClient({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <section aria-labelledby="trip-detail-heading">
-        <div className="card-header">
-          <div>
-            <Link
-              href="/trips"
-              className="card-meta"
-              style={{ display: "inline-block", marginBottom: "0.5rem" }}
-            >
-              ← Back to Field Trips
-            </Link>
-            <h1 id="trip-detail-heading" style={{ margin: 0, fontSize: "1.5rem" }}>
-              {trip.title}
-            </h1>
-            <p className="card-meta">
-              📅 {trip.startDate} to {trip.endDate} • Trip ID: <code>{trip.id}</code>
-            </p>
-          </div>
+      <section className="page-header" aria-labelledby="trip-detail-heading">
+        <div className="page-header-text">
+          <Link
+            href="/trips"
+            className="auth-back-link"
+            style={{ marginBottom: "0.25rem" }}
+          >
+            ← Back to Field Trips
+          </Link>
+          <h1 id="trip-detail-heading" className="page-title">
+            {trip.title}
+          </h1>
+          <p className="page-subtitle">
+            📅 <strong>{trip.startDate}</strong> to <strong>{trip.endDate}</strong> • Trip
+            ID: <code>{trip.id}</code>
+          </p>
+        </div>
+        <div className="page-actions">
           <StatusBadge descriptor={getApprovalStatusDescriptor(trip.status)} />
         </div>
       </section>
@@ -386,18 +387,9 @@ export function TripDetailClient({
       ) : null}
 
       {confirmation ? (
-        <div
-          role="status"
-          aria-live="polite"
-          className="state-panel"
-          style={{
-            padding: "0.875rem 1.25rem",
-            textAlign: "left",
-            backgroundColor: "var(--color-success-subtle, #ecfdf5)",
-            border: "1px solid var(--color-success-border, #a7f3d0)",
-          }}
-        >
-          <strong>{confirmation}</strong>
+        <div role="status" aria-live="polite" className="alert alert--success">
+          <span aria-hidden="true">✓</span>
+          <span>{confirmation}</span>
         </div>
       ) : null}
 

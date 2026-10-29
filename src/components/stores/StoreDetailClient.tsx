@@ -194,38 +194,68 @@ export function StoreDetailClient({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <section aria-labelledby="store-detail-heading">
-        <div className="card-header">
+        <div className="page-header" style={{ marginBottom: "1rem" }}>
           <div>
             <Link
               href="/stores"
               className="card-meta"
-              style={{ display: "inline-block", marginBottom: "0.5rem" }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                marginBottom: "0.5rem",
+                color: "var(--color-primary-brand)",
+                textDecoration: "none",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+              }}
             >
               ← Back to Store Directory
             </Link>
-            <h1 id="store-detail-heading" style={{ margin: 0, fontSize: "1.5rem" }}>
-              {store.name}
-            </h1>
-            <p className="card-meta">
-              Store ID: <code>{store.id}</code> • Region: <strong>{store.region}</strong>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+                flexWrap: "wrap",
+              }}
+            >
+              <h1 id="store-detail-heading" className="page-title">
+                {store.name}
+              </h1>
+              <span
+                style={{
+                  fontSize: "0.8125rem",
+                  fontWeight: 700,
+                  padding: "0.25rem 0.75rem",
+                  borderRadius: "9999px",
+                  backgroundColor: store.active
+                    ? "var(--color-success-subtle, #ecfdf5)"
+                    : "var(--color-danger-subtle, #fef2f2)",
+                  color: store.active
+                    ? "var(--color-success-text, #065f46)"
+                    : "var(--color-danger-text, #991b1b)",
+                  border: `1px solid ${store.active ? "var(--color-success-border, #a7f3d0)" : "var(--color-danger-border, #fecaca)"}`,
+                }}
+              >
+                {store.active ? "● Active Store" : "○ Archived Store"}
+              </span>
+            </div>
+            <p className="page-subtitle" style={{ marginTop: "0.35rem" }}>
+              Store ID:{" "}
+              <code
+                style={{
+                  fontSize: "0.8125rem",
+                  padding: "0.15rem 0.4rem",
+                  background: "var(--color-bg-subtle)",
+                  borderRadius: "4px",
+                }}
+              >
+                {store.id}
+              </code>{" "}
+              • Region: <strong>{store.region}</strong>
             </p>
           </div>
-          <span
-            style={{
-              fontSize: "0.875rem",
-              fontWeight: 700,
-              padding: "0.25rem 0.75rem",
-              borderRadius: "9999px",
-              backgroundColor: store.active
-                ? "var(--color-success-subtle, #ecfdf5)"
-                : "var(--color-danger-subtle, #fef2f2)",
-              color: store.active
-                ? "var(--color-success-text, #065f46)"
-                : "var(--color-danger-text, #991b1b)",
-            }}
-          >
-            {store.active ? "Active" : "Archived"}
-          </span>
         </div>
       </section>
 

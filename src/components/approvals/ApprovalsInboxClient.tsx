@@ -178,37 +178,20 @@ export function ApprovalsInboxClient({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       {/* Page Header */}
-      <section aria-labelledby="inbox-heading">
-        <div className="card-header" style={{ alignItems: "center" }}>
-          <div>
-            <h1
-              id="inbox-heading"
-              style={{
-                margin: "0 0 0.25rem",
-                fontSize: "1.625rem",
-                fontFamily: "var(--font-heading)",
-                color: "var(--brand-dark)",
-              }}
-            >
-              Manager Approval Inbox
-            </h1>
-            <p className="card-meta">
-              Workspace: <strong>{activeOrgName}</strong> • Policy compliance
-              verification, self-approval prevention, and trip approvals.
-            </p>
-          </div>
+      <section className="page-header" aria-labelledby="inbox-heading">
+        <div className="page-header-text">
+          <p className="page-eyebrow">Governance & Approvals</p>
+          <h1 id="inbox-heading" className="page-title">
+            Manager Approval Inbox
+          </h1>
+          <p className="page-subtitle">
+            Workspace: <strong>{activeOrgName}</strong> • Policy compliance verification,
+            self-approval prevention, and trip approvals.
+          </p>
+        </div>
 
-          <span
-            style={{
-              padding: "0.25rem 0.625rem",
-              borderRadius: "var(--radius-full)",
-              backgroundColor: "var(--status-info-bg)",
-              color: "var(--brand-primary)",
-              fontWeight: 700,
-              fontSize: "0.8125rem",
-              border: "1px solid var(--status-info-border)",
-            }}
-          >
+        <div className="page-actions">
+          <span className="status-badge status-badge--warning">
             {pendingTrips.length} Pending Review
           </span>
         </div>

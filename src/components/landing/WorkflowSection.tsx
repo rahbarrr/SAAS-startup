@@ -2,7 +2,11 @@ import type { ReactNode } from "react";
 
 export function WorkflowSection(): ReactNode {
   return (
-    <section id="how-it-works" className="workflow-section" aria-labelledby="workflow-heading">
+    <section
+      id="how-it-works"
+      className="workflow-section"
+      aria-labelledby="workflow-heading"
+    >
       <div className="landing-section-container">
         {/* Section Header */}
         <div className="section-header-centered">
@@ -11,8 +15,8 @@ export function WorkflowSection(): ReactNode {
             From trip planning to verified execution.
           </h2>
           <p className="section-subtitle">
-            A clear, four-phase operational cycle that ensures accountability before, during,
-            and after every store visit.
+            A clear, four-phase operational cycle that ensures accountability before,
+            during, and after every store visit.
           </p>
         </div>
 
@@ -27,8 +31,9 @@ export function WorkflowSection(): ReactNode {
 
             <h3 className="workflow-step-title">Plan the Route</h3>
             <p className="workflow-step-desc">
-              Field employees build travel plans with clear objectives, start/end dates, and
-              sequenced store stops chosen directly from the organization&apos;s verified store directory.
+              Field employees build travel plans with clear objectives, start/end dates,
+              and sequenced store stops chosen directly from the organization&apos;s
+              verified store directory.
             </p>
 
             <div className="workflow-step-preview">
@@ -62,8 +67,9 @@ export function WorkflowSection(): ReactNode {
 
             <h3 className="workflow-step-title">Manager Approves</h3>
             <p className="workflow-step-desc">
-              The assigned manager inspects the proposed stops and dates in their approval queue.
-              They can approve the itinerary, reject it, or request changes with mandatory notes.
+              The assigned manager inspects the proposed stops and dates in their approval
+              queue. They can approve the itinerary, reject it, or request changes with
+              mandatory notes.
             </p>
 
             <div className="workflow-step-preview">
@@ -97,8 +103,9 @@ export function WorkflowSection(): ReactNode {
 
             <h3 className="workflow-step-title">Execute & Verify</h3>
             <p className="workflow-step-desc">
-              On arrival, the representative triggers an authorized GPS check-in, performs required
-              shelf inspections, records observations, and uploads photo evidence before checkout.
+              On arrival, the representative triggers an authorized GPS check-in, performs
+              required shelf inspections, records observations, and uploads photo evidence
+              before checkout.
             </p>
 
             <div className="workflow-step-preview">
@@ -132,8 +139,9 @@ export function WorkflowSection(): ReactNode {
 
             <h3 className="workflow-step-title">Review & Insights</h3>
             <p className="workflow-step-desc">
-              Managers review execution outcomes, inspect photos, resolve exceptions, and verify
-              territory compliance. AI summaries provide structured briefings after human sign-off.
+              Managers review execution outcomes, inspect photos, resolve exceptions, and
+              verify territory compliance. AI summaries provide structured briefings after
+              human sign-off.
             </p>
 
             <div className="workflow-step-preview">
@@ -156,4 +164,3 @@ export function WorkflowSection(): ReactNode {
     </section>
   );
 }
-

@@ -21,17 +21,11 @@ export function FinalCTA(): ReactNode {
             </p>
 
             <div className="final-cta-buttons">
-              <Link
-                href="/signup"
-                className="btn btn-primary cta-btn-white"
-              >
+              <Link href="/signup" className="btn btn-primary cta-btn-white">
                 <span>Get Started</span>
                 <span aria-hidden="true">→</span>
               </Link>
-              <Link
-                href="/login"
-                className="btn btn-secondary cta-btn-outline"
-              >
+              <Link href="/login" className="btn btn-secondary cta-btn-outline">
                 Sign In to Workspace
               </Link>
             </div>
@@ -49,4 +43,3 @@ export function FinalCTA(): ReactNode {
     </section>
   );
 }
-

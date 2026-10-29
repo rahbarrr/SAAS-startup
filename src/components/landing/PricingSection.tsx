@@ -17,8 +17,9 @@ export function PricingSection(): ReactNode {
             Predictable pricing for growing field teams.
           </h2>
           <p className="section-subtitle">
-            Start with our 14-day structured evaluation pilot. Upgrade to Pro or Enterprise
-            as your store directory, field headcount, and territory requirements scale.
+            Start with our 14-day structured evaluation pilot. Upgrade to Pro or
+            Enterprise as your store directory, field headcount, and territory
+            requirements scale.
           </p>
         </div>
 
@@ -62,17 +63,16 @@ export function PricingSection(): ReactNode {
             <ul className="pricing-features-list">
               {pilot.features.map((feature) => (
                 <li key={feature}>
-                  <span className="feature-check" aria-hidden="true">✓</span>
+                  <span className="feature-check" aria-hidden="true">
+                    ✓
+                  </span>
                   <span>{feature}</span>
                 </li>
               ))}
             </ul>
 
             <div className="pricing-cta-wrapper">
-              <Link
-                href="/signup"
-                className="btn btn-secondary pricing-btn"
-              >
+              <Link href="/signup" className="btn btn-secondary pricing-btn">
                 <span>Start Free Pilot</span>
                 <span aria-hidden="true">→</span>
               </Link>
@@ -96,7 +96,10 @@ export function PricingSection(): ReactNode {
                 <span className="price-number">{pro.monthlyBasePriceUsd}</span>
                 <span className="price-frequency">/mo</span>
               </div>
-              <span className="price-period">Base includes {pro.includedSeats} seats • +${pro.monthlySeatPriceUsd}/extra seat</span>
+              <span className="price-period">
+                Base includes {pro.includedSeats} seats • +${pro.monthlySeatPriceUsd}
+                /extra seat
+              </span>
             </div>
 
             <div className="pricing-entitlements-box">
@@ -121,29 +124,34 @@ export function PricingSection(): ReactNode {
             <ul className="pricing-features-list">
               {pro.features.map((feature) => (
                 <li key={feature}>
-                  <span className="feature-check check-accent" aria-hidden="true">✓</span>
+                  <span className="feature-check check-accent" aria-hidden="true">
+                    ✓
+                  </span>
                   <span>{feature}</span>
                 </li>
               ))}
               <li>
-                <span className="feature-check check-accent" aria-hidden="true">✓</span>
+                <span className="feature-check check-accent" aria-hidden="true">
+                  ✓
+                </span>
                 <span>Manager approval workflows &amp; live dashboards</span>
               </li>
               <li>
-                <span className="feature-check check-accent" aria-hidden="true">✓</span>
+                <span className="feature-check check-accent" aria-hidden="true">
+                  ✓
+                </span>
                 <span>CSV export with formula injection defense</span>
               </li>
             </ul>
 
             <div className="pricing-cta-wrapper">
-              <Link
-                href="/signup"
-                className="btn btn-primary pricing-btn btn-pro"
-              >
+              <Link href="/signup" className="btn btn-primary pricing-btn btn-pro">
                 <span>Get Started with Pro</span>
                 <span aria-hidden="true">→</span>
               </Link>
-              <small className="pricing-note">Billed monthly via Stripe • Cancel anytime</small>
+              <small className="pricing-note">
+                Billed monthly via Stripe • Cancel anytime
+              </small>
             </div>
           </div>
 
@@ -161,7 +169,10 @@ export function PricingSection(): ReactNode {
                 <span className="price-number">{enterprise.monthlyBasePriceUsd}</span>
                 <span className="price-frequency">/mo</span>
               </div>
-              <span className="price-period">Base includes {enterprise.includedSeats} seats • +${enterprise.monthlySeatPriceUsd}/extra seat</span>
+              <span className="price-period">
+                Base includes {enterprise.includedSeats} seats • +$
+                {enterprise.monthlySeatPriceUsd}/extra seat
+              </span>
             </div>
 
             <div className="pricing-entitlements-box">
@@ -186,25 +197,28 @@ export function PricingSection(): ReactNode {
             <ul className="pricing-features-list">
               {enterprise.features.map((feature) => (
                 <li key={feature}>
-                  <span className="feature-check" aria-hidden="true">✓</span>
+                  <span className="feature-check" aria-hidden="true">
+                    ✓
+                  </span>
                   <span>{feature}</span>
                 </li>
               ))}
               <li>
-                <span className="feature-check" aria-hidden="true">✓</span>
+                <span className="feature-check" aria-hidden="true">
+                  ✓
+                </span>
                 <span>Dedicated account manager &amp; onboarding</span>
               </li>
             </ul>
 
             <div className="pricing-cta-wrapper">
-              <Link
-                href="/signup"
-                className="btn btn-secondary pricing-btn"
-              >
+              <Link href="/signup" className="btn btn-secondary pricing-btn">
                 <span>Contact Enterprise</span>
                 <span aria-hidden="true">→</span>
               </Link>
-              <small className="pricing-note">Custom terms &amp; invoicing available</small>
+              <small className="pricing-note">
+                Custom terms &amp; invoicing available
+              </small>
             </div>
           </div>
         </div>
@@ -212,4 +226,3 @@ export function PricingSection(): ReactNode {
     </section>
   );
 }
-

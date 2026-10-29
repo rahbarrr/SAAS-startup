@@ -68,27 +68,17 @@ export default async function AiInsightsPage(): Promise<ReactNode> {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
       {/* Page Heading Section */}
-      <section aria-labelledby="ai-insights-heading">
-        <div className="card-header" style={{ alignItems: "center" }}>
-          <div>
-            <h1
-              id="ai-insights-heading"
-              style={{
-                margin: "0 0 0.25rem",
-                fontSize: "1.625rem",
-                fontFamily: "var(--font-heading)",
-                color: "var(--brand-dark)",
-              }}
-            >
-              AI Field Intelligence &amp; Insights — {activeOrg.name}
-            </h1>
-            <p
-              style={{ margin: 0, fontSize: "0.875rem", color: "var(--text-secondary)" }}
-            >
-              Automated synthesis of daily operations, overdue visits, pending approvals,
-              and suggested managerial follow-ups.
-            </p>
-          </div>
+      <section className="page-header" aria-labelledby="ai-insights-heading">
+        <div className="page-header-text">
+          <p className="page-eyebrow">Operational Intelligence</p>
+          <h1 id="ai-insights-heading" className="page-title">
+            AI Field Intelligence &amp; Insights
+          </h1>
+          <p className="page-subtitle">
+            Workspace: <strong>{activeOrg.name}</strong> • Automated synthesis of daily
+            operations, overdue visits, pending approvals, and suggested managerial
+            follow-ups.
+          </p>
         </div>
       </section>
 

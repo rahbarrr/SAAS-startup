@@ -9,4 +9,3 @@ export default async function InviteRedirectPage(props: InvitePageProps) {
   const token = resolvedParams.token ? encodeURIComponent(resolvedParams.token) : "";
   redirect(`/onboarding?token=${token}`);
 }
-

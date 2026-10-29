@@ -11,8 +11,9 @@ export function ProblemSection(): ReactNode {
             Managing field operations shouldn&apos;t mean chasing updates all day.
           </h2>
           <p className="section-subtitle">
-            When field teams operate across dozens of stores, traditional communication channels
-            break down—creating blind spots for managers and administrative friction for reps.
+            When field teams operate across dozens of stores, traditional communication
+            channels break down—creating blind spots for managers and administrative
+            friction for reps.
           </p>
         </div>
 
@@ -22,8 +23,9 @@ export function ProblemSection(): ReactNode {
             <div className="problem-badge badge-danger">Problem 01</div>
             <h3 className="problem-card-title">Scattered Information</h3>
             <p className="problem-card-desc">
-              Trip itineraries, store photos, manager approvals, and critical observations are
-              scattered across chat groups, personal email inboxes, and fragile spreadsheets.
+              Trip itineraries, store photos, manager approvals, and critical observations
+              are scattered across chat groups, personal email inboxes, and fragile
+              spreadsheets.
             </p>
             <div className="problem-impact-pill">
               <span className="impact-dot" aria-hidden="true" />
@@ -35,8 +37,9 @@ export function ProblemSection(): ReactNode {
             <div className="problem-badge badge-warning">Problem 02</div>
             <h3 className="problem-card-title">Limited Visibility</h3>
             <p className="problem-card-desc">
-              Managers struggle to verify which store visits actually occurred, whether audits
-              were completed thoroughly, and where urgent store follow-up is required.
+              Managers struggle to verify which store visits actually occurred, whether
+              audits were completed thoroughly, and where urgent store follow-up is
+              required.
             </p>
             <div className="problem-impact-pill">
               <span className="impact-dot" aria-hidden="true" />
@@ -49,7 +52,8 @@ export function ProblemSection(): ReactNode {
             <h3 className="problem-card-title">Inconsistent Reporting</h3>
             <p className="problem-card-desc">
               Manual end-of-week summaries vary wildly in quality and detail between reps,
-              making it impossible to fairly compare territory performance or identify trends.
+              making it impossible to fairly compare territory performance or identify
+              trends.
             </p>
             <div className="problem-impact-pill">
               <span className="impact-dot" aria-hidden="true" />
@@ -62,7 +66,9 @@ export function ProblemSection(): ReactNode {
         <div className="workflow-comparison-wrapper">
           <div className="comparison-card card-fragmented">
             <div className="comparison-header">
-              <span className="comparison-badge badge-status-danger">Fragmented Traditional Workflow</span>
+              <span className="comparison-badge badge-status-danger">
+                Fragmented Traditional Workflow
+              </span>
               <h4>Spreadsheet & Chat Chaos</h4>
             </div>
 
@@ -71,21 +77,28 @@ export function ProblemSection(): ReactNode {
                 <span className="step-num">1</span>
                 <div>
                   <strong>Unsynchronized Route Plans</strong>
-                  <p>Reps propose travel via email threads with no link to store directories.</p>
+                  <p>
+                    Reps propose travel via email threads with no link to store
+                    directories.
+                  </p>
                 </div>
               </div>
               <div className="comparison-step step-bad">
                 <span className="step-num">2</span>
                 <div>
                   <strong>Informal Chat Approvals</strong>
-                  <p>Managers send thumbs-up in WhatsApp without structured travel records.</p>
+                  <p>
+                    Managers send thumbs-up in WhatsApp without structured travel records.
+                  </p>
                 </div>
               </div>
               <div className="comparison-step step-bad">
                 <span className="step-num">3</span>
                 <div>
                   <strong>Unverified On-Site Visits</strong>
-                  <p>Photos sent with no verifiable GPS check-in or checklist validation.</p>
+                  <p>
+                    Photos sent with no verifiable GPS check-in or checklist validation.
+                  </p>
                 </div>
               </div>
               <div className="comparison-step step-bad">
@@ -104,7 +117,9 @@ export function ProblemSection(): ReactNode {
 
           <div className="comparison-card card-centralized">
             <div className="comparison-header">
-              <span className="comparison-badge badge-status-success">The FieldTrack Platform</span>
+              <span className="comparison-badge badge-status-success">
+                The FieldTrack Platform
+              </span>
               <h4>Structured Field Operations</h4>
             </div>
 
@@ -113,28 +128,39 @@ export function ProblemSection(): ReactNode {
                 <span className="step-num">1</span>
                 <div>
                   <strong>Multi-Stop Itinerary Sequencing</strong>
-                  <p>Reps build structured trips selected directly from verified store directories.</p>
+                  <p>
+                    Reps build structured trips selected directly from verified store
+                    directories.
+                  </p>
                 </div>
               </div>
               <div className="comparison-step step-good">
                 <span className="step-num">2</span>
                 <div>
                   <strong>Audited Manager Approvals</strong>
-                  <p>Dedicated approval inbox with mandatory decision notes and audit logging.</p>
+                  <p>
+                    Dedicated approval inbox with mandatory decision notes and audit
+                    logging.
+                  </p>
                 </div>
               </div>
               <div className="comparison-step step-good">
                 <span className="step-num">3</span>
                 <div>
                   <strong>Consent-Driven GPS Verification</strong>
-                  <p>Authorized check-ins enforce required checklists and secure photo evidence.</p>
+                  <p>
+                    Authorized check-ins enforce required checklists and secure photo
+                    evidence.
+                  </p>
                 </div>
               </div>
               <div className="comparison-step step-good">
                 <span className="step-num">4</span>
                 <div>
                   <strong>Automated Territory Analytics</strong>
-                  <p>Live KPI dashboards, exception alerts, and formula-safe CSV exports.</p>
+                  <p>
+                    Live KPI dashboards, exception alerts, and formula-safe CSV exports.
+                  </p>
                 </div>
               </div>
             </div>
@@ -144,4 +170,3 @@ export function ProblemSection(): ReactNode {
     </section>
   );
 }
-

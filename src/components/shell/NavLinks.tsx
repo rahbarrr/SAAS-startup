@@ -38,12 +38,11 @@ export const SIDEBAR_NAV_SECTIONS: NavSection[] = [
     title: "Field Operations",
     items: [
       { href: "/dashboard", label: "Overview", icon: "grid" },
-      { href: "/trips", label: "Trips", icon: "map-pin", badge: "5" },
+      { href: "/trips", label: "Trips", icon: "map-pin" },
       {
         href: "/approvals",
         label: "Approvals",
         icon: "check-circle",
-        badge: "3",
         allowedRoles: ["admin", "manager"],
       },
       { href: "/visits", label: "Store Visits", icon: "clipboard-list" },

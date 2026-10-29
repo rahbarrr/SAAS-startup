@@ -44,7 +44,9 @@ export const metadata: Metadata = {
 export default function RootLandingPage(): ReactNode {
   return (
     <div className="landing-page-root" aria-labelledby="hero-heading">
-      <h1 className="sr-only">FieldTrack — Field Operations &amp; Travel Tracking SaaS</h1>
+      <h1 className="sr-only">
+        FieldTrack — Field Operations &amp; Travel Tracking SaaS
+      </h1>
 
       {/* Section A: Announcement Bar */}
       <LandingAnnouncement />
