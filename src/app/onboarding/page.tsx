@@ -80,6 +80,10 @@ function OnboardingContent(): ReactNode {
         setTimeout(() => {
           window.location.assign("/");
         }, 1000);
+      } catch {
+        setError(
+          "We couldn't submit workspace setup. Check your connection and try again."
+        );
       } finally {
         createOrgActionGuard.release();
       }
@@ -93,16 +97,22 @@ function OnboardingContent(): ReactNode {
     setInvitationEmailMismatch(false);
 
     startTransition(async () => {
-      const result = await acceptInvitationAction({ token: inviteToken });
-      if (!result.ok) {
-        setError(result.error ?? "Unable to accept invitation.");
-        setInvitationEmailMismatch(result.error?.includes("different email") ?? false);
-        return;
+      try {
+        const result = await acceptInvitationAction({ token: inviteToken });
+        if (!result.ok) {
+          setError(result.error ?? "Unable to accept invitation.");
+          setInvitationEmailMismatch(result.error?.includes("different email") ?? false);
+          return;
+        }
+        setMessage(result.message ?? "Invitation accepted. Redirecting to workspace…");
+        setTimeout(() => {
+          window.location.assign("/");
+        }, 1000);
+      } catch {
+        setError(
+          "We couldn't verify your invitation. Check your connection and try again."
+        );
       }
-      setMessage(result.message ?? "Invitation accepted. Redirecting to workspace…");
-      setTimeout(() => {
-        window.location.assign("/");
-      }, 1000);
     });
   }
 

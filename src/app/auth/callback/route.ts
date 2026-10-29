@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { resolveTrustedAppOrigin } from "@/lib/auth/trusted-origin";
+import { createAuthCallbackFailureUrl } from "@/modules/auth/callback-error";
+import { resolveAuthAppOrigin } from "@/lib/auth/trusted-origin";
 import { logger } from "@/lib/observability/logger";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import { sanitizeRedirectPath } from "@/modules/auth/schemas";
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const code = searchParams.get("code");
   const nextPath = sanitizeRedirectPath(searchParams.get("next"), "/onboarding");
 
-  const originResolution = resolveTrustedAppOrigin();
+  const originResolution = resolveAuthAppOrigin();
   if (!originResolution.origin) {
     return NextResponse.json(
       { error: "Authentication callback is not configured safely." },
@@ -65,7 +66,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
   }
 
-  return NextResponse.redirect(
-    `${canonicalOrigin}/login?error=Unable+to+verify+authentication+link`
-  );
+  // Keep an invitation or intended destination available if the user retries sign-in.
+  return NextResponse.redirect(createAuthCallbackFailureUrl(canonicalOrigin, nextPath));
 }

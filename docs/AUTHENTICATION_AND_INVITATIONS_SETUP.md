@@ -10,6 +10,7 @@ This document covers the external configuration required for Google sign-in and 
    `https://lrolhonkrjhuwgnmcdsj.supabase.co/auth/v1/callback`
 
    If the Supabase project changes, use the callback displayed by that project's dashboard rather than reusing this value.
+
 3. In Supabase, open **Authentication → Sign In / Providers → Google**, enable Google, and enter the Google OAuth client ID and client secret. Keep the client secret inside Supabase; do not add it to client-side code or commit it to Git.
 4. In Supabase **Authentication → URL Configuration**, set the Site URL to `https://saas-startup1.vercel.app` and add these redirect URLs:
    - `https://saas-startup1.vercel.app/auth/callback`
@@ -17,6 +18,12 @@ This document covers the external configuration required for Google sign-in and 
 5. In the Google OAuth consent screen, configure the app name, support contact, required scopes (basic profile and email), and publish/verify the consent screen as appropriate for your audience.
 
 The Google button sends users through Supabase OAuth. New users without an active workspace are sent to company setup; existing members return to the app; invited users retain their invitation token through the callback.
+
+### Vercel callback troubleshooting
+
+The production sign-in URL and the OAuth callback must stay on the public Production deployment. Confirm that Production has `VERCEL_ENV=production` and `NEXT_PUBLIC_APP_URL=https://saas-startup1.vercel.app`, and that Supabase allows the exact production callback URL above. For Preview, set `NEXT_PUBLIC_APP_URL` to the same public Preview host users open, and add that host's `/auth/callback` URL to the isolated Preview Supabase project's redirect allowlist. The callback uses this explicit Preview URL so it does not switch hosts after Supabase sets a host-scoped session cookie; `VERCEL_URL` remains the fallback when no app URL is configured. If the Preview host is protected by Vercel Deployment Protection, its access cookie must remain valid on that same host. Use the public Production URL for real sign-in, or use a Preview deployment configured with its isolated Supabase project. Keep Preview protection enabled rather than exposing protected deployments to bypass the sign-in screen.
+
+If verification fails, the app returns to the login page with a safe error message and preserves the intended next path so the user can retry without losing an invitation.
 
 ## Automatic invitation email delivery (Resend)
 

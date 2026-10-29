@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { ZodError } from "zod";
 import { clearActiveOrgCookie, setActiveOrgCookie } from "@/lib/auth/active-org-cookie";
 import { getAuthenticatedUser } from "@/lib/auth/session";
-import { resolveTrustedAppOrigin } from "@/lib/auth/trusted-origin";
+import { resolveAuthAppOrigin } from "@/lib/auth/trusted-origin";
 import { AppError, sanitizeErrorMessage } from "@/lib/http/envelope";
 import { logger } from "@/lib/observability/logger";
 import { clientIpFromHeaders, enforceRateLimit } from "@/lib/rate-limit";
@@ -115,7 +115,7 @@ export async function signUpAction(rawInput: {
 
     let redirectToUrl: string | undefined;
     let trustedOrigin: string | undefined;
-    const appOriginResolution = resolveTrustedAppOrigin();
+    const appOriginResolution = resolveAuthAppOrigin();
     const invitationToken =
       typeof rawInput.inviteToken === "string" &&
       /^[A-Za-z0-9_-]{16,256}$/.test(rawInput.inviteToken)
@@ -197,7 +197,7 @@ export async function requestPasswordRecoveryAction(rawInput: {
       subject: `email:${String(rawInput.email).trim().toLowerCase()}`,
     });
     // Origin is server-trusted configuration only; never client-supplied.
-    const trustedOriginResolution = resolveTrustedAppOrigin();
+    const trustedOriginResolution = resolveAuthAppOrigin();
     if (!trustedOriginResolution.origin) {
       throw new AppError(
         "INTERNAL_ERROR",

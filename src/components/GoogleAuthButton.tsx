@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { createAuthCallbackUrl } from "@/modules/auth/callback-url";
 
 type GoogleAuthButtonProps = {
   mode: "signup" | "login";
@@ -29,8 +30,11 @@ export function GoogleAuthButton({
             !nextPath.includes("\\")
           ? nextPath
           : "/onboarding";
-      const callbackUrl = new URL("/auth/callback", window.location.origin);
-      callbackUrl.searchParams.set("next", safeNextPath);
+      const callbackUrl = createAuthCallbackUrl(
+        process.env.NEXT_PUBLIC_APP_URL,
+        window.location.origin,
+        safeNextPath
+      );
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
