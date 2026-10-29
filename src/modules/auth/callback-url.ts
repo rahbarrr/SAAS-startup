@@ -64,20 +64,20 @@ export function createAuthCallbackUrl(
   let appOrigin = configuredOrigin ?? currentAppOrigin;
 
   if (environment === "production") {
-    const productionOrigin = deployment.vercelProjectProductionUrl?.trim()
-      ? originFromVercelDomain(
-          deployment.vercelProjectProductionUrl.trim(),
-          "VERCEL_PROJECT_PRODUCTION_URL"
-        )
-      : configuredOrigin;
+    // NEXT_PUBLIC_APP_URL is the explicitly configured public canonical URL.
+    // Vercel's system production URL may point at another valid alias for the
+    // same deployment; that alias must not override the host the user opened.
+    const productionOrigin =
+      configuredOrigin ??
+      (deployment.vercelProjectProductionUrl?.trim()
+        ? originFromVercelDomain(
+            deployment.vercelProjectProductionUrl.trim(),
+            "VERCEL_PROJECT_PRODUCTION_URL"
+          )
+        : null);
     if (!productionOrigin) {
       throw new AuthRedirectConfigurationError(
         "Production sign-in is not configured. Set NEXT_PUBLIC_APP_URL to the public Production domain."
-      );
-    }
-    if (configuredOrigin && configuredOrigin !== productionOrigin) {
-      throw new AuthRedirectConfigurationError(
-        "Production sign-in URL does not match the Vercel Production domain. Correct NEXT_PUBLIC_APP_URL and redeploy."
       );
     }
     if (currentAppOrigin !== productionOrigin) {
