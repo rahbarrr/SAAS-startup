@@ -11,9 +11,9 @@ export function AIReportingSection(): ReactNode {
             Less time writing reports. More time acting on insights.
           </h2>
           <p className="section-subtitle">
-            FieldTrack transforms unstructured field notes and checklist responses into clear,
-            actionable visit briefings. Every AI draft requires employee or manager review and
-            explicit sign-off before entering formal audit records.
+            FieldTrack transforms unstructured field notes and checklist responses into
+            clear, actionable visit briefings. Every AI draft requires employee or manager
+            review and explicit sign-off before entering formal audit records.
           </p>
         </div>
 
@@ -23,8 +23,9 @@ export function AIReportingSection(): ReactNode {
           <div className="ai-demo-banner">
             <span className="ai-sparkle-pill">✨ AI Synthesis Feature</span>
             <span className="ai-banner-note">
-              <strong>Human-in-the-Loop Safeguard:</strong> The AI never independently verifies physical
-              visits. It drafts summaries to accelerate reporting; human review is mandatory before saving.
+              <strong>Human-in-the-Loop Safeguard:</strong> The AI never independently
+              verifies physical visits. It drafts summaries to accelerate reporting; human
+              review is mandatory before saving.
             </span>
           </div>
 
@@ -44,14 +45,17 @@ export function AIReportingSection(): ReactNode {
 
                 <div className="input-raw-text">
                   &ldquo;Aisle 4 endcap fully restocked with promotional cereal displays.
-                  Store manager noted competitor brand launched a flash 20% discount on adjacent aisle 5.
-                  Refrigeration unit #2 temp read 12°C on digital gauge, well above the 5°C threshold.
-                  Informed floor supervisor Dan about the temperature variance.
-                  Manager requested a follow-up restock audit next Tuesday afternoon.&rdquo;
+                  Store manager noted competitor brand launched a flash 20% discount on
+                  adjacent aisle 5. Refrigeration unit #2 temp read 12°C on digital gauge,
+                  well above the 5°C threshold. Informed floor supervisor Dan about the
+                  temperature variance. Manager requested a follow-up restock audit next
+                  Tuesday afternoon.&rdquo;
                 </div>
 
                 <div className="input-checklist-summary">
-                  <span className="text-xs font-semibold text-secondary">Checklist Responses:</span>
+                  <span className="text-xs font-semibold text-secondary">
+                    Checklist Responses:
+                  </span>
                   <ul className="input-checks-list">
                     <li>✓ Planogram Display: 100% compliant</li>
                     <li>⚠️ Cooler Temperature: 12.0°C (Variance Flagged)</li>
@@ -76,24 +80,32 @@ export function AIReportingSection(): ReactNode {
 
                 <div className="ai-summary-body">
                   <p className="ai-summary-text">
-                    <strong>Executive Summary:</strong> Merchandising execution at HyperCity #104 was
-                    successfully completed with 100% planogram compliance. However, an equipment variance
-                    was detected on Cooler #2 (12°C vs &lt;5°C limit), and competitor discounting was recorded on Aisle 5.
+                    <strong>Executive Summary:</strong> Merchandising execution at
+                    HyperCity #104 was successfully completed with 100% planogram
+                    compliance. However, an equipment variance was detected on Cooler #2
+                    (12°C vs &lt;5°C limit), and competitor discounting was recorded on
+                    Aisle 5.
                   </p>
 
                   <div className="ai-tags-section">
                     <span className="ai-tag-title">Detected Key Observations:</span>
                     <div className="ai-tags-row">
                       <span className="ai-tag tag-success">✓ Planogram Compliant</span>
-                      <span className="ai-tag tag-danger">⚠️ Cooler Temp Variance (12°C)</span>
-                      <span className="ai-tag tag-info">ℹ️ Competitor Discount (-20%)</span>
+                      <span className="ai-tag tag-danger">
+                        ⚠️ Cooler Temp Variance (12°C)
+                      </span>
+                      <span className="ai-tag tag-info">
+                        ℹ️ Competitor Discount (-20%)
+                      </span>
                     </div>
                   </div>
 
                   <div className="ai-actions-section">
                     <span className="ai-tag-title">Suggested Follow-Up Items:</span>
                     <ol className="ai-suggested-actions">
-                      <li>Escalate Cooler #2 temperature variance to facility operations.</li>
+                      <li>
+                        Escalate Cooler #2 temperature variance to facility operations.
+                      </li>
                       <li>Schedule territory follow-up visit for Tuesday, Nov 3.</li>
                     </ol>
                   </div>
@@ -116,4 +128,3 @@ export function AIReportingSection(): ReactNode {
     </section>
   );
 }
-

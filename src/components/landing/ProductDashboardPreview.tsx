@@ -2,7 +2,10 @@ import type { ReactNode } from "react";
 
 export function ProductDashboardPreview(): ReactNode {
   return (
-    <div className="product-preview-wrapper" aria-label="FieldTrack product interface overview">
+    <div
+      className="product-preview-wrapper"
+      aria-label="FieldTrack product interface overview"
+    >
       {/* Desktop Manager Dashboard Mockup */}
       <div className="desktop-mockup-frame">
         {/* Window Chrome / Title Bar */}
@@ -13,12 +16,14 @@ export function ProductDashboardPreview(): ReactNode {
             <span className="dot dot-green" />
           </div>
           <div className="mockup-window-title">
-            <span className="window-app-icon" aria-hidden="true">F</span>
+            <span className="window-app-icon" aria-hidden="true">
+              F
+            </span>
             <span>FieldTrack Operations Control • Midwest Territory (Chicago Hub)</span>
           </div>
           <div className="mockup-window-status">
             <span className="status-indicator-live" aria-hidden="true" />
-            <span>Active Live Telemetry</span>
+            <span>Interactive Interface Preview (Sample Data)</span>
           </div>
         </div>
 
@@ -93,9 +98,7 @@ export function ProductDashboardPreview(): ReactNode {
                   <span className="kpi-tag tag-amber">Action req.</span>
                 </div>
                 <div className="kpi-number text-amber">3</div>
-                <div className="kpi-trend text-muted">
-                  Requires manager review
-                </div>
+                <div className="kpi-trend text-muted">Requires manager review</div>
               </div>
 
               <div className="mockup-kpi-card">
@@ -104,9 +107,7 @@ export function ProductDashboardPreview(): ReactNode {
                   <span className="kpi-tag tag-green">On schedule</span>
                 </div>
                 <div className="kpi-number text-navy">38</div>
-                <div className="kpi-trend text-success">
-                  94.2% on-time execution
-                </div>
+                <div className="kpi-trend text-success">94.2% on-time execution</div>
               </div>
 
               <div className="mockup-kpi-card">
@@ -115,9 +116,7 @@ export function ProductDashboardPreview(): ReactNode {
                   <span className="kpi-tag tag-red">Attention</span>
                 </div>
                 <div className="kpi-number text-danger">2</div>
-                <div className="kpi-trend text-danger">
-                  1 cooler alert • 1 stockout
-                </div>
+                <div className="kpi-trend text-danger">1 cooler alert • 1 stockout</div>
               </div>
             </div>
 
@@ -125,8 +124,12 @@ export function ProductDashboardPreview(): ReactNode {
             <div className="mockup-table-card">
               <div className="mockup-table-header">
                 <div>
-                  <h4 className="mockup-table-title">Real-Time Field Execution Activity</h4>
-                  <p className="mockup-table-subtitle">Illustrative live data feed across active Midwest retail routes</p>
+                  <h4 className="mockup-table-title">
+                    Real-Time Field Execution Activity
+                  </h4>
+                  <p className="mockup-table-subtitle">
+                    Illustrative live data feed across active Midwest retail routes
+                  </p>
                 </div>
                 <div className="mockup-filter-chip">
                   <span>Filtered: Today (UTC)</span>
@@ -134,7 +137,10 @@ export function ProductDashboardPreview(): ReactNode {
               </div>
 
               <div className="mockup-table-scroll">
-                <table className="mockup-table" aria-label="Field activity sample preview">
+                <table
+                  className="mockup-table"
+                  aria-label="Field activity sample preview"
+                >
                   <thead>
                     <tr>
                       <th scope="col">Field Representative</th>
@@ -238,7 +244,9 @@ export function ProductDashboardPreview(): ReactNode {
                       </td>
                       <td>
                         <div className="mockup-evidence-summary">
-                          <span className="checklist-pill pill-warning">Cooler at 12°C ⚠️</span>
+                          <span className="checklist-pill pill-warning">
+                            Cooler at 12°C ⚠️
+                          </span>
                           <span className="evidence-count">📷 4 Photos</span>
                         </div>
                       </td>
@@ -250,9 +258,10 @@ export function ProductDashboardPreview(): ReactNode {
               {/* Table Footer Meta */}
               <div className="mockup-table-footer">
                 <span className="footer-meta-text">
-                  Verified with multi-tenant row-level security and cryptographically signed timestamps.
+                  Illustrative sample operational telemetry demonstrating tenant-isolated
+                  visit verification and point-in-time check-in records.
                 </span>
-                <span className="footer-meta-badge">Consent-driven GPS check-ins</span>
+                <span className="footer-meta-badge">Sample Data Preview</span>
               </div>
             </div>
           </div>
@@ -260,7 +269,10 @@ export function ProductDashboardPreview(): ReactNode {
       </div>
 
       {/* Floating Mobile Field App Mockup */}
-      <div className="floating-mobile-frame" aria-label="FieldTrack mobile check-in app preview">
+      <div
+        className="floating-mobile-frame"
+        aria-label="FieldTrack mobile check-in app preview"
+      >
         <div className="phone-bezel">
           {/* Phone Speaker & Camera Notch */}
           <div className="phone-notch" aria-hidden="true">
@@ -296,7 +308,9 @@ export function ProductDashboardPreview(): ReactNode {
               <p className="stop-address">1440 Michigan Ave, Aisles 4 & 7</p>
 
               <div className="gps-verified-banner">
-                <div className="gps-icon-circle" aria-hidden="true">📍</div>
+                <div className="gps-icon-circle" aria-hidden="true">
+                  📍
+                </div>
                 <div>
                   <strong>GPS Check-in Verified</strong>
                   <small>Within 45m of store • 10:14 AM UTC</small>
@@ -312,15 +326,21 @@ export function ProductDashboardPreview(): ReactNode {
 
                 <ul className="mobile-check-list">
                   <li className="check-item-done">
-                    <span className="check-box-icon" aria-hidden="true">✓</span>
+                    <span className="check-box-icon" aria-hidden="true">
+                      ✓
+                    </span>
                     <span>Facing & Planogram compliance verified</span>
                   </li>
                   <li className="check-item-done">
-                    <span className="check-box-icon" aria-hidden="true">✓</span>
+                    <span className="check-box-icon" aria-hidden="true">
+                      ✓
+                    </span>
                     <span>Cooler temperature recorded (3.8°C)</span>
                   </li>
                   <li className="check-item-done">
-                    <span className="check-box-icon" aria-hidden="true">✓</span>
+                    <span className="check-box-icon" aria-hidden="true">
+                      ✓
+                    </span>
                     <span>Endcap promo photo captured & signed</span>
                   </li>
                 </ul>
@@ -349,4 +369,3 @@ export function ProductDashboardPreview(): ReactNode {
     </div>
   );
 }
-

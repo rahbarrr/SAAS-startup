@@ -174,26 +174,19 @@ export function TeamDirectoryClient({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
       {/* Header section */}
-      <section aria-labelledby="team-heading">
-        <div className="card-header" style={{ alignItems: "center" }}>
-          <div>
-            <h1
-              id="team-heading"
-              style={{
-                margin: "0 0 0.25rem",
-                fontSize: "1.625rem",
-                fontFamily: "var(--font-heading)",
-                color: "var(--brand-dark)",
-              }}
-            >
-              Organization Team &amp; Memberships
-            </h1>
-            <p className="card-meta">
-              Workspace: <strong>{activeOrgName}</strong> • Real membership directory,
-              role assignments, and member invitations.
-            </p>
-          </div>
+      <section className="page-header" aria-labelledby="team-heading">
+        <div className="page-header-text">
+          <p className="page-eyebrow">Organization Directory</p>
+          <h1 id="team-heading" className="page-title">
+            Team &amp; Memberships
+          </h1>
+          <p className="page-subtitle">
+            Workspace: <strong>{activeOrgName}</strong> • Real membership directory, role
+            assignments, and member invitations.
+          </p>
+        </div>
 
+        <div className="page-actions">
           {canInvite && (
             <button
               type="button"
@@ -212,98 +205,55 @@ export function TeamDirectoryClient({
       </section>
 
       {/* Role Counts Summary Bar */}
-      <div
-        className="card-grid"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(11rem, 1fr))" }}
-      >
-        <div
-          className="card"
-          style={{
-            padding: "0.875rem 1rem",
-            borderLeft: "3px solid var(--brand-primary)",
-          }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            Total Members
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-            }}
-          >
-            {roleCounts.all}
-          </span>
+      <div className="kpi-grid">
+        <div className="kpi-card kpi-card--primary">
+          <div className="kpi-card-top">
+            <span className="kpi-label">Total Members</span>
+            <span className="kpi-icon" aria-hidden="true">
+              👥
+            </span>
+          </div>
+          <div className="kpi-value">{roleCounts.all}</div>
+          <p className="kpi-footnote">Active team members</p>
         </div>
-        <div
-          className="card"
-          style={{ padding: "0.875rem 1rem", borderLeft: "3px solid var(--brand-dark)" }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            Administrators
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-            }}
-          >
+
+        <div className="kpi-card kpi-card--violet">
+          <div className="kpi-card-top">
+            <span className="kpi-label">Administrators</span>
+            <span className="kpi-icon" aria-hidden="true">
+              🛡️
+            </span>
+          </div>
+          <div className="kpi-value" style={{ color: "var(--brand-violet-strong)" }}>
             {roleCounts.admin}
-          </span>
+          </div>
+          <p className="kpi-footnote">Workspace owners</p>
         </div>
-        <div
-          className="card"
-          style={{
-            padding: "0.875rem 1rem",
-            borderLeft: "3px solid var(--brand-accent)",
-          }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            Field Managers
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-            }}
-          >
+
+        <div className="kpi-card kpi-card--warning">
+          <div className="kpi-card-top">
+            <span className="kpi-label">Field Managers</span>
+            <span className="kpi-icon" aria-hidden="true">
+              ⚖️
+            </span>
+          </div>
+          <div className="kpi-value" style={{ color: "var(--status-warning-text)" }}>
             {roleCounts.manager}
-          </span>
+          </div>
+          <p className="kpi-footnote">Approval authorities</p>
         </div>
-        <div
-          className="card"
-          style={{
-            padding: "0.875rem 1rem",
-            borderLeft: "3px solid var(--status-success)",
-          }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            Field Reps
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-            }}
-          >
+
+        <div className="kpi-card kpi-card--info">
+          <div className="kpi-card-top">
+            <span className="kpi-label">Field Reps</span>
+            <span className="kpi-icon" aria-hidden="true">
+              📍
+            </span>
+          </div>
+          <div className="kpi-value" style={{ color: "var(--status-info-text)" }}>
             {roleCounts.field_employee}
-          </span>
+          </div>
+          <p className="kpi-footnote">On-ground operations</p>
         </div>
       </div>
 

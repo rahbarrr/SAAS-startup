@@ -48,25 +48,18 @@ export function TripsListClient({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       {/* Header */}
-      <section aria-labelledby="trips-heading">
-        <div className="card-header" style={{ alignItems: "center" }}>
-          <div>
-            <h1
-              id="trips-heading"
-              style={{
-                margin: "0 0 0.25rem",
-                fontSize: "1.625rem",
-                fontFamily: "var(--font-heading)",
-                color: "var(--brand-dark)",
-              }}
-            >
-              Field Trips
-            </h1>
-            <p className="card-meta">
-              Workspace: <strong>{activeOrgName}</strong> • Plan multi-store itineraries,
-              submit for manager approval, and review outcomes.
-            </p>
-          </div>
+      <section className="page-header" aria-labelledby="trips-heading">
+        <div className="page-header-text">
+          <p className="page-eyebrow">Field Travel Logistics</p>
+          <h1 id="trips-heading" className="page-title">
+            Field Trips
+          </h1>
+          <p className="page-subtitle">
+            Workspace: <strong>{activeOrgName}</strong> • Plan multi-store itineraries,
+            submit for manager approval, and review outcomes.
+          </p>
+        </div>
+        <div className="page-actions">
           <Link href="/trips/new" className="btn btn-primary">
             + Plan New Trip
           </Link>
@@ -74,101 +67,55 @@ export function TripsListClient({
       </section>
 
       {/* Quick Status KPI Strip */}
-      <div
-        className="card-grid"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(11rem, 1fr))" }}
-      >
-        <div
-          className="card"
-          style={{
-            padding: "0.875rem 1rem",
-            borderLeft: "3px solid var(--brand-primary)",
-          }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            Total Planned
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-            }}
-          >
-            {counts.total}
-          </span>
+      <div className="kpi-grid">
+        <div className="kpi-card kpi-card--primary">
+          <div className="kpi-card-top">
+            <span className="kpi-label">Total Planned</span>
+            <span className="kpi-icon" aria-hidden="true">
+              🗺️
+            </span>
+          </div>
+          <div className="kpi-value">{counts.total}</div>
+          <p className="kpi-footnote">Itineraries on record</p>
         </div>
-        <div
-          className="card"
-          style={{
-            padding: "0.875rem 1rem",
-            borderLeft: "3px solid var(--brand-accent)",
-          }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            Awaiting Approval
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-              color: "var(--brand-accent)",
-            }}
-          >
+
+        <div className="kpi-card kpi-card--warning">
+          <div className="kpi-card-top">
+            <span className="kpi-label">Awaiting Approval</span>
+            <span className="kpi-icon" aria-hidden="true">
+              ⚖️
+            </span>
+          </div>
+          <div className="kpi-value" style={{ color: "var(--status-warning-text)" }}>
             {counts.submitted}
-          </span>
+          </div>
+          <p className="kpi-footnote">Manager review required</p>
         </div>
-        <div
-          className="card"
-          style={{ padding: "0.875rem 1rem", borderLeft: "3px solid #3B82F6" }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            In Progress
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-              color: "var(--brand-primary)",
-            }}
-          >
+
+        <div className="kpi-card kpi-card--info">
+          <div className="kpi-card-top">
+            <span className="kpi-label">In Progress</span>
+            <span className="kpi-icon" aria-hidden="true">
+              📍
+            </span>
+          </div>
+          <div className="kpi-value" style={{ color: "var(--status-info-text)" }}>
             {counts.inProgress}
-          </span>
+          </div>
+          <p className="kpi-footnote">Currently on the road</p>
         </div>
-        <div
-          className="card"
-          style={{
-            padding: "0.875rem 1rem",
-            borderLeft: "3px solid var(--status-success)",
-          }}
-        >
-          <span
-            className="card-meta"
-            style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
-          >
-            Completed
-          </span>
-          <span
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-              color: "var(--status-success)",
-            }}
-          >
+
+        <div className="kpi-card kpi-card--success">
+          <div className="kpi-card-top">
+            <span className="kpi-label">Completed</span>
+            <span className="kpi-icon" aria-hidden="true">
+              ✓
+            </span>
+          </div>
+          <div className="kpi-value" style={{ color: "var(--status-success)" }}>
             {counts.completed}
-          </span>
+          </div>
+          <p className="kpi-footnote">Finished field visits</p>
         </div>
       </div>
 
@@ -203,7 +150,7 @@ export function TripsListClient({
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="form-select"
-            style={{ minWidth: "10rem" }}
+            style={{ minWidth: "11rem" }}
           >
             <option value="all">All Statuses ({initialTrips.length})</option>
             <option value="draft">Drafts</option>
@@ -259,144 +206,110 @@ export function TripsListClient({
                 key={trip.id}
                 className="card"
                 style={{
-                  transition: "box-shadow 0.15s ease",
-                  borderLeft:
-                    trip.status === "in_progress"
-                      ? "4px solid var(--brand-primary)"
-                      : trip.status === "submitted"
-                        ? "4px solid var(--brand-accent)"
-                        : trip.status === "completed"
-                          ? "4px solid var(--status-success)"
-                          : "4px solid var(--border-default)",
+                  transition: "all 0.15s ease",
                 }}
               >
                 <div className="card-header">
                   <div
                     style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <div className="flex-row-center">
                       <Link
                         href={`/trips/${trip.id}`}
                         style={{
-                          fontSize: "1.0625rem",
-                          fontWeight: 700,
-                          color: "var(--brand-dark)",
                           textDecoration: "none",
+                          color: "var(--text-primary)",
+                          fontWeight: 700,
+                          fontSize: "1.125rem",
+                          letterSpacing: "-0.01em",
                         }}
                       >
                         {trip.title}
                       </Link>
+                      <StatusBadge
+                        descriptor={getApprovalStatusDescriptor(trip.status)}
+                      />
                     </div>
                     <p className="card-meta" style={{ margin: 0 }}>
-                      Owner: <strong>{trip.ownerUserId.slice(0, 8)}</strong> • Dates:{" "}
-                      <strong>
-                        {trip.startDate} to {trip.endDate}
-                      </strong>
+                      Dates: <strong>{trip.startDate}</strong> to{" "}
+                      <strong>{trip.endDate}</strong> • Representative:{" "}
+                      <code>{trip.ownerUserId}</code>
                     </p>
                   </div>
-                  <StatusBadge descriptor={getApprovalStatusDescriptor(trip.status)} />
-                </div>
 
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: "0.875rem",
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  {trip.purpose}
-                </p>
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                    <Link href={`/trips/${trip.id}`} className="btn btn-sm btn-secondary">
+                      View Details →
+                    </Link>
+                    {canEdit ? (
+                      <Link
+                        href={`/trips/${trip.id}/edit`}
+                        className="btn btn-sm btn-outline"
+                      >
+                        Edit
+                      </Link>
+                    ) : null}
+                    {isManagerOrAdmin && trip.status === "submitted" ? (
+                      <Link href={`/trips/${trip.id}`} className="btn btn-sm btn-primary">
+                        Review Policy
+                      </Link>
+                    ) : null}
+                  </div>
+                </div>
 
                 <div
                   style={{
                     display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "center",
                     justifyContent: "space-between",
-                    gap: "1rem",
-                    paddingTop: "0.5rem",
-                    borderTop: "1px solid var(--border-default)",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: "0.75rem",
+                    paddingTop: "0.75rem",
+                    borderTop: "1px solid var(--border-subtle)",
                     fontSize: "0.8125rem",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "1rem",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    <span>
-                      📅 {trip.startDate} to {trip.endDate}
-                    </span>
-                  </div>
-
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    {canEdit ? (
-                      <Link
-                        href={`/trips/${trip.id}/edit`}
-                        className="btn btn-sm btn-secondary"
-                      >
-                        Edit Trip
-                      </Link>
-                    ) : null}
-                    {isManagerOrAdmin && trip.status === "submitted" ? (
-                      <Link href="/approvals" className="btn btn-sm btn-primary">
-                        Review in Approvals →
-                      </Link>
-                    ) : null}
-                    <Link href={`/trips/${trip.id}`} className="btn btn-sm btn-outline">
-                      View Itinerary Details
-                    </Link>
-                  </div>
+                  <span style={{ color: "var(--text-secondary)" }}>
+                    <strong>Purpose:</strong> {trip.purpose}
+                  </span>
+                  <span style={{ color: "var(--text-muted)" }}>
+                    Created: {new Date(trip.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
               </article>
             );
           })}
         </div>
       ) : (
-        /* Calendar / Itinerary Schedule View */
+        /* Calendar / Schedule View */
         <div className="card" style={{ padding: "1.5rem" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-            }}
-          >
-            <h2 className="card-title" style={{ fontSize: "1.125rem" }}>
-              Field Route Schedule
-            </h2>
-            <span style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
-              All dates UTC
-            </span>
-          </div>
-
+          <h2 className="card-title" style={{ marginBottom: "1rem" }}>
+            Scheduled Itineraries Calendar View
+          </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             {filteredTrips.map((trip) => (
               <div
                 key={trip.id}
                 style={{
-                  padding: "0.75rem 1rem",
-                  border: "1px solid var(--border-default)",
-                  borderRadius: "var(--radius-md)",
                   display: "flex",
-                  justifyContent: "space-between",
                   alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0.875rem 1rem",
+                  borderRadius: "var(--radius-md)",
+                  background: "var(--bg-subtle)",
+                  border: "1px solid var(--border-default)",
                 }}
               >
                 <div>
-                  <strong style={{ fontSize: "0.9375rem" }}>{trip.title}</strong>
-                  <p className="card-meta" style={{ margin: "0.125rem 0 0" }}>
-                    {trip.startDate} to {trip.endDate}
-                  </p>
+                  <strong>{trip.title}</strong>
+                  <div className="card-meta" style={{ marginTop: "0.25rem" }}>
+                    📅 {trip.startDate} → {trip.endDate} • {trip.ownerUserId}
+                  </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                   <StatusBadge descriptor={getApprovalStatusDescriptor(trip.status)} />
                   <Link href={`/trips/${trip.id}`} className="btn btn-sm btn-secondary">
-                    View →
+                    Open
                   </Link>
                 </div>
               </div>

@@ -21,7 +21,9 @@ export function LandingFooter(): ReactNode {
               retail, FMCG, and merchandising organizations.
             </p>
             <div className="footer-security-badge">
-              <span className="security-shield-icon" aria-hidden="true">🔒</span>
+              <span className="security-shield-icon" aria-hidden="true">
+                🔒
+              </span>
               <span>PostgreSQL Row-Level Security Enforced</span>
             </div>
           </div>
@@ -99,19 +101,24 @@ export function LandingFooter(): ReactNode {
         {/* Footer Bottom Bar */}
         <div className="footer-bottom-bar">
           <p className="footer-copyright">
-            © {currentYear} FieldTrack Inc. Multi-tenant architecture with row-level security,
-            consent-driven point-in-time GPS check-ins, and tamper-evident audit trails.
+            © {currentYear} FieldTrack Inc. Multi-tenant architecture with row-level
+            security, consent-driven point-in-time GPS check-ins, and tamper-evident audit
+            trails.
           </p>
 
           <div className="footer-bottom-links">
             <a href="#security" className="footer-bottom-link">
               Security Commitments
             </a>
-            <span className="bottom-divider" aria-hidden="true">•</span>
+            <span className="bottom-divider" aria-hidden="true">
+              •
+            </span>
             <a href="#product-capabilities" className="footer-bottom-link">
               Platform Architecture
             </a>
-            <span className="bottom-divider" aria-hidden="true">•</span>
+            <span className="bottom-divider" aria-hidden="true">
+              •
+            </span>
             <Link href="/login" className="footer-bottom-link">
               Member Login
             </Link>
@@ -121,4 +128,3 @@ export function LandingFooter(): ReactNode {
     </footer>
   );
 }
-

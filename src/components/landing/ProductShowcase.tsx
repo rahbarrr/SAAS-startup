@@ -80,7 +80,11 @@ export function ProductShowcase(): ReactNode {
         </div>
 
         {/* Tab Switcher Controls */}
-        <div className="showcase-tab-bar" role="tablist" aria-label="Product showcase workflows">
+        <div
+          className="showcase-tab-bar"
+          role="tablist"
+          aria-label="Product showcase workflows"
+        >
           {SHOWCASE_TABS.map((tab) => {
             const isActive = tab.id === activeTab;
             return (
@@ -116,7 +120,9 @@ export function ProductShowcase(): ReactNode {
             <ul className="showcase-points-list">
               {currentTab.bulletPoints.map((point) => (
                 <li key={point}>
-                  <span className="point-check" aria-hidden="true">✓</span>
+                  <span className="point-check" aria-hidden="true">
+                    ✓
+                  </span>
                   <span>{point}</span>
                 </li>
               ))}
@@ -133,7 +139,9 @@ export function ProductShowcase(): ReactNode {
                     <span className="dot dot-yellow" />
                     <span className="dot dot-green" />
                   </span>
-                  <span className="mockup-bar-title">FieldTrip Planner • Trip #TRP-8402</span>
+                  <span className="mockup-bar-title">
+                    FieldTrip Planner • Trip #TRP-8402
+                  </span>
                   <span className="badge-warning text-xs">Submitted for Approval</span>
                 </div>
 
@@ -161,7 +169,9 @@ export function ProductShowcase(): ReactNode {
                           <strong>Kroger Market #302</strong>
                           <span className="text-xs text-muted">09:00 AM – 10:30 AM</span>
                         </div>
-                        <small className="text-muted">2100 W Madison St • Endcap Planogram Audit</small>
+                        <small className="text-muted">
+                          2100 W Madison St • Endcap Planogram Audit
+                        </small>
                       </div>
                     </div>
 
@@ -174,7 +184,9 @@ export function ProductShowcase(): ReactNode {
                           <strong>Target Superstore #18</strong>
                           <span className="text-xs text-muted">11:15 AM – 12:45 PM</span>
                         </div>
-                        <small className="text-muted">1154 S Clark St • Promotional Cooler Inspection</small>
+                        <small className="text-muted">
+                          1154 S Clark St • Promotional Cooler Inspection
+                        </small>
                       </div>
                     </div>
 
@@ -187,7 +199,9 @@ export function ProductShowcase(): ReactNode {
                           <strong>Walgreens Pharmacy Door #9</strong>
                           <span className="text-xs text-muted">02:00 PM – 03:00 PM</span>
                         </div>
-                        <small className="text-muted">3405 S King Dr • Shelf Share Verification</small>
+                        <small className="text-muted">
+                          3405 S King Dr • Shelf Share Verification
+                        </small>
                       </div>
                     </div>
                   </div>
@@ -195,9 +209,14 @@ export function ProductShowcase(): ReactNode {
                   <div className="planning-approval-box">
                     <div className="approval-box-header">
                       <strong>Manager Decision Action</strong>
-                      <span className="text-xs text-muted">Signed in as Jane Miller (Manager)</span>
+                      <span className="text-xs text-muted">
+                        Signed in as Jane Miller (Manager)
+                      </span>
                     </div>
-                    <p className="text-xs text-secondary" style={{ margin: "0.25rem 0 0.5rem" }}>
+                    <p
+                      className="text-xs text-secondary"
+                      style={{ margin: "0.25rem 0 0.5rem" }}
+                    >
                       Mandatory review note:
                     </p>
                     <div className="mockup-input-box">
@@ -224,16 +243,22 @@ export function ProductShowcase(): ReactNode {
                     <span className="dot dot-yellow" />
                     <span className="dot dot-green" />
                   </span>
-                  <span className="mockup-bar-title">Store Visit Execution • Door #18 Target</span>
+                  <span className="mockup-bar-title">
+                    Store Visit Execution • Door #18 Target
+                  </span>
                   <span className="badge-success text-xs">Checked In (GPS Verified)</span>
                 </div>
 
                 <div className="showcase-mockup-body">
                   <div className="visit-gps-telemetry-banner">
-                    <div className="gps-telemetry-icon" aria-hidden="true">📍</div>
+                    <div className="gps-telemetry-icon" aria-hidden="true">
+                      📍
+                    </div>
                     <div className="gps-telemetry-text">
                       <strong>Consent Check-in Timestamp: 11:15:24 AM UTC</strong>
-                      <small>Lat: 41.8679 • Long: -87.6308 • Accuracy: ±8m • Store Verified</small>
+                      <small>
+                        Lat: 41.8679 • Long: -87.6308 • Accuracy: ±8m • Store Verified
+                      </small>
                     </div>
                   </div>
 
@@ -244,7 +269,9 @@ export function ProductShowcase(): ReactNode {
                         <span className="check-status-icon">✓</span>
                         <div className="check-detail">
                           <strong>Cooler Temperature Audit</strong>
-                          <small>Recorded: 3.8°C (Normal operational threshold &lt; 5°C)</small>
+                          <small>
+                            Recorded: 3.8°C (Normal operational threshold &lt; 5°C)
+                          </small>
                         </div>
                         <span className="pill-status-done">Completed</span>
                       </div>
@@ -270,7 +297,9 @@ export function ProductShowcase(): ReactNode {
                   </div>
 
                   <div className="visit-evidence-gallery">
-                    <h5 className="visit-subhead">Captured Photographic Proof (Signed Vault)</h5>
+                    <h5 className="visit-subhead">
+                      Captured Photographic Proof (Signed Vault)
+                    </h5>
                     <div className="evidence-thumbnails-row">
                       <div className="evidence-thumb-card">
                         <div className="thumb-placeholder-img">
@@ -304,7 +333,9 @@ export function ProductShowcase(): ReactNode {
                     <span className="dot dot-yellow" />
                     <span className="dot dot-green" />
                   </span>
-                  <span className="mockup-bar-title">Territory Analytics & Planned vs Actual</span>
+                  <span className="mockup-bar-title">
+                    Territory Analytics & Planned vs Actual
+                  </span>
                   <span className="badge-info text-xs">Quarterly Audit Feed</span>
                 </div>
 
@@ -345,7 +376,10 @@ export function ProductShowcase(): ReactNode {
                           <strong>96.8%</strong>
                         </div>
                         <div className="bar-track">
-                          <div className="bar-fill fill-green" style={{ width: "96.8%" }} />
+                          <div
+                            className="bar-fill fill-green"
+                            style={{ width: "96.8%" }}
+                          />
                         </div>
                       </div>
 
@@ -355,7 +389,10 @@ export function ProductShowcase(): ReactNode {
                           <strong>92.5%</strong>
                         </div>
                         <div className="bar-track">
-                          <div className="bar-fill fill-green" style={{ width: "92.5%" }} />
+                          <div
+                            className="bar-fill fill-green"
+                            style={{ width: "92.5%" }}
+                          />
                         </div>
                       </div>
 
@@ -365,7 +402,10 @@ export function ProductShowcase(): ReactNode {
                           <strong>88.4%</strong>
                         </div>
                         <div className="bar-track">
-                          <div className="bar-fill fill-amber" style={{ width: "88.4%" }} />
+                          <div
+                            className="bar-fill fill-amber"
+                            style={{ width: "88.4%" }}
+                          />
                         </div>
                       </div>
                     </div>

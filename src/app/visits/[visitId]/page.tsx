@@ -123,26 +123,25 @@ export default async function VisitDetailPage(
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <section aria-labelledby="visit-detail-heading">
-        <div className="card-header">
-          <div>
-            <Link href="/visits" className="card-meta">
-              ← Back to Store Visits
-            </Link>
-            <h1
-              id="visit-detail-heading"
-              style={{ margin: "0.25rem 0 0.5rem", fontSize: "1.5rem" }}
-            >
-              Store Visit Execution: {store?.name ?? "Retail Store"}
-            </h1>
-            <p className="card-meta">
-              Trip: <strong>{trip.title}</strong> • Stop #{stop.sequenceNumber} (
-              {store?.region ?? "Region"})
-            </p>
-          </div>
-          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            <StatusBadge descriptor={getApprovalStatusDescriptor(visit.status)} />
-          </div>
+      <section className="page-header" aria-labelledby="visit-detail-heading">
+        <div className="page-header-text">
+          <Link
+            href="/visits"
+            className="auth-back-link"
+            style={{ marginBottom: "0.25rem" }}
+          >
+            ← Back to Store Visits
+          </Link>
+          <h1 id="visit-detail-heading" className="page-title">
+            Store Visit Execution: {store?.name ?? "Retail Store"}
+          </h1>
+          <p className="page-subtitle">
+            Trip: <strong>{trip.title}</strong> • Stop #{stop.sequenceNumber} (
+            {store?.region ?? "Region"})
+          </p>
+        </div>
+        <div className="page-actions">
+          <StatusBadge descriptor={getApprovalStatusDescriptor(visit.status)} />
         </div>
       </section>
 

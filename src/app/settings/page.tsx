@@ -14,27 +14,16 @@ export default async function SettingsPage(): Promise<ReactNode> {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
       {/* Page Heading Section */}
-      <section aria-labelledby="settings-heading">
-        <div className="card-header" style={{ alignItems: "center" }}>
-          <div>
-            <h1
-              id="settings-heading"
-              style={{
-                margin: "0 0 0.25rem",
-                fontSize: "1.625rem",
-                fontFamily: "var(--font-heading)",
-                color: "var(--brand-dark)",
-              }}
-            >
-              Workspace & Organization Settings
-            </h1>
-            <p
-              style={{ margin: 0, fontSize: "0.875rem", color: "var(--text-secondary)" }}
-            >
-              Configure company parameters, notification rules, territory defaults,
-              security policies, and subscription tiers.
-            </p>
-          </div>
+      <section className="page-header" aria-labelledby="settings-heading">
+        <div className="page-header-text">
+          <p className="page-eyebrow">Workspace Configuration</p>
+          <h1 id="settings-heading" className="page-title">
+            Workspace &amp; Organization Settings
+          </h1>
+          <p className="page-subtitle">
+            Configure company parameters, notification rules, territory defaults, security
+            policies, and subscription tiers.
+          </p>
         </div>
       </section>
 

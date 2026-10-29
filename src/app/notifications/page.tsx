@@ -35,20 +35,16 @@ export default async function NotificationsPage(): Promise<ReactNode> {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <section aria-labelledby="notifications-page-heading">
-        <div className="card-header">
-          <div>
-            <h1
-              id="notifications-page-heading"
-              style={{ margin: "0 0 0.25rem", fontSize: "1.5rem" }}
-            >
-              In-App Notifications
-            </h1>
-            <p className="card-meta">
-              Workspace: <strong>{activeOrg.name}</strong> • Real-time notifications for
-              trip submission and manager decisions.
-            </p>
-          </div>
+      <section className="page-header" aria-labelledby="notifications-page-heading">
+        <div className="page-header-text">
+          <p className="page-eyebrow">Activity & Alerts</p>
+          <h1 id="notifications-page-heading" className="page-title">
+            In-App Notifications
+          </h1>
+          <p className="page-subtitle">
+            Workspace: <strong>{activeOrg.name}</strong> • Real-time notifications for
+            trip submission, manager decisions, and system alerts.
+          </p>
         </div>
       </section>
 

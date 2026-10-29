@@ -29,77 +29,20 @@ export function ManagerDashboardClient({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
       {/* Date Range & Operations Bar */}
-      <div
-        className="card"
-        style={{
-          background: "linear-gradient(135deg, #1B3580 0%, #122660 100%)",
-          color: "#FFFFFF",
-          padding: "1.5rem",
-          borderRadius: "var(--radius-xl)",
-          border: "none",
-          boxShadow: "var(--shadow-md)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: "1rem",
-          }}
-        >
-          <div>
-            <span
-              style={{
-                fontSize: "0.8125rem",
-                color: "#FDE68A",
-                fontWeight: 700,
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
-              }}
-            >
-              Operational Telemetry Overview
-            </span>
-            <h2
-              style={{
-                margin: "0.25rem 0 0.5rem",
-                fontSize: "1.5rem",
-                color: "#FFFFFF",
-                fontFamily: "var(--font-heading)",
-              }}
-            >
-              Field Operations &amp; Travel Control
-            </h2>
-            <p
-              style={{
-                margin: 0,
-                fontSize: "0.875rem",
-                color: "#D1D5DB",
-                maxWidth: "38rem",
-              }}
-            >
-              Committed records from authorized workspace. Check-ins, evidence capture,
-              and approvals enforced with Row-Level Security.
-            </p>
-          </div>
+      <div className="welcome-banner">
+        <div>
+          <span className="welcome-banner-eyebrow">Operational Telemetry Overview</span>
+          <h2>Field Operations &amp; Travel Control</h2>
+          <p>
+            Committed records from authorized workspace. Check-ins, evidence capture, and
+            approvals enforced with Row-Level Security.
+          </p>
+        </div>
 
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: "0.75rem",
-            }}
-          >
-            <Link
-              href="/trips/new"
-              className="btn btn-accent"
-              style={{ color: "#111827", fontWeight: 700 }}
-            >
-              + Plan New Field Trip
-            </Link>
-          </div>
+        <div className="welcome-banner-actions">
+          <Link href="/trips/new" className="btn btn-on-dark" style={{ fontWeight: 700 }}>
+            + Plan New Field Trip
+          </Link>
         </div>
       </div>
 

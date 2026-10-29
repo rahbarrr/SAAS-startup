@@ -46,23 +46,18 @@ export default async function AuditPage(): Promise<ReactNode> {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <div>
-        <h1
-          style={{
-            margin: "0 0 0.25rem",
-            fontSize: "1.5rem",
-            fontWeight: 700,
-            color: "var(--brand-dark)",
-            fontFamily: "var(--font-heading)",
-          }}
-        >
-          Enterprise Audit Trail &amp; Governance — {activeOrg.name}
-        </h1>
-        <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--text-secondary)" }}>
-          Real-time, immutable audit record of critical operational actions across{" "}
-          {activeOrg.name}.
-        </p>
-      </div>
+      <section className="page-header" aria-labelledby="audit-page-heading">
+        <div className="page-header-text">
+          <p className="page-eyebrow">Compliance & Security</p>
+          <h1 id="audit-page-heading" className="page-title">
+            Enterprise Audit Trail &amp; Governance
+          </h1>
+          <p className="page-subtitle">
+            Workspace: <strong>{activeOrg.name}</strong> • Immutable audit record of
+            critical operational actions across your organization.
+          </p>
+        </div>
+      </section>
 
       <AuditLogViewerClient
         orgId={activeOrgId}

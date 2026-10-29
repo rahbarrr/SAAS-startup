@@ -65,7 +65,9 @@ function buildEmptyMetricsSummary(referenceDateUtc: string): DashboardMetricsSum
   };
 }
 
-export default async function DashboardPage(props: DashboardPageProps): Promise<ReactNode> {
+export default async function DashboardPage(
+  props: DashboardPageProps
+): Promise<ReactNode> {
   const context = await requireActiveWorkspace();
   const { user, activeOrgId, activeOrg, role, tenancyRepository, supabase } = context;
 
@@ -91,6 +93,12 @@ export default async function DashboardPage(props: DashboardPageProps): Promise<
   let recentVisits: readonly Visit[] = [];
   let recentAuditEvents: readonly OrganizationAuditEvent[] = [];
 
+  let employeeTrips: readonly Trip[] = [];
+  let employeeVisits: readonly Visit[] = [];
+
+  const tripsRepository = new SupabaseTripsRepository(supabase);
+  const visitsRepository = new SupabaseVisitsRepository(supabase);
+
   try {
     if (role === "manager" || role === "admin") {
       const reportingRepository = new SupabaseReportingRepository(supabase);
@@ -114,8 +122,6 @@ export default async function DashboardPage(props: DashboardPageProps): Promise<
       items = dashboard.items;
       nextCursor = dashboard.pagination.nextCursor;
 
-      const tripsRepository = new SupabaseTripsRepository(supabase);
-      const visitsRepository = new SupabaseVisitsRepository(supabase);
       const auditRepository = new SupabaseAuditRepository(supabase);
 
       const [pendingResult, inProgressResult, visitsResult, auditResult] =
@@ -155,8 +161,29 @@ export default async function DashboardPage(props: DashboardPageProps): Promise<
       recentVisits = visitsResult.items;
       recentAuditEvents = auditResult.items;
     } else {
+      // Role is field_employee — load employee's own trips and visits
       accessNote =
-        "You are signed in with a field_employee role. Organization-wide dashboard aggregates and CSV export require an active manager or admin membership.";
+        "You are signed in as a field representative. Showing your assigned trips and recorded visits. Organization-wide dashboard aggregates and CSV export require an active manager or admin membership.";
+
+      const [myTripsResult, myVisitsResult] = await Promise.all([
+        listTripsForOrg({
+          user,
+          candidateOrgId: activeOrgId,
+          rawQuery: { limit: 10 },
+          tenancyRepository,
+          tripsRepository,
+        }).catch(() => ({ items: [] })),
+        listVisitsForOrg({
+          user,
+          candidateOrgId: activeOrgId,
+          rawQuery: { limit: 10 },
+          tenancyRepository,
+          visitsRepository,
+        }).catch(() => ({ items: [] })),
+      ]);
+
+      employeeTrips = myTripsResult.items;
+      employeeVisits = myVisitsResult.items;
     }
   } catch (err) {
     dashboardError =
@@ -179,25 +206,29 @@ export default async function DashboardPage(props: DashboardPageProps): Promise<
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
       {/* Header Section */}
-      <section aria-labelledby="overview-heading">
-        <div className="card-header" style={{ alignItems: "center" }}>
-          <div>
-            <h1
-              id="overview-heading"
-              style={{
-                margin: "0 0 0.25rem",
-                fontSize: "1.625rem",
-                fontFamily: "var(--font-heading)",
-                color: "var(--brand-dark)",
-              }}
-            >
-              Manager Field Operations Dashboard — {activeOrg.name}
-            </h1>
-            <p className="card-meta" style={{ margin: 0 }}>
-              Operational metrics computed from committed database state. All check-ins
-              and evidence strictly isolated per tenant.
-            </p>
-          </div>
+      <section className="page-header" aria-labelledby="overview-heading">
+        <div className="page-header-text">
+          <p className="page-eyebrow">Workspace Telemetry</p>
+          <h1 id="overview-heading" className="page-title">
+            {role === "field_employee"
+              ? `My Field Operations — ${activeOrg.name}`
+              : `Operations Dashboard — ${activeOrg.name}`}
+          </h1>
+          <p className="page-subtitle">
+            Operational metrics computed from committed database state. All check-ins and
+            evidence strictly isolated per tenant.
+          </p>
+        </div>
+
+        <div className="page-actions">
+          <Link href="/trips/new" className="btn btn-primary">
+            + Plan New Trip
+          </Link>
+          {role === "manager" || role === "admin" ? (
+            <a href={exportHref} className="btn btn-secondary">
+              Export CSV
+            </a>
+          ) : null}
         </div>
       </section>
 
@@ -209,566 +240,650 @@ export default async function DashboardPage(props: DashboardPageProps): Promise<
       ) : null}
 
       {accessNote ? (
-        <div
-          role="note"
-          className="card"
-          style={{ padding: "0.875rem 1rem", fontSize: "0.875rem" }}
-        >
-          <strong>Role Scope Notice:</strong> {accessNote}
+        <div role="note" className="alert alert--info">
+          <span aria-hidden="true">ℹ️</span>
+          <div>
+            <strong>Role Scope Notice:</strong> {accessNote}
+          </div>
         </div>
       ) : null}
 
-      {/* KPI Cards Grid */}
-      <section className="card-grid" aria-label="Documented operational metrics summary">
-        <article className="card" style={{ borderTop: "3px solid var(--brand-accent)" }}>
-          <div className="card-header">
-            <h2 className="card-title" style={{ fontSize: "0.9375rem" }}>
-              {metrics.definitions.tripsAwaitingApproval.label}
-            </h2>
-            <Link href="/approvals" style={{ textDecoration: "none" }}>
-              <StatusBadge descriptor={getApprovalStatusDescriptor("submitted")} />
-            </Link>
-          </div>
-          <p
-            style={{
-              fontSize: "2.25rem",
-              fontWeight: 700,
-              margin: "0.25rem 0",
-              fontFamily: "var(--font-heading)",
-              color: "var(--text-primary)",
-            }}
-          >
-            {metrics.tripsAwaitingApproval}
-          </p>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: "0.25rem",
-            }}
-          >
-            <p className="card-meta" style={{ margin: 0, fontSize: "0.75rem" }}>
-              <strong>Rule:</strong>{" "}
-              {metrics.definitions.tripsAwaitingApproval.formulaSummary}
-            </p>
-            <Link
-              href="/approvals"
-              className="btn btn-sm btn-outline"
-              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
-            >
-              Review →
-            </Link>
-          </div>
-        </article>
-
-        <article className="card" style={{ borderTop: "3px solid var(--brand-primary)" }}>
-          <div className="card-header">
-            <h2 className="card-title" style={{ fontSize: "0.9375rem" }}>
-              {metrics.definitions.approvedTrips.label}
-            </h2>
-            <Link href="/?tripStatus=approved" style={{ textDecoration: "none" }}>
-              <StatusBadge descriptor={getApprovalStatusDescriptor("approved")} />
-            </Link>
-          </div>
-          <p
-            style={{
-              fontSize: "2.25rem",
-              fontWeight: 700,
-              margin: "0.25rem 0",
-              fontFamily: "var(--font-heading)",
-              color: "var(--text-primary)",
-            }}
-          >
-            {metrics.approvedTrips}
-          </p>
-          <p className="card-meta" style={{ margin: "0 0 0.25rem", fontSize: "0.75rem" }}>
-            Not Started: {metrics.approvedTripsBreakdown.approvedNotStarted} • In
-            Progress: {metrics.approvedTripsBreakdown.inProgress} • Completed:{" "}
-            {metrics.approvedTripsBreakdown.completedAllStopsCheckedOut}
-          </p>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <p className="card-meta" style={{ margin: 0, fontSize: "0.75rem" }}>
-              <strong>Rule:</strong>{" "}
-              {metrics.definitions.approvedTrips.completionRuleNote}
-            </p>
-            <Link
-              href="/?tripStatus=approved"
-              className="btn btn-sm btn-outline"
-              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
-            >
-              Filter →
-            </Link>
-          </div>
-        </article>
-
-        <article
-          className="card"
-          style={{ borderTop: "3px solid var(--status-success)" }}
-        >
-          <div className="card-header">
-            <h2 className="card-title" style={{ fontSize: "0.9375rem" }}>
-              {metrics.definitions.completedVisits.label}
-            </h2>
-            <Link href="/?visitStatus=submitted" style={{ textDecoration: "none" }}>
-              <StatusBadge descriptor={getApprovalStatusDescriptor("completed")} />
-            </Link>
-          </div>
-          <p
-            style={{
-              fontSize: "2.25rem",
-              fontWeight: 700,
-              margin: "0.25rem 0",
-              fontFamily: "var(--font-heading)",
-              color: "var(--status-success)",
-            }}
-          >
-            {metrics.completedVisits}
-          </p>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <p className="card-meta" style={{ margin: 0, fontSize: "0.75rem" }}>
-              <strong>Rule:</strong> {metrics.definitions.completedVisits.formulaSummary}
-            </p>
-            <Link
-              href="/?visitStatus=submitted"
-              className="btn btn-sm btn-outline"
-              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
-            >
-              Filter →
-            </Link>
-          </div>
-        </article>
-
-        <article className="card" style={{ borderTop: "3px solid #3B82F6" }}>
-          <div className="card-header">
-            <h2 className="card-title" style={{ fontSize: "0.9375rem" }}>
-              {metrics.definitions.pendingVisits.label}
-            </h2>
-            <Link href="/?visitStatus=in_progress" style={{ textDecoration: "none" }}>
-              <StatusBadge descriptor={getApprovalStatusDescriptor("in_progress")} />
-            </Link>
-          </div>
-          <p
-            style={{
-              fontSize: "2.25rem",
-              fontWeight: 700,
-              margin: "0.25rem 0",
-              fontFamily: "var(--font-heading)",
-              color: "var(--text-primary)",
-            }}
-          >
-            {metrics.pendingVisits}
-          </p>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <p className="card-meta" style={{ margin: 0, fontSize: "0.75rem" }}>
-              <strong>Rule:</strong> {metrics.definitions.pendingVisits.formulaSummary}
-            </p>
-            <Link
-              href="/?visitStatus=in_progress"
-              className="btn btn-sm btn-outline"
-              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
-            >
-              Filter →
-            </Link>
-          </div>
-        </article>
-
-        <article className="card" style={{ borderTop: "3px solid var(--status-danger)" }}>
-          <div className="card-header">
-            <h2 className="card-title" style={{ fontSize: "0.9375rem" }}>
-              {metrics.definitions.exceptionsRequiringAttention.label}
-            </h2>
-            <Link href="/?onlyExceptions=true" style={{ textDecoration: "none" }}>
-              <StatusBadge
-                descriptor={getApprovalStatusDescriptor("changes_requested")}
-              />
-            </Link>
-          </div>
-          <p
-            style={{
-              fontSize: "2.25rem",
-              fontWeight: 700,
-              margin: "0.25rem 0",
-              fontFamily: "var(--font-heading)",
-              color: "var(--status-danger)",
-            }}
-          >
-            {metrics.exceptionsRequiringAttention}
-          </p>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <p className="card-meta" style={{ margin: 0, fontSize: "0.75rem" }}>
-              <strong>Rule:</strong>{" "}
-              {metrics.definitions.exceptionsRequiringAttention.formulaSummary}
-            </p>
-            <Link
-              href="/?onlyExceptions=true"
-              className="btn btn-sm btn-outline"
-              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
-            >
-              Exceptions →
-            </Link>
-          </div>
-        </article>
-
-        <article className="card" style={{ borderTop: "3px solid var(--border-strong)" }}>
-          <div className="card-header">
-            <h2 className="card-title" style={{ fontSize: "0.9375rem" }}>
-              Trips by Status
-            </h2>
-            <Link
-              href="/reports"
-              className="btn btn-sm btn-outline"
-              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
-            >
-              Reports →
-            </Link>
-          </div>
-          <p className="card-meta" style={{ margin: "0.25rem 0", fontSize: "0.75rem" }}>
-            Lifecycle distribution for active scope.
-          </p>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "0.375rem",
-              marginTop: "0.25rem",
-              fontSize: "0.8125rem",
-            }}
-          >
-            <span className="card-meta">
-              Submitted: <strong>{metrics.tripsByStatus.submitted}</strong>
-            </span>
-            <span className="card-meta">•</span>
-            <span className="card-meta">
-              Approved: <strong>{metrics.tripsByStatus.approved}</strong>
-            </span>
-            <span className="card-meta">•</span>
-            <span className="card-meta">
-              In Progress: <strong>{metrics.tripsByStatus.in_progress}</strong>
-            </span>
-            <span className="card-meta">•</span>
-            <span className="card-meta">
-              Completed: <strong>{metrics.tripsByStatus.completed}</strong>
-            </span>
-            <span className="card-meta">•</span>
-            <span className="card-meta">
-              Draft: <strong>{metrics.tripsByStatus.draft}</strong>
-            </span>
-          </div>
-        </article>
-      </section>
-
-      {/* Database-Driven Manager Operations Telemetry */}
-      <ManagerDashboardClient
-        pendingApprovals={pendingApprovals}
-        inProgressTrips={inProgressTrips}
-        recentVisits={recentVisits}
-        timelineEvents={recentAuditEvents}
-        activeOrgId={activeOrgId}
-      />
-
-      {/* Filter and CSV Export Section */}
-      <section className="card" aria-labelledby="dashboard-filters-heading">
-        <div className="card-header">
-          <div>
-            <h2 id="dashboard-filters-heading" className="card-title">
-              Filter Authorized Results &amp; Export CSV
-            </h2>
-            <p className="card-meta">
-              {metrics.timezoneBoundaryNote} Reference Date (UTC):{" "}
-              <code>{metrics.referenceDateUtc}</code>
-            </p>
-          </div>
-          {exportHref ? (
-            <a href={exportHref} className="btn btn-secondary">
-              Export Filtered Result Set (CSV)
-            </a>
-          ) : null}
-        </div>
-
-        <form
-          method="get"
-          action="/"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-            marginTop: "0.5rem",
-          }}
-        >
-          <div className="card-grid">
-            <div className="form-group">
-              <label htmlFor="filter-start-from" className="form-label">
-                Trip Start Date From (UTC)
-              </label>
-              <input
-                id="filter-start-from"
-                name="startDateFrom"
-                type="date"
-                defaultValue={startDateFrom ?? ""}
-                className="form-input"
-              />
+      {/* Field Employee View */}
+      {role === "field_employee" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          <div className="kpi-grid">
+            <div className="kpi-card kpi-card--primary">
+              <div className="kpi-card-top">
+                <span className="kpi-label">My Field Trips</span>
+                <span className="kpi-icon" aria-hidden="true">
+                  🗺️
+                </span>
+              </div>
+              <div className="kpi-value">{employeeTrips.length}</div>
+              <p className="kpi-footnote">Assigned itineraries</p>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="filter-start-to" className="form-label">
-                Trip Start Date To (UTC)
-              </label>
-              <input
-                id="filter-start-to"
-                name="startDateTo"
-                type="date"
-                defaultValue={startDateTo ?? ""}
-                className="form-input"
-              />
+            <div className="kpi-card kpi-card--success">
+              <div className="kpi-card-top">
+                <span className="kpi-label">Recorded Visits</span>
+                <span className="kpi-icon" aria-hidden="true">
+                  📍
+                </span>
+              </div>
+              <div className="kpi-value">{employeeVisits.length}</div>
+              <p className="kpi-footnote">Recent store executions</p>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="filter-trip-status" className="form-label">
-                Trip Status
-              </label>
-              <select
-                id="filter-trip-status"
-                name="tripStatus"
-                defaultValue={tripStatus ?? ""}
-                className="form-select"
-              >
-                <option value="">All Trip Statuses</option>
-                <option value="submitted">Submitted (Awaiting Approval)</option>
-                <option value="approved">Approved</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="changes_requested">Changes Requested</option>
-                <option value="rejected">Rejected</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="filter-visit-status" className="form-label">
-                Visit Status
-              </label>
-              <select
-                id="filter-visit-status"
-                name="visitStatus"
-                defaultValue={visitStatus ?? ""}
-                className="form-select"
-              >
-                <option value="">All Visit Statuses</option>
-                <option value="not_started">Not Started</option>
-                <option value="in_progress">In Progress</option>
-                <option value="submitted">Submitted (Checked Out)</option>
-                <option value="reviewed">Reviewed</option>
-              </select>
-            </div>
+            <Link href="/stores" className="kpi-card kpi-card--violet">
+              <div className="kpi-card-top">
+                <span className="kpi-label">Stores Directory</span>
+                <span className="kpi-icon" aria-hidden="true">
+                  🏢
+                </span>
+              </div>
+              <div className="kpi-value">Directory →</div>
+              <p className="kpi-footnote">Browse retail accounts</p>
+            </Link>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "0.75rem",
-              paddingTop: "0.5rem",
-              borderTop: "1px solid var(--border-default)",
-            }}
-          >
-            <label
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                cursor: "pointer",
-                minHeight: "var(--touch-target-min)",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-              }}
-            >
-              <input
-                type="checkbox"
-                name="onlyExceptions"
-                value="true"
-                defaultChecked={onlyExceptions === "true"}
-              />
-              <span>Show only records requiring attention / exceptions</span>
-            </label>
+          {/* Quick Actions */}
+          <div className="quick-actions">
+            <Link href="/trips/new" className="quick-action">
+              <div className="quick-action-icon">➕</div>
+              <div className="quick-action-text">
+                <span>Plan Field Trip</span>
+                <span className="quick-action-desc">Create multi-stop route</span>
+              </div>
+            </Link>
+            <Link href="/trips" className="quick-action">
+              <div className="quick-action-icon">🗺️</div>
+              <div className="quick-action-text">
+                <span>My Field Itineraries</span>
+                <span className="quick-action-desc">Check status and stops</span>
+              </div>
+            </Link>
+            <Link href="/visits" className="quick-action">
+              <div className="quick-action-icon">📋</div>
+              <div className="quick-action-text">
+                <span>Store Visit Checklists</span>
+                <span className="quick-action-desc">Execute on-site evidence</span>
+              </div>
+            </Link>
+          </div>
 
-            <div style={{ display: "flex", gap: "0.75rem" }}>
-              <button type="submit" className="btn btn-primary">
-                Apply Filters
-              </button>
-              <Link href="/dashboard" className="btn btn-secondary">
-                Clear Filters
+          {/* Employee Trips List */}
+          <section className="card" aria-labelledby="my-trips-heading">
+            <div className="card-header">
+              <h2 id="my-trips-heading" className="card-title">
+                My Recent Field Trips
+              </h2>
+              <Link href="/trips" className="btn btn-sm btn-secondary">
+                View All Trips →
               </Link>
             </div>
-          </div>
-        </form>
-      </section>
 
-      {/* Planned vs Actual Stop Execution Table */}
-      <section className="card" aria-labelledby="planned-vs-actual-heading">
-        <div className="card-header">
-          <h2 id="planned-vs-actual-heading" className="card-title">
-            Planned vs Actual Trip Stop Execution ({items.length})
-          </h2>
-          <span style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
-            Server-verified check-in/out records
-          </span>
+            {employeeTrips.length === 0 ? (
+              <EmptyState
+                title="No field trips planned yet"
+                description="Create your first itinerary to schedule store visits and request approval."
+                actionLabel="Plan New Trip"
+                actionHref="/trips/new"
+              />
+            ) : (
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Trip Title</th>
+                      <th scope="col">Schedule</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employeeTrips.map((trip) => (
+                      <tr key={trip.id}>
+                        <td>
+                          <strong>{trip.title}</strong>
+                        </td>
+                        <td>
+                          {trip.startDate} to {trip.endDate}
+                        </td>
+                        <td>
+                          <StatusBadge
+                            descriptor={getApprovalStatusDescriptor(trip.status)}
+                          />
+                        </td>
+                        <td>
+                          <Link
+                            href={`/trips/${trip.id}`}
+                            className="btn btn-sm btn-secondary"
+                          >
+                            View Itinerary →
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
         </div>
-        <p className="card-meta" style={{ margin: "0 0 0.75rem" }}>
-          Location is displayed strictly as a point-in-time check-in/out record, not live
-          tracking. Device coordinates are unverified device-reported values.
-        </p>
+      ) : (
+        /* Manager / Admin View */
+        <>
+          {/* KPI Cards Grid */}
+          <section
+            className="kpi-grid"
+            aria-label="Documented operational metrics summary"
+          >
+            <article className="kpi-card kpi-card--warning">
+              <div className="kpi-card-top">
+                <h2 className="kpi-label">
+                  {metrics.definitions.tripsAwaitingApproval.label}
+                </h2>
+                <Link href="/approvals" style={{ textDecoration: "none" }}>
+                  <StatusBadge descriptor={getApprovalStatusDescriptor("submitted")} />
+                </Link>
+              </div>
+              <div className="kpi-value" style={{ color: "var(--status-warning-text)" }}>
+                {metrics.tripsAwaitingApproval}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: "auto",
+                  paddingTop: "0.25rem",
+                }}
+              >
+                <p className="kpi-footnote">
+                  <strong>Rule:</strong>{" "}
+                  {metrics.definitions.tripsAwaitingApproval.formulaSummary}
+                </p>
+                <Link
+                  href="/approvals"
+                  className="btn btn-sm btn-outline"
+                  style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+                >
+                  Review →
+                </Link>
+              </div>
+            </article>
 
-        {items.length === 0 ? (
-          <EmptyState
-            title="No matching trip or visit records"
-            description="No authorized records in your active organization match the selected filters."
-            actionLabel="View Field Trips"
-            actionHref="/trips"
+            <article className="kpi-card kpi-card--primary">
+              <div className="kpi-card-top">
+                <h2 className="kpi-label">{metrics.definitions.approvedTrips.label}</h2>
+                <Link
+                  href="/dashboard?tripStatus=approved"
+                  style={{ textDecoration: "none" }}
+                >
+                  <StatusBadge descriptor={getApprovalStatusDescriptor("approved")} />
+                </Link>
+              </div>
+              <div className="kpi-value">{metrics.approvedTrips}</div>
+              <p className="kpi-footnote" style={{ margin: "0 0 0.25rem" }}>
+                Not Started: {metrics.approvedTripsBreakdown.approvedNotStarted} • In
+                Progress: {metrics.approvedTripsBreakdown.inProgress} • Completed:{" "}
+                {metrics.approvedTripsBreakdown.completedAllStopsCheckedOut}
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: "auto",
+                }}
+              >
+                <p className="kpi-footnote">
+                  <strong>Rule:</strong>{" "}
+                  {metrics.definitions.approvedTrips.completionRuleNote}
+                </p>
+                <Link
+                  href="/dashboard?tripStatus=approved"
+                  className="btn btn-sm btn-outline"
+                  style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+                >
+                  Filter →
+                </Link>
+              </div>
+            </article>
+
+            <article className="kpi-card kpi-card--success">
+              <div className="kpi-card-top">
+                <h2 className="kpi-label">{metrics.definitions.completedVisits.label}</h2>
+                <Link
+                  href="/dashboard?visitStatus=submitted"
+                  style={{ textDecoration: "none" }}
+                >
+                  <StatusBadge descriptor={getApprovalStatusDescriptor("completed")} />
+                </Link>
+              </div>
+              <div className="kpi-value" style={{ color: "var(--status-success)" }}>
+                {metrics.completedVisits}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: "auto",
+                }}
+              >
+                <p className="kpi-footnote">
+                  <strong>Rule:</strong>{" "}
+                  {metrics.definitions.completedVisits.formulaSummary}
+                </p>
+                <Link
+                  href="/dashboard?visitStatus=submitted"
+                  className="btn btn-sm btn-outline"
+                  style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+                >
+                  Filter →
+                </Link>
+              </div>
+            </article>
+
+            <article className="kpi-card kpi-card--info">
+              <div className="kpi-card-top">
+                <h2 className="kpi-label">{metrics.definitions.pendingVisits.label}</h2>
+                <Link
+                  href="/dashboard?visitStatus=in_progress"
+                  style={{ textDecoration: "none" }}
+                >
+                  <StatusBadge descriptor={getApprovalStatusDescriptor("in_progress")} />
+                </Link>
+              </div>
+              <div className="kpi-value">{metrics.pendingVisits}</div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: "auto",
+                }}
+              >
+                <p className="kpi-footnote">
+                  <strong>Rule:</strong>{" "}
+                  {metrics.definitions.pendingVisits.formulaSummary}
+                </p>
+                <Link
+                  href="/dashboard?visitStatus=in_progress"
+                  className="btn btn-sm btn-outline"
+                  style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+                >
+                  Filter →
+                </Link>
+              </div>
+            </article>
+
+            <article className="kpi-card kpi-card--danger">
+              <div className="kpi-card-top">
+                <h2 className="kpi-label">
+                  {metrics.definitions.exceptionsRequiringAttention.label}
+                </h2>
+                <Link
+                  href="/dashboard?onlyExceptions=true"
+                  style={{ textDecoration: "none" }}
+                >
+                  <StatusBadge
+                    descriptor={getApprovalStatusDescriptor("changes_requested")}
+                  />
+                </Link>
+              </div>
+              <div className="kpi-value" style={{ color: "var(--status-danger)" }}>
+                {metrics.exceptionsRequiringAttention}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: "auto",
+                }}
+              >
+                <p className="kpi-footnote">
+                  <strong>Rule:</strong>{" "}
+                  {metrics.definitions.exceptionsRequiringAttention.formulaSummary}
+                </p>
+                <Link
+                  href="/dashboard?onlyExceptions=true"
+                  className="btn btn-sm btn-outline"
+                  style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+                >
+                  Exceptions →
+                </Link>
+              </div>
+            </article>
+
+            <article className="kpi-card kpi-card--neutral">
+              <div className="kpi-card-top">
+                <h2 className="kpi-label">Trips by Status</h2>
+                <Link
+                  href="/reports"
+                  className="btn btn-sm btn-outline"
+                  style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
+                >
+                  Reports →
+                </Link>
+              </div>
+              <p className="kpi-footnote" style={{ margin: "0.25rem 0" }}>
+                Lifecycle distribution for active scope.
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "0.375rem",
+                  marginTop: "auto",
+                  fontSize: "0.8125rem",
+                }}
+              >
+                <span className="card-meta">
+                  Submitted: <strong>{metrics.tripsByStatus.submitted}</strong>
+                </span>
+                <span className="card-meta">•</span>
+                <span className="card-meta">
+                  Approved: <strong>{metrics.tripsByStatus.approved}</strong>
+                </span>
+                <span className="card-meta">•</span>
+                <span className="card-meta">
+                  In Progress: <strong>{metrics.tripsByStatus.in_progress}</strong>
+                </span>
+                <span className="card-meta">•</span>
+                <span className="card-meta">
+                  Completed: <strong>{metrics.tripsByStatus.completed}</strong>
+                </span>
+                <span className="card-meta">•</span>
+                <span className="card-meta">
+                  Draft: <strong>{metrics.tripsByStatus.draft}</strong>
+                </span>
+              </div>
+            </article>
+          </section>
+
+          {/* Database-Driven Manager Operations Telemetry */}
+          <ManagerDashboardClient
+            pendingApprovals={pendingApprovals}
+            inProgressTrips={inProgressTrips}
+            recentVisits={recentVisits}
+            timelineEvents={recentAuditEvents}
+            activeOrgId={activeOrgId}
           />
-        ) : (
-          <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th scope="col">Trip</th>
-                  <th scope="col">Stop</th>
-                  <th scope="col">Store / Territory</th>
-                  <th scope="col">Planned At (UTC)</th>
-                  <th scope="col">Check-In / Out</th>
-                  <th scope="col">Checklist</th>
-                  <th scope="col">Evidence</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((row) => (
-                  <tr
-                    key={row.tripStopId}
-                    style={{
-                      background: row.requiresAttention
-                        ? "rgba(239, 68, 68, 0.04)"
-                        : undefined,
-                    }}
-                  >
-                    <td>
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        <strong style={{ fontSize: "0.875rem" }}>{row.tripTitle}</strong>
-                        <span className="card-meta" style={{ fontSize: "0.75rem" }}>
-                          Rep: {row.ownerUserId}
-                        </span>
-                      </div>
-                    </td>
-                    <td>Stop #{row.sequenceNumber}</td>
-                    <td>
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        <span>{row.storeName}</span>
-                        <span className="card-meta" style={{ fontSize: "0.75rem" }}>
-                          {row.storeRegion}
-                        </span>
-                      </div>
-                    </td>
-                    <td>{row.plannedAt}</td>
-                    <td>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          fontSize: "0.75rem",
-                        }}
-                      >
-                        <span>In: {row.checkedInAt ?? "—"}</span>
-                        <span>Out: {row.checkedOutAt ?? "—"}</span>
-                      </div>
-                    </td>
-                    <td>
-                      {row.requiredChecklistCompletedCount} /{" "}
-                      {row.requiredChecklistTotalCount}
-                      {row.flaggedChecklistCount > 0 ? (
-                        <span
-                          style={{
-                            color: "var(--status-danger)",
-                            marginLeft: "0.25rem",
-                            fontWeight: 700,
-                          }}
-                        >
-                          ({row.flaggedChecklistCount} flagged)
-                        </span>
-                      ) : null}
-                    </td>
-                    <td>{row.evidenceCount} photos</td>
-                    <td>
-                      <span
-                        style={{
-                          fontSize: "0.75rem",
-                          fontWeight: 600,
-                          textTransform: "capitalize",
-                          padding: "0.125rem 0.5rem",
-                          borderRadius: "var(--radius-full)",
-                          background: row.requiresAttention
-                            ? "var(--status-danger-bg)"
-                            : "var(--status-info-bg)",
-                          color: row.requiresAttention
-                            ? "var(--status-danger-text)"
-                            : "var(--brand-primary)",
-                        }}
-                      >
-                        {row.actualVisitStatus ?? row.plannedStopStatus}
-                      </span>
-                    </td>
-                    <td>
-                      <Link
-                        href={`/trips/${row.tripId}`}
-                        className="btn btn-sm btn-secondary"
-                        style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
-                      >
-                        Trip →
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
 
-        {nextCursor ? (
-          <div style={{ padding: "1rem 0 0", textAlign: "center" }}>
-            <Link
-              href={`/?cursor=${encodeURIComponent(nextCursor)}`}
-              className="btn btn-secondary"
+          {/* Filter and CSV Export Section */}
+          <section className="card" aria-labelledby="dashboard-filters-heading">
+            <div className="card-header">
+              <div>
+                <h2 id="dashboard-filters-heading" className="card-title">
+                  Filter Authorized Results &amp; Export CSV
+                </h2>
+                <p className="card-meta">
+                  {metrics.timezoneBoundaryNote} Reference Date (UTC):{" "}
+                  <code>{metrics.referenceDateUtc}</code>
+                </p>
+              </div>
+              {exportHref ? (
+                <a href={exportHref} className="btn btn-secondary">
+                  Export Filtered Result Set (CSV)
+                </a>
+              ) : null}
+            </div>
+
+            <form
+              method="get"
+              action="/dashboard"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "1rem",
+                marginTop: "0.5rem",
+              }}
             >
-              Load Next Page
-            </Link>
-          </div>
-        ) : null}
-      </section>
+              <div className="card-grid">
+                <div className="form-group">
+                  <label htmlFor="filter-start-from" className="form-label">
+                    Trip Start Date From (UTC)
+                  </label>
+                  <input
+                    id="filter-start-from"
+                    name="startDateFrom"
+                    type="date"
+                    defaultValue={startDateFrom ?? ""}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="filter-start-to" className="form-label">
+                    Trip Start Date To (UTC)
+                  </label>
+                  <input
+                    id="filter-start-to"
+                    name="startDateTo"
+                    type="date"
+                    defaultValue={startDateTo ?? ""}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="filter-trip-status" className="form-label">
+                    Trip Status
+                  </label>
+                  <select
+                    id="filter-trip-status"
+                    name="tripStatus"
+                    defaultValue={tripStatus ?? ""}
+                    className="form-select"
+                  >
+                    <option value="">All Trip Statuses</option>
+                    <option value="submitted">Submitted (Awaiting Approval)</option>
+                    <option value="approved">Approved</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="changes_requested">Changes Requested</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="filter-visit-status" className="form-label">
+                    Visit Status
+                  </label>
+                  <select
+                    id="filter-visit-status"
+                    name="visitStatus"
+                    defaultValue={visitStatus ?? ""}
+                    className="form-select"
+                  >
+                    <option value="">All Visit Statuses</option>
+                    <option value="not_started">Not Started</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="submitted">Submitted (Checked Out)</option>
+                    <option value="reviewed">Reviewed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "0.75rem",
+                  paddingTop: "0.5rem",
+                  borderTop: "1px solid var(--border-default)",
+                }}
+              >
+                <label
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    cursor: "pointer",
+                    minHeight: "var(--touch-target-min)",
+                    fontSize: "0.875rem",
+                    fontWeight: 500,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    name="onlyExceptions"
+                    value="true"
+                    defaultChecked={onlyExceptions === "true"}
+                  />
+                  <span>Show only records requiring attention / exceptions</span>
+                </label>
+
+                <div style={{ display: "flex", gap: "0.75rem" }}>
+                  <button type="submit" className="btn btn-primary">
+                    Apply Filters
+                  </button>
+                  <Link href="/dashboard" className="btn btn-secondary">
+                    Clear Filters
+                  </Link>
+                </div>
+              </div>
+            </form>
+          </section>
+
+          {/* Planned vs Actual Stop Execution Table */}
+          <section className="card" aria-labelledby="planned-vs-actual-heading">
+            <div className="card-header">
+              <div>
+                <h2 id="planned-vs-actual-heading" className="card-title">
+                  Planned vs Actual Trip Stop Execution ({items.length})
+                </h2>
+                <p className="card-meta">
+                  Location is displayed strictly as a point-in-time check-in/out record,
+                  not live tracking. Device coordinates are unverified device-reported
+                  values.
+                </p>
+              </div>
+              <span className="badge-info">Server-verified check-in/out records</span>
+            </div>
+
+            {items.length === 0 ? (
+              <EmptyState
+                title="No matching trip or visit records"
+                description="No authorized records in your active organization match the selected filters."
+                actionLabel="View Field Trips"
+                actionHref="/trips"
+              />
+            ) : (
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Trip</th>
+                      <th scope="col">Stop</th>
+                      <th scope="col">Store / Territory</th>
+                      <th scope="col">Planned At (UTC)</th>
+                      <th scope="col">Check-In / Out</th>
+                      <th scope="col">Checklist</th>
+                      <th scope="col">Evidence</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((row) => (
+                      <tr
+                        key={row.tripStopId}
+                        className={row.requiresAttention ? "is-attention" : undefined}
+                      >
+                        <td>
+                          <div style={{ display: "flex", flexDirection: "column" }}>
+                            <strong style={{ fontSize: "0.875rem" }}>
+                              {row.tripTitle}
+                            </strong>
+                            <span className="card-meta" style={{ fontSize: "0.75rem" }}>
+                              Rep: {row.ownerUserId}
+                            </span>
+                          </div>
+                        </td>
+                        <td>Stop #{row.sequenceNumber}</td>
+                        <td>
+                          <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span>{row.storeName}</span>
+                            <span className="card-meta" style={{ fontSize: "0.75rem" }}>
+                              {row.storeRegion}
+                            </span>
+                          </div>
+                        </td>
+                        <td>{row.plannedAt}</td>
+                        <td>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              fontSize: "0.75rem",
+                            }}
+                          >
+                            <span>In: {row.checkedInAt ?? "—"}</span>
+                            <span>Out: {row.checkedOutAt ?? "—"}</span>
+                          </div>
+                        </td>
+                        <td>
+                          {row.requiredChecklistCompletedCount} /{" "}
+                          {row.requiredChecklistTotalCount}
+                          {row.flaggedChecklistCount > 0 ? (
+                            <span
+                              style={{
+                                color: "var(--status-danger)",
+                                marginLeft: "0.25rem",
+                                fontWeight: 700,
+                              }}
+                            >
+                              ({row.flaggedChecklistCount} flagged)
+                            </span>
+                          ) : null}
+                        </td>
+                        <td>{row.evidenceCount} photos</td>
+                        <td>
+                          <span
+                            className={
+                              row.requiresAttention
+                                ? "status-badge status-badge--danger"
+                                : "status-badge status-badge--info"
+                            }
+                          >
+                            {row.actualVisitStatus ?? row.plannedStopStatus}
+                          </span>
+                        </td>
+                        <td>
+                          <Link
+                            href={`/trips/${row.tripId}`}
+                            className="btn btn-sm btn-secondary"
+                            style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
+                          >
+                            Trip →
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {nextCursor ? (
+              <div style={{ padding: "1rem 0 0", textAlign: "center" }}>
+                <Link
+                  href={`/dashboard?cursor=${encodeURIComponent(nextCursor)}`}
+                  className="btn btn-secondary"
+                >
+                  Load Next Page
+                </Link>
+              </div>
+            ) : null}
+          </section>
+        </>
+      )}
     </div>
   );
 }

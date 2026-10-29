@@ -8,6 +8,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import { AuthLayout } from "@/components/auth/AuthLayout";
 import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { signUpAction } from "@/modules/auth/actions";
 
@@ -19,6 +20,7 @@ export default function SignUpPage(): ReactNode {
     const token = new URLSearchParams(window.location.search).get("invite_token");
     if (token) setInviteToken(token);
   }, []);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -63,136 +65,40 @@ export default function SignUpPage(): ReactNode {
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "75vh",
-        padding: "1rem",
-      }}
-    >
-      <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-        <Link
-          href="/"
-          className="brand-badge"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.625rem",
-            textDecoration: "none",
-            marginBottom: "0.5rem",
-          }}
-        >
-          <div
-            className="brand-icon-box"
-            style={{ width: "2.5rem", height: "2.5rem", fontSize: "1.25rem" }}
-          >
-            F
-          </div>
-          <span
-            style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-dark)" }}
-          >
-            FieldTrack
-          </span>
-        </Link>
-        <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--text-secondary)" }}>
-          Enterprise Field Operations &amp; Travel Management Platform
-        </p>
-      </div>
-
-      <section
-        className="card"
-        style={{
-          maxWidth: "28rem",
-          width: "100%",
-          padding: "2rem",
-          boxShadow: "var(--shadow-md)",
-          borderRadius: "var(--radius-xl)",
-        }}
-        aria-labelledby="signup-heading"
-      >
-        <h1
-          id="signup-heading"
-          className="card-title"
-          style={{
-            fontSize: "1.375rem",
-            fontFamily: "var(--font-heading)",
-            color: "var(--brand-dark)",
-            marginBottom: "0.375rem",
-          }}
-        >
-          Create your FieldTrack account
-        </h1>
-        <p className="card-meta" style={{ marginBottom: "1.25rem" }}>
-          After registering, you can create a new organization or accept a one-time
-          invitation from your administrator.
-        </p>
+    <AuthLayout>
+      <section className="auth-card" aria-labelledby="signup-heading">
+        <div>
+          <h1 id="signup-heading" className="auth-title">
+            Create your account
+          </h1>
+          <p className="auth-subtitle">
+            Start your 14-day evaluation pilot or accept an invitation from your team.
+          </p>
+        </div>
 
         {error ? (
-          <div
-            role="alert"
-            className="state-panel state-panel--error"
-            style={{
-              padding: "0.75rem 1rem",
-              textAlign: "left",
-              marginBottom: "1rem",
-              borderRadius: "var(--radius-md)",
-            }}
-          >
-            {error}
+          <div role="alert" className="alert alert--error">
+            <span aria-hidden="true">⚠️</span>
+            <span>{error}</span>
           </div>
         ) : null}
 
         {message ? (
-          <div
-            role="status"
-            aria-live="polite"
-            className="state-panel"
-            style={{
-              padding: "0.75rem 1rem",
-              textAlign: "left",
-              marginBottom: "1rem",
-              borderRadius: "var(--radius-md)",
-              backgroundColor: "rgba(5, 150, 105, 0.1)",
-              borderColor: "var(--success-green)",
-              color: "var(--success-green)",
-            }}
-          >
-            {message}
+          <div role="status" aria-live="polite" className="alert alert--success">
+            <span aria-hidden="true">✓</span>
+            <span>{message}</span>
           </div>
         ) : null}
 
         <GoogleAuthButton mode="signup" inviteToken={inviteToken} />
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-            margin: "1.25rem 0",
-            color: "var(--text-muted)",
-            fontSize: "0.8125rem",
-          }}
-        >
-          <span style={{ height: "1px", flex: 1, background: "var(--border-subtle)" }} />
-          <span>or continue with email</span>
-          <span style={{ height: "1px", flex: 1, background: "var(--border-subtle)" }} />
+
+        <div className="auth-divider">
+          <span>or register with email</span>
         </div>
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: "1.125rem" }}
-        >
-          <div>
-            <label
-              htmlFor="signup-name"
-              style={{
-                display: "block",
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                marginBottom: "0.375rem",
-              }}
-            >
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="signup-name" className="form-label">
               Full Name
             </label>
             <input
@@ -206,23 +112,11 @@ export default function SignUpPage(): ReactNode {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               className="input-field"
-              style={{
-                width: "100%",
-                minHeight: "var(--touch-target-min)",
-              }}
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="signup-email"
-              style={{
-                display: "block",
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                marginBottom: "0.375rem",
-              }}
-            >
+          <div className="form-group">
+            <label htmlFor="signup-email" className="form-label">
               Work Email
             </label>
             <input
@@ -235,26 +129,14 @@ export default function SignUpPage(): ReactNode {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input-field"
-              style={{
-                width: "100%",
-                minHeight: "var(--touch-target-min)",
-              }}
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="signup-password"
-              style={{
-                display: "block",
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                marginBottom: "0.375rem",
-              }}
-            >
+          <div className="form-group">
+            <label htmlFor="signup-password" className="form-label">
               Password (minimum 8 characters)
             </label>
-            <div style={{ position: "relative" }}>
+            <div className="password-field">
               <input
                 id="signup-password"
                 name="password"
@@ -266,28 +148,11 @@ export default function SignUpPage(): ReactNode {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field"
-                style={{
-                  width: "100%",
-                  minHeight: "var(--touch-target-min)",
-                  paddingRight: "2.75rem",
-                }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: "absolute",
-                  right: "0.5rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  color: "var(--text-muted)",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  padding: "0.25rem 0.5rem",
-                }}
+                className="password-toggle"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? "Hide" : "Show"}
@@ -298,27 +163,21 @@ export default function SignUpPage(): ReactNode {
           <button
             type="submit"
             disabled={isPending}
-            className="btn btn-primary"
-            style={{
-              width: "100%",
-              marginTop: "0.5rem",
-              minHeight: "var(--touch-target-min)",
-            }}
+            className="btn btn-primary btn-block"
+            style={{ marginTop: "0.25rem" }}
           >
-            {isPending ? "Creating account…" : "Create FieldTrack Account"}
+            {isPending ? (
+              <>
+                <span className="spinner" aria-hidden="true" />
+                <span>Creating account…</span>
+              </>
+            ) : (
+              "Create FieldTrack Account"
+            )}
           </button>
         </form>
 
-        <div
-          style={{
-            marginTop: "1.5rem",
-            paddingTop: "1.25rem",
-            borderTop: "1px solid var(--border-subtle)",
-            textAlign: "center",
-            fontSize: "0.875rem",
-            color: "var(--text-secondary)",
-          }}
-        >
+        <p className="auth-footer-text">
           Already have an account?{" "}
           <Link
             href={
@@ -326,16 +185,12 @@ export default function SignUpPage(): ReactNode {
                 ? `/login?invite_token=${encodeURIComponent(inviteToken)}`
                 : "/login"
             }
-            style={{
-              color: "var(--brand-primary)",
-              fontWeight: 600,
-              textDecoration: "none",
-            }}
+            className="auth-inline-link"
           >
             Sign in
           </Link>
-        </div>
+        </p>
       </section>
-    </div>
+    </AuthLayout>
   );
 }

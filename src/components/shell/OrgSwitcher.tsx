@@ -17,12 +17,13 @@ export interface OrgSwitcherProps {
   activeRole?: OrgRole;
   organizations?: readonly OrgSwitcherOption[];
   userEmail?: string | null;
+  inSidebar?: boolean;
 }
 
 const ROLE_LABELS: Readonly<Record<OrgRole, string>> = {
-  admin: "Org Admin",
-  manager: "Field Manager",
-  field_employee: "Field Employee",
+  admin: "Workspace Admin",
+  manager: "Operations Manager",
+  field_employee: "Field Representative",
 };
 
 export function OrgSwitcher({
@@ -31,6 +32,7 @@ export function OrgSwitcher({
   activeRole,
   organizations = [],
   userEmail = null,
+  inSidebar = false,
 }: OrgSwitcherProps): ReactNode {
   const [isPending, startTransition] = useTransition();
   const [switchError, setSwitchError] = useState<string | null>(null);
@@ -50,6 +52,49 @@ export function OrgSwitcher({
     startTransition(async () => {
       await signOutAction();
     });
+  }
+
+  if (inSidebar) {
+    return (
+      <div className="sidebar-org-context">
+        <p className="sidebar-org-label">Current Organization</p>
+        {organizations.length > 1 ? (
+          <div>
+            <label htmlFor="sidebar-org-select" className="sr-only">
+              Switch Organization
+            </label>
+            <select
+              id="sidebar-org-select"
+              aria-label="Switch active organization"
+              value={activeOrgId ?? organizations[0]?.orgId ?? ""}
+              onChange={handleOrgChange}
+              disabled={isPending}
+            >
+              {organizations.map((org) => (
+                <option key={org.orgId} value={org.orgId}>
+                  {org.orgName} ({ROLE_LABELS[org.role]})
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div className="org-pill">
+            <span className="text-truncate">
+              {activeOrgName || "FieldTrack Workspace"}
+            </span>
+            {activeRole && (
+              <span className="org-pill-role">{ROLE_LABELS[activeRole]}</span>
+            )}
+          </div>
+        )}
+
+        {switchError ? (
+          <span role="alert" className="sidebar-org-error">
+            {switchError}
+          </span>
+        ) : null}
+      </div>
+    );
   }
 
   return (

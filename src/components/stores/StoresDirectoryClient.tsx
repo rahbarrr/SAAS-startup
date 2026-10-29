@@ -207,16 +207,17 @@ export function StoresDirectoryClient({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <section aria-labelledby="stores-heading">
-        <div className="card-header">
-          <div>
-            <h1 id="stores-heading" style={{ margin: "0 0 0.5rem", fontSize: "1.5rem" }}>
-              Organization Store Directory
-            </h1>
-            <p className="card-meta">
-              Manage active retail and FMCG locations scoped to your organization.
-            </p>
-          </div>
+      <section className="page-header" aria-labelledby="stores-heading">
+        <div className="page-header-text">
+          <p className="page-eyebrow">Retail Network</p>
+          <h1 id="stores-heading" className="page-title">
+            Store Directory &amp; Territories
+          </h1>
+          <p className="page-subtitle">
+            Manage active retail and FMCG doors scoped to your organization.
+          </p>
+        </div>
+        <div className="page-actions">
           {canWrite ? (
             <button
               type="button"

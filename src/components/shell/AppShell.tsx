@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useTransition, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { PwaOfflineSyncIndicator } from "@/components/pwa/PwaOfflineSyncIndicator";
 import { RoleProvider, useCurrentRole } from "@/components/ui/RoleContext";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -28,11 +28,7 @@ function PageBreadcrumb() {
   if (segments.length === 0 || (segments.length === 1 && segments[0] === "dashboard")) {
     return (
       <div className="flex-row-center">
-        <span
-          style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "1.125rem" }}
-        >
-          Manager Operations Dashboard
-        </span>
+        <span className="header-page-title">Operations Dashboard</span>
       </div>
     );
   }
@@ -42,44 +38,36 @@ function PageBreadcrumb() {
     if (seg === "trips") return "Field Trips";
     if (seg === "visits") return "Store Visits";
     if (seg === "approvals") return "Approvals";
-    if (seg === "stores") return "Stores & Territories";
+    if (seg === "stores") return "Stores & Doors";
     if (seg === "team") return "Team Directory";
     if (seg === "reports") return "Reports & Analytics";
     if (seg === "ai-insights") return "AI Insights";
     if (seg === "settings") return "Workspace Settings";
     if (seg === "notifications") return "In-App Notifications";
+    if (seg === "audit") return "Audit Logs";
     if (seg === "new") return "New";
     if (seg === "edit") return "Edit";
     if (seg === "landing") return "Product Tour";
-    return seg.length > 12 ? `${seg.slice(0, 10)}...` : seg;
+    return seg.length > 14 ? `${seg.slice(0, 12)}…` : seg;
   };
 
   return (
-    <nav
-      aria-label="Breadcrumb"
-      className="flex-row-center"
-      style={{ fontSize: "0.875rem" }}
-    >
-      <Link href="/dashboard" style={{ color: "var(--text-muted)", textDecoration: "none" }}>
-        Dashboard
-      </Link>
+    <nav aria-label="Breadcrumb" className="header-breadcrumb">
+      <Link href="/dashboard">Dashboard</Link>
       {segments.map((seg, idx) => {
         const isLast = idx === segments.length - 1;
         const href = "/" + segments.slice(0, idx + 1).join("/");
         return (
           <span key={href} className="flex-row-center">
-            <span style={{ color: "var(--border-strong)", margin: "0 0.375rem" }}>/</span>
+            <span className="header-breadcrumb-sep" aria-hidden="true">
+              /
+            </span>
             {isLast ? (
-              <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+              <span className="header-breadcrumb-current" aria-current="page">
                 {formatSegment(seg)}
               </span>
             ) : (
-              <Link
-                href={href}
-                style={{ color: "var(--text-muted)", textDecoration: "none" }}
-              >
-                {formatSegment(seg)}
-              </Link>
+              <Link href={href}>{formatSegment(seg)}</Link>
             )}
           </span>
         );
@@ -95,30 +83,166 @@ function VerifiedRoleBadge() {
 
   return (
     <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "0.375rem",
-        fontSize: "0.75rem",
-        padding: "0.3125rem 0.625rem",
-        borderRadius: "var(--radius-sm)",
-        background: "var(--bg-subtle)",
-        border: "1px solid var(--border-default)",
-        fontWeight: 600,
-      }}
+      className="header-role-pill"
       title={`Verified role for ${authenticatedEmail ?? "session"} enforced via Row-Level Security`}
     >
-      <span style={{ color: "var(--status-success)", fontSize: "0.625rem" }}>●</span>
-      <span style={{ color: "var(--text-muted)" }}>Verified:</span>
-      <span
-        style={{
-          textTransform: "capitalize",
-          color: "var(--brand-dark)",
-          fontWeight: 700,
-        }}
+      <span className="header-role-dot" aria-hidden="true" />
+      <span>{currentRole.replace("_", " ")}</span>
+    </div>
+  );
+}
+
+function UserProfileMenu({
+  userEmail,
+  activeOrgName,
+}: {
+  userEmail: string | null;
+  activeOrgName: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [isSigningOut, startSignOut] = useTransition();
+  const { profile, currentRole } = useCurrentRole();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  function handleSignOut() {
+    startSignOut(async () => {
+      await signOutAction();
+    });
+  }
+
+  if (!userEmail) {
+    return (
+      <Link href="/login" className="btn btn-sm btn-primary">
+        Sign In
+      </Link>
+    );
+  }
+
+  return (
+    <div className="user-menu" ref={menuRef}>
+      <button
+        type="button"
+        className="user-menu-trigger"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-expanded={open}
+        aria-haspopup="true"
+        aria-label="User profile and account settings"
       >
-        {currentRole.replace("_", " ")}
-      </span>
+        <div className="user-avatar">{profile.avatarInitials}</div>
+        <span
+          className="user-menu-trigger-name"
+          style={{ fontSize: "0.8125rem", fontWeight: 600 }}
+        >
+          {profile.userName}
+        </span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
+          style={{
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.15s ease",
+          }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {open ? (
+        <div className="user-menu-panel" role="menu">
+          <div className="user-menu-header">
+            <span className="user-menu-name">{profile.userName}</span>
+            <span className="user-menu-email">{userEmail}</span>
+            <span className="user-menu-org">
+              {activeOrgName || "Workspace"} •{" "}
+              <strong style={{ textTransform: "capitalize" }}>
+                {currentRole.replace("_", " ")}
+              </strong>
+            </span>
+          </div>
+
+          <Link
+            href="/settings"
+            className="user-menu-item"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+            <span>Workspace Settings</span>
+          </Link>
+
+          <Link
+            href="/notifications"
+            className="user-menu-item"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            <span>Notifications</span>
+          </Link>
+
+          <button
+            type="button"
+            className="user-menu-item user-menu-item--danger"
+            role="menuitem"
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span>{isSigningOut ? "Signing out…" : "Sign Out"}</span>
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -132,18 +256,20 @@ function InnerShell({
   userEmail = null,
 }: AppShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isSigningOut, startSignOut] = useTransition();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { profile } = useCurrentRole();
   const pathname = usePathname();
 
-  function handleSignOut() {
-    startSignOut(async () => {
-      await signOutAction();
-    });
-  }
-
   const isPublicLanding =
     pathname === "/" || pathname === "/landing" || pathname === "/welcome";
+
+  const isAuthRoute =
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password" ||
+    pathname?.startsWith("/invite") ||
+    pathname === "/onboarding";
 
   if (isPublicLanding) {
     return (
@@ -154,8 +280,17 @@ function InnerShell({
     );
   }
 
+  if (isAuthRoute) {
+    return (
+      <div className="bare-viewport">
+        <PwaOfflineSyncIndicator />
+        {children}
+      </div>
+    );
+  }
+
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${isSidebarCollapsed ? "is-sidebar-collapsed" : ""}`}>
       <PwaOfflineSyncIndicator />
       <a href="#main-content" className="skip-link">
         Skip to main content
@@ -163,25 +298,54 @@ function InnerShell({
 
       <div className="app-container">
         {/* Desktop Fixed Left Sidebar */}
-        <aside className="app-sidebar" aria-label="Sidebar navigation">
+        <aside
+          className="app-sidebar"
+          aria-label="Sidebar navigation"
+          aria-expanded={!isSidebarCollapsed}
+        >
           <div className="sidebar-header">
-            <Link href="/dashboard" className="brand-badge">
+            <Link href="/dashboard" className="brand-badge" title="FieldTrack Operations">
               <div className="brand-icon-box">F</div>
               <span>FieldTrack</span>
             </Link>
+
+            <button
+              type="button"
+              className="sidebar-collapse-btn"
+              onClick={() => setIsSidebarCollapsed((prev) => !prev)}
+              aria-label={
+                isSidebarCollapsed
+                  ? "Expand sidebar navigation"
+                  : "Collapse sidebar navigation"
+              }
+              title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
           </div>
 
           <div className="sidebar-content">
             {/* Workspace & Org context */}
-            <div style={{ padding: "0 0.25rem" }}>
-              <OrgSwitcher
-                activeOrgId={activeOrgId}
-                activeOrgName={activeOrgName}
-                activeRole={activeRole}
-                organizations={organizations}
-                userEmail={userEmail}
-              />
-            </div>
+            <OrgSwitcher
+              activeOrgId={activeOrgId}
+              activeOrgName={activeOrgName}
+              activeRole={activeRole}
+              organizations={organizations}
+              userEmail={userEmail}
+              inSidebar
+            />
 
             {/* Navigation links */}
             <SidebarNav />
@@ -193,6 +357,7 @@ function InnerShell({
               <div className="user-profile-badge">
                 <div className="user-avatar">{profile.avatarInitials}</div>
                 <div
+                  className="user-profile-text"
                   style={{
                     display: "flex",
                     flexDirection: "column",
@@ -200,24 +365,16 @@ function InnerShell({
                     flex: 1,
                   }}
                 >
-                  <span
-                    className="text-truncate"
-                    style={{ fontSize: "0.8125rem", fontWeight: 600 }}
-                  >
+                  <span className="user-profile-name text-truncate">
                     {profile.userName}
                   </span>
-                  <span
-                    className="text-truncate text-muted"
-                    style={{ fontSize: "0.6875rem", textTransform: "capitalize" }}
-                  >
+                  <span className="user-profile-role text-truncate">
                     {profile.role ? profile.role.replace("_", " ") : "No Workspace"}
                   </span>
                 </div>
               </div>
             ) : (
-              <div
-                style={{ padding: "0.5rem", fontSize: "0.8125rem", textAlign: "center" }}
-              >
+              <div style={{ padding: "0.25rem", textAlign: "center" }}>
                 <Link
                   href="/login"
                   className="btn btn-sm btn-primary"
@@ -257,10 +414,8 @@ function InnerShell({
               onClick={() => setMobileMenuOpen(false)}
               aria-label="Close menu"
               style={{
-                width: "2rem",
-                height: "2rem",
-                minHeight: "2rem",
-                minWidth: "2rem",
+                width: "2.25rem",
+                height: "2.25rem",
                 padding: 0,
               }}
             >
@@ -268,39 +423,45 @@ function InnerShell({
             </button>
           </div>
           <div className="sidebar-content">
+            <OrgSwitcher
+              activeOrgId={activeOrgId}
+              activeOrgName={activeOrgName}
+              activeRole={activeRole}
+              organizations={organizations}
+              userEmail={userEmail}
+              inSidebar
+            />
             <SidebarNav onItemClick={() => setMobileMenuOpen(false)} />
           </div>
           <div className="sidebar-footer">
             {userEmail ? (
               <div className="user-profile-badge">
                 <div className="user-avatar">{profile.avatarInitials}</div>
-                <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                  <span
-                    className="text-truncate"
-                    style={{ fontSize: "0.8125rem", fontWeight: 600 }}
-                  >
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    minWidth: 0,
+                    flex: 1,
+                  }}
+                >
+                  <span className="user-profile-name text-truncate">
                     {profile.userName}
                   </span>
-                  <span
-                    className="text-truncate text-muted"
-                    style={{ fontSize: "0.6875rem", textTransform: "capitalize" }}
-                  >
+                  <span className="user-profile-role text-truncate">
                     {profile.role ? profile.role.replace("_", " ") : "No Workspace"}
                   </span>
                 </div>
               </div>
             ) : (
-              <div
-                style={{ padding: "0.5rem", fontSize: "0.8125rem", textAlign: "center" }}
+              <Link
+                href="/login"
+                className="btn btn-sm btn-primary"
+                style={{ width: "100%" }}
+                onClick={() => setMobileMenuOpen(false)}
               >
-                <Link
-                  href="/login"
-                  className="btn btn-sm btn-primary"
-                  style={{ width: "100%" }}
-                >
-                  Sign In
-                </Link>
-              </div>
+                Sign In
+              </Link>
             )}
           </div>
         </div>
@@ -326,10 +487,13 @@ function InnerShell({
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
                 >
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
                 </svg>
               </button>
 
@@ -340,35 +504,12 @@ function InnerShell({
               {/* Verified Role Badge */}
               <VerifiedRoleBadge />
 
-              {/* Quick Auth Action */}
-              {userEmail ? (
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  disabled={isSigningOut}
-                  className="btn btn-sm btn-secondary"
-                  style={{ fontSize: "0.75rem", padding: "0.25rem 0.625rem" }}
-                  title={`Signed in as ${userEmail}`}
-                  aria-label="Sign out of current account"
-                >
-                  {isSigningOut ? "Signing out…" : "Sign Out"}
-                </button>
-              ) : (
-                <Link
-                  href="/login"
-                  className="btn btn-sm btn-secondary"
-                  style={{ fontSize: "0.75rem", padding: "0.25rem 0.625rem" }}
-                  aria-label="Sign in to your organization account"
-                >
-                  Sign In
-                </Link>
-              )}
-
               {/* In-app notification bell */}
               <Link
                 href="/notifications"
                 className="icon-btn"
                 aria-label="View notifications"
+                title="Notifications"
                 style={{ position: "relative" }}
               >
                 <svg
@@ -378,11 +519,17 @@ function InnerShell({
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
                 >
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
               </Link>
+
+              {/* User profile dropdown menu */}
+              <UserProfileMenu userEmail={userEmail} activeOrgName={activeOrgName} />
             </div>
           </header>
 

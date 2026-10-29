@@ -44,8 +44,9 @@ export function CredibilitySection(): ReactNode {
             </div>
             <h3 className="credibility-card-title">Centralize Field Evidence</h3>
             <p className="credibility-card-desc">
-              Organize store display photos, stock notes, and checklist receipts into private,
-              tenant-isolated storage vaults accessible only by authorized team members.
+              Organize store display photos, stock notes, and checklist receipts into
+              private, tenant-isolated storage vaults accessible only by authorized team
+              members.
             </p>
           </div>
 
@@ -64,4 +65,3 @@ export function CredibilitySection(): ReactNode {
     </section>
   );
 }
-
