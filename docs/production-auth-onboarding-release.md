@@ -27,10 +27,21 @@ an unknown project.
    unique index. Resolve any existing duplicates through the approved release
    process; do not delete records ad hoc.
 
-## Release and verification
+## Backup and release
+
+The Supabase Free plan does not include scheduled project backups. The protected
+workflow creates a PostgreSQL custom-format `pg_dump` artifact after production
+reviewer approval but **before any migration is applied**. It verifies that the
+dump is readable and contains the four core organization tables, computes a
+SHA-256 digest, uploads the dump as a private GitHub Actions artifact, and
+retains it for seven days. Download and preserve it securely if longer
+retention is required. A missing database URL or failed backup check stops the
+release before schema changes.
 
 1. Apply pending migrations through the protected release workflow with the
-   required manual approval; do not mark migrations as applied manually.
+   required manual approval; do not mark migrations as applied manually. The
+   external backup/PITR reference is optional because the workflow creates its
+   own verified backup artifact.
 2. Verify migration history reaches `20261029000019` (and the current release
    head) and confirm these objects exist:
    `organizations.industry`, `organizations.company_size`,
