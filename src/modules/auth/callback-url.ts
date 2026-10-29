@@ -53,7 +53,10 @@ export function getCanonicalProductionRedirectUrl(
   currentHref: string,
   vercelEnvironment: string | undefined
 ): URL | null {
-  if (vercelEnvironment?.trim() !== "production" || !configuredAppUrl?.trim()) {
+  if (
+    vercelEnvironment?.trim() !== "production" ||
+    !configuredAppUrl?.trim()
+  ) {
     return null;
   }
 
@@ -68,7 +71,7 @@ export function getCanonicalProductionRedirectUrl(
 
   return new URL(
     `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`,
-    canonicalOrigin
+    canonicalOrigin,
   );
 }
 
