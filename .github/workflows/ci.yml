@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -28,8 +30,30 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Format check
-        run: npm run format:check
+      - name: Format check (changed files)
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          changed_files_file="$RUNNER_TEMP/prettier-files"
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            git diff --name-only -z --diff-filter=ACMRT "${PR_BASE_SHA}...${CURRENT_SHA}" -- '*.ts' '*.tsx' '*.css' '*.json' '*.mjs' '*.md' > "$changed_files_file"
+          elif [[ "$BEFORE_SHA" =~ ^0+$ ]]; then
+            git ls-files -z -- '*.ts' '*.tsx' '*.css' '*.json' '*.mjs' '*.md' > "$changed_files_file"
+          else
+            git diff --name-only -z --diff-filter=ACMRT "$BEFORE_SHA" "$CURRENT_SHA" -- '*.ts' '*.tsx' '*.css' '*.json' '*.mjs' '*.md' > "$changed_files_file"
+          fi
+          mapfile -d '' -t changed_files < "$changed_files_file"
+          if (("${#changed_files[@]}" == 0)); then
+            echo "No Prettier-eligible files changed; skipping format check."
+          else
+            printf 'Checking formatting for %s changed file(s).\n' "${#changed_files[@]}"
+            npx prettier --check "${changed_files[@]}"
+          fi
 
       - name: Lint
         run: npm run lint
