@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "Release tag to deploy migrations from (must match v*, e.g. v1.2.0)"
+        description: "Release tag (v1.2.3) or exact 40-character commit SHA to deploy"
         required: true
       backup_reference:
         description: "Optional external backup/PITR reference. The protected apply job also creates a verified database backup artifact."
@@ -33,6 +33,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: production-plan
+    outputs:
+      checkout_ref: ${{ steps.validate_inputs.outputs.checkout_ref }}
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.PRODUCTION_SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.PRODUCTION_SUPABASE_DB_PASSWORD }}
@@ -43,17 +45,25 @@ jobs:
       CONFIRM: ${{ inputs.confirm }}
     steps:
       - name: Validate inputs
+        id: validate_inputs
         run: |
           set -euo pipefail
           [ "$CONFIRM" = "APPLY-TO-PRODUCTION" ] || { echo "::error::Confirmation text mismatch"; exit 1; }
-          printf '%s' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+([-.][A-Za-z0-9.]+)?$' || { echo "::error::release_tag must look like v1.2.3"; exit 1; }
+          if printf '%s' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+([-.][A-Za-z0-9.]+)?$'; then
+            echo "checkout_ref=refs/tags/$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          elif printf '%s' "$RELEASE_TAG" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "checkout_ref=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::release_ref must be a vX.Y.Z tag or a full lowercase 40-character commit SHA."
+            exit 1
+          fi
           for v in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD PRODUCTION_PROJECT_REF; do
             if [ -z "${!v}" ]; then echo "::error::Missing required production configuration: $v"; exit 1; fi
           done
 
       - uses: actions/checkout@v4
         with:
-          ref: refs/tags/${{ inputs.release_tag }}
+          ref: ${{ steps.validate_inputs.outputs.checkout_ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -97,7 +107,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/tags/${{ inputs.release_tag }}
+          ref: ${{ needs.plan.outputs.checkout_ref }}
 
       - uses: supabase/setup-cli@v1
         with:
@@ -188,3 +198,4 @@ jobs:
             echo "Rollback plan: $ROLLBACK_PLAN"
             echo "Next: complete docs/release-process.md post-deploy smoke checks."
           } >> "$GITHUB_STEP_SUMMARY"
+
