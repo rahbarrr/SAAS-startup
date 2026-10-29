@@ -108,6 +108,11 @@ begin
     raise exception 'Authentication required' using errcode = '42501';
   end if;
 
+  -- Serialize onboarding attempts for the same caller so the account-level
+  -- creation limit and unique workspace slug remain deterministic when a
+  -- browser double-submits or two OAuth callbacks race each other.
+  perform pg_advisory_xact_lock(hashtextextended(v_user_id::text, 0));
+
   if char_length(trim(coalesce(p_name, ''))) not between 2 and 120 then
     raise exception 'Company name must be between 2 and 120 characters'
       using errcode = '22023';

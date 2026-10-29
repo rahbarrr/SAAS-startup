@@ -256,6 +256,26 @@ export async function onboardOrganizationAction(rawInput: {
     const user = await getAuthenticatedUser(supabase);
     const repository = new SupabaseTenancyRepository(supabase);
 
+    if (!user) {
+      throw new AppError(
+        "UNAUTHENTICATED",
+        "Please sign in before creating a workspace.",
+        401
+      );
+    }
+
+    // Onboarding is only for accounts without a workspace. Keep the check on
+    // the server so an existing member cannot create a duplicate workspace by
+    // revisiting /onboarding or replaying the form request.
+    const existingOrganizations = await repository.listUserOrganizations(user.id);
+    if (existingOrganizations.some((entry) => entry.membership.status === "active")) {
+      throw new AppError(
+        "CONFLICT",
+        "Your account already belongs to an active organization. Open that workspace instead.",
+        409
+      );
+    }
+
     const organization = await createOrganizationForCaller({
       user,
       rawInput,

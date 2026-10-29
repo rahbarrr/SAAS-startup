@@ -244,6 +244,18 @@ export class SupabaseTenancyRepository implements TenancyRepository {
 
     if (error) {
       const msg = error.message ?? "";
+      logger.error("Database error creating organization", {
+        userId,
+        errorCode: error.code,
+        errorMessage: msg,
+      });
+      if (["PGRST202", "42883", "42703", "42P01"].includes(error.code ?? "")) {
+        throw new AppError(
+          "INTERNAL_ERROR",
+          "Workspace setup is temporarily unavailable because the onboarding database migration is not applied.",
+          503
+        );
+      }
       if (msg.includes("Organization subscription is inactive or expired")) {
         throw new AppError("BILLING_SUBSCRIPTION_INACTIVE", msg, 402);
       }
@@ -255,6 +267,20 @@ export class SupabaseTenancyRepository implements TenancyRepository {
           "FORBIDDEN_INSUFFICIENT_ROLE",
           "This account has reached the workspace creation limit.",
           403
+        );
+      }
+      if (msg.includes("already belongs to an active organization")) {
+        throw new AppError(
+          "CONFLICT",
+          "Your account already belongs to an active organization. Open that workspace instead.",
+          409
+        );
+      }
+      if (error.code === "22023") {
+        throw new AppError(
+          "VALIDATION_ERROR",
+          "Please check the company information and try again.",
+          400
         );
       }
       if (error.code === "23505") {
