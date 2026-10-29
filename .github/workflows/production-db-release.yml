@@ -11,8 +11,8 @@ on:
         description: "Release tag to deploy migrations from (must match v*, e.g. v1.2.0)"
         required: true
       backup_reference:
-        description: "Backup/PITR reference taken immediately before this release (id or timestamp)"
-        required: true
+        description: "Optional external backup/PITR reference. The protected apply job also creates a verified database backup artifact."
+        required: false
       rollback_plan:
         description: "Link or short text: forward-fix or restore plan for THESE migrations"
         required: true
@@ -101,8 +101,51 @@ jobs:
 
       - name: Install PostgreSQL client
         run: |
+          set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y -qq postgresql-client
+
+      - name: Create and verify pre-release database backup
+        id: create_backup
+        run: |
+          set -euo pipefail
+          if [ -z "${PRODUCTION_DB_URL:-}" ]; then
+            echo "::error::Missing PRODUCTION_DB_URL secret. No migration has been applied."
+            exit 1
+          fi
+          dump_file="$RUNNER_TEMP/fieldtrack-pre-release.dump"
+          listing_file="$RUNNER_TEMP/fieldtrack-pre-release.list"
+          umask 077
+          pg_dump --format=custom --no-owner --no-acl --file="$dump_file" "$PRODUCTION_DB_URL"
+          test -s "$dump_file"
+          pg_restore --list "$dump_file" > "$listing_file"
+          for table in organizations organization_members profiles organization_invitations; do
+            if ! grep -Eq "TABLE public $table([[:space:]]|$)" "$listing_file"; then
+              echo "::error::Backup verification failed: required table $table is absent."
+              exit 1
+            fi
+          done
+          sha256="$(sha256sum "$dump_file" | cut -d ' ' -f 1)"
+          artifact_name="fieldtrack-db-backup-$GITHUB_RUN_ID"
+          echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Pre-release database backup verified"
+            echo "- Artifact: $artifact_name"
+            echo "- SHA-256: $sha256"
+            echo "- Format: PostgreSQL custom-format dump"
+            echo "- Required tables verified: organizations, organization_members, profiles, organization_invitations"
+            echo "- Retention: 7 days; download and preserve securely if a longer retention period is required."
+            echo "- External backup reference: ${BACKUP_REFERENCE:-not supplied}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload private pre-release backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fieldtrack-db-backup-${{ github.run_id }}
+          path: ${{ runner.temp }}/fieldtrack-pre-release.dump
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Pre-release duplicate invitation check
         run: |
@@ -132,7 +175,9 @@ jobs:
         run: |
           {
             echo "## Production DB release applied: ${{ inputs.release_tag }}"
-            echo "Backup reference: ${{ inputs.backup_reference }}"
+            echo "Verified backup artifact: fieldtrack-db-backup-$GITHUB_RUN_ID"
+            echo "Backup SHA-256: ${{ steps.create_backup.outputs.sha256 }}"
+            echo "External backup reference: ${{ inputs.backup_reference }}"
             echo "Rollback plan: ${{ inputs.rollback_plan }}"
             echo "Next: complete docs/release-process.md post-deploy smoke checks."
           } >> "$GITHUB_STEP_SUMMARY"
