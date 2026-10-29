@@ -11,6 +11,7 @@ import {
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { sanitizeRedirectPath } from "@/modules/auth/schemas";
+import { getAuthCallbackErrorMessage } from "@/modules/auth/callback-error";
 import { signInAction } from "@/modules/auth/actions";
 
 export default function LoginPage(): ReactNode {
@@ -22,6 +23,7 @@ export default function LoginPage(): ReactNode {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("invite_token");
     if (token) setInviteToken(token);
+    setError(getAuthCallbackErrorMessage(params.get("error")));
     const candidateNext = params.get("next");
     if (candidateNext) {
       const sanitized = sanitizeRedirectPath(candidateNext, "/dashboard");
@@ -41,17 +43,23 @@ export default function LoginPage(): ReactNode {
     setMessage(null);
 
     startTransition(async () => {
-      const result = await signInAction({ email, password });
-      if (!result.ok) {
-        setError(result.error ?? "Unable to sign in.");
-        return;
+      try {
+        const result = await signInAction({ email, password });
+        if (!result.ok) {
+          setError(result.error ?? "Unable to sign in.");
+          return;
+        }
+        setMessage(
+          `Signed in as ${result.data?.email ?? email}. Redirecting to your workspace…`
+        );
+        window.location.assign(
+          inviteToken ? `/onboarding?token=${encodeURIComponent(inviteToken)}` : nextPath
+        );
+      } catch {
+        setError(
+          "We couldn't reach the sign-in service. Check your connection and try again."
+        );
       }
-      setMessage(
-        `Signed in as ${result.data?.email ?? email}. Redirecting to your workspace…`
-      );
-      window.location.assign(
-        inviteToken ? `/onboarding?token=${encodeURIComponent(inviteToken)}` : nextPath
-      );
     });
   }
 

@@ -18,12 +18,24 @@ export default function ResetPasswordPage(): ReactNode {
     setMessage(null);
 
     startTransition(async () => {
-      const result = await updatePasswordAction({ password });
-      if (!result.ok) {
-        setError(result.error ?? "Unable to update password.");
-        return;
+      try {
+        const result = await updatePasswordAction({ password });
+        if (!result.ok) {
+          setError(result.error ?? "Unable to update password.");
+          return;
+        }
+        setMessage(
+          result.message ??
+            "Your password has been successfully updated. You may now sign in."
+        );
+        setTimeout(() => {
+          window.location.assign("/login");
+        }, 2000);
+      } catch {
+        setError(
+          "We couldn't reach the password service. Check your connection and try again."
+        );
       }
-      setMessage("Your password has been successfully updated. You may now sign in.");
     });
   }
 

@@ -59,3 +59,22 @@ export function resolveTrustedAppOrigin(
 
   return parseOrigin(appUrl, "NEXT_PUBLIC_APP_URL");
 }
+
+/**
+ * Resolves the host used for authentication callbacks and verification emails.
+ * An explicit Preview app URL must win here so the OAuth callback and the host
+ * that created its session cookie remain the same. Other Preview links retain
+ * resolveTrustedAppOrigin's deployment-specific VERCEL_URL behavior.
+ */
+export function resolveAuthAppOrigin(
+  envSource: Record<string, string | undefined> = process.env
+): TrustedOriginResolution {
+  if (
+    envSource.VERCEL_ENV?.trim() === "preview" &&
+    envSource.NEXT_PUBLIC_APP_URL?.trim()
+  ) {
+    return parseOrigin(envSource.NEXT_PUBLIC_APP_URL.trim(), "NEXT_PUBLIC_APP_URL");
+  }
+
+  return resolveTrustedAppOrigin(envSource);
+}

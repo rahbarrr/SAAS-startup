@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveTrustedAppOrigin } from "@/lib/auth/trusted-origin";
+import { resolveAuthAppOrigin, resolveTrustedAppOrigin } from "@/lib/auth/trusted-origin";
 
 describe("trusted application origin resolution", () => {
   it("uses the exact Vercel deployment hostname for Preview", () => {
@@ -13,6 +13,50 @@ describe("trusted application origin resolution", () => {
       origin: "https://fieldtrack-git-fix-example.vercel.app",
       error: null,
     });
+  });
+
+  it("uses the exact Vercel deployment hostname as the Preview fallback", () => {
+    expect(
+      resolveTrustedAppOrigin({
+        VERCEL_ENV: "preview",
+        VERCEL_URL: "fieldtrack-git-fix-example.vercel.app",
+      })
+    ).toEqual({
+      origin: "https://fieldtrack-git-fix-example.vercel.app",
+      error: null,
+    });
+  });
+
+  it("keeps Preview authentication callbacks on the explicitly configured app host", () => {
+    expect(
+      resolveAuthAppOrigin({
+        VERCEL_ENV: "preview",
+        VERCEL_URL: "fieldtrack-git-fix-example.vercel.app",
+        NEXT_PUBLIC_APP_URL: "https://fieldtrack-preview.example.com",
+      })
+    ).toEqual({ origin: "https://fieldtrack-preview.example.com", error: null });
+  });
+
+  it("uses the deployment hostname for Preview authentication when no app URL is set", () => {
+    expect(
+      resolveAuthAppOrigin({
+        VERCEL_ENV: "preview",
+        VERCEL_URL: "fieldtrack-git-fix-example.vercel.app",
+      })
+    ).toEqual({
+      origin: "https://fieldtrack-git-fix-example.vercel.app",
+      error: null,
+    });
+  });
+
+  it("fails closed for a malformed explicit Preview authentication host", () => {
+    expect(
+      resolveAuthAppOrigin({
+        VERCEL_ENV: "preview",
+        VERCEL_URL: "fieldtrack-git-fix-example.vercel.app",
+        NEXT_PUBLIC_APP_URL: "https://fieldtrack-preview.example.com/path",
+      }).origin
+    ).toBeNull();
   });
 
   it("uses the configured canonical origin for Production", () => {
@@ -30,7 +74,6 @@ describe("trusted application origin resolution", () => {
       resolveTrustedAppOrigin({
         VERCEL_ENV: "preview",
         VERCEL_URL: "attacker.example.com",
-        NEXT_PUBLIC_APP_URL: "https://saas-startup1.vercel.app",
       }).origin
     ).toBeNull();
 

@@ -34,25 +34,31 @@ export default function SignUpPage(): ReactNode {
     setMessage(null);
 
     startTransition(async () => {
-      const result = await signUpAction({
-        fullName,
-        email,
-        password,
-        inviteToken: inviteToken || undefined,
-      });
-      if (!result.ok) {
-        setError(result.error ?? "Unable to create account.");
-        return;
-      }
-      setMessage(
-        result.message ??
-          "Account created. Proceed to onboarding to create or join an organization."
-      );
-      if (!result.data?.requiresEmailConfirmation) {
-        window.location.assign(
-          inviteToken
-            ? `/onboarding?token=${encodeURIComponent(inviteToken)}`
-            : "/onboarding"
+      try {
+        const result = await signUpAction({
+          fullName,
+          email,
+          password,
+          inviteToken: inviteToken || undefined,
+        });
+        if (!result.ok) {
+          setError(result.error ?? "Unable to create account.");
+          return;
+        }
+        setMessage(
+          result.message ??
+            "Account created. Proceed to onboarding to create or join an organization."
+        );
+        if (!result.data?.requiresEmailConfirmation) {
+          window.location.assign(
+            inviteToken
+              ? `/onboarding?token=${encodeURIComponent(inviteToken)}`
+              : "/onboarding"
+          );
+        }
+      } catch {
+        setError(
+          "We couldn't reach the account service. Check your connection and try again."
         );
       }
     });

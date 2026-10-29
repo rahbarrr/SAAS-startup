@@ -17,17 +17,21 @@ export default function ForgotPasswordPage(): ReactNode {
     setMessage(null);
 
     startTransition(async () => {
-      const result = await requestPasswordRecoveryAction({
-        email,
-      });
-      if (!result.ok) {
-        setError(result.error ?? "Unable to process password recovery request.");
-        return;
+      try {
+        const result = await requestPasswordRecoveryAction({ email });
+        if (!result.ok) {
+          setError(result.error ?? "Unable to process password recovery request.");
+          return;
+        }
+        setMessage(
+          result.message ??
+            "If an account exists for that email address, recovery instructions have been sent."
+        );
+      } catch {
+        setError(
+          "We couldn't reach the recovery service. Check your connection and try again."
+        );
       }
-      setMessage(
-        result.message ??
-          "If an account exists for that email address, recovery instructions have been sent."
-      );
     });
   }
 
