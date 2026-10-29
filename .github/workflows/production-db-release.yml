@@ -46,7 +46,7 @@ jobs:
         run: |
           set -euo pipefail
           [ "$CONFIRM" = "APPLY-TO-PRODUCTION" ] || { echo "::error::Confirmation text mismatch"; exit 1; }
-          printf '%s' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+([-.][A-Za-z0-9.]+)?
+          printf '%s' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+([-.][A-Za-z0-9.]+)?$' || { echo "::error::release_tag must look like v1.2.3"; exit 1; }
           for v in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD PRODUCTION_PROJECT_REF; do
             if [ -z "${!v}" ]; then echo "::error::Missing required production configuration: $v"; exit 1; fi
           done
