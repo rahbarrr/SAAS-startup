@@ -44,6 +44,32 @@ function originFromVercelDomain(domain: string, label: string): string {
 }
 
 /**
+ * Returns a same-path redirect to the canonical production origin when a
+ * production page was opened through a deployment-specific or alternate URL.
+ * Keeping pathname, query, and hash preserves invite tokens and recovery state.
+ */
+export function getCanonicalProductionRedirectUrl(
+  configuredAppUrl: string | undefined,
+  currentHref: string,
+  vercelEnvironment: string | undefined
+): URL | null {
+  if (vercelEnvironment?.trim() !== "production" || !configuredAppUrl?.trim()) {
+    return null;
+  }
+
+  const canonicalOrigin = normalizeOrigin(configuredAppUrl.trim(), "NEXT_PUBLIC_APP_URL");
+  const currentUrl = new URL(currentHref);
+  if (currentUrl.origin === canonicalOrigin) {
+    return null;
+  }
+
+  return new URL(
+    `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`,
+    canonicalOrigin
+  );
+}
+
+/**
  * Builds the OAuth return URL on the same host that served the sign-in page.
  * Production uses Vercel's project Production domain (never VERCEL_URL, which
  * points at a deployment). A mismatch fails before leaving FieldTrack because
