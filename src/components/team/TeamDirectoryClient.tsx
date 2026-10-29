@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactNode, type FormEvent } from "react";
+import { useRef, useState, type ReactNode, type FormEvent } from "react";
+import { createInFlightActionGuard } from "@/lib/ux/formatting-and-resilience";
 import { Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/States";
 import {
@@ -63,6 +64,7 @@ export function TeamDirectoryClient({
   const [isInviting, setIsInviting] = useState(false);
   const [createdInvite, setCreatedInvite] = useState<CreatedInviteInfo | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
+  const inviteActionGuard = useRef(createInFlightActionGuard()).current;
 
   const filteredMembers = members.filter((m) => {
     if (roleFilter !== "all" && m.role !== roleFilter) return false;
@@ -88,6 +90,7 @@ export function TeamDirectoryClient({
   async function handleInviteSubmit(e: FormEvent) {
     e.preventDefault();
     if (!inviteEmail.trim()) return;
+    if (!inviteActionGuard.tryAcquire()) return;
 
     setIsInviting(true);
     setInviteError(null);
@@ -158,6 +161,7 @@ export function TeamDirectoryClient({
       setInviteError(err instanceof Error ? err.message : "Failed to invite member.");
     } finally {
       setIsInviting(false);
+      inviteActionGuard.release();
     }
   }
 

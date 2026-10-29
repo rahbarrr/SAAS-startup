@@ -19,6 +19,70 @@ export interface OrganizationInvitationEmailInput {
   expiresAt: string;
 }
 
+export interface InvitationOriginResolution {
+  origin: string | null;
+  error: string | null;
+}
+
+function parseTrustedOrigin(value: string, label: string): InvitationOriginResolution {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" && url.protocol !== "http:") {
+      return { origin: null, error: `${label} must use HTTP or HTTPS.` };
+    }
+    if (url.username || url.password || url.search || url.hash || url.pathname !== "/") {
+      return {
+        origin: null,
+        error: `${label} must contain only a trusted application origin.`,
+      };
+    }
+    return { origin: url.origin, error: null };
+  } catch {
+    return { origin: null, error: `${label} must be a valid application URL.` };
+  }
+}
+
+/**
+ * Resolves invitation links without consulting request Host/forwarded headers.
+ * Vercel's deployment hostname is used only for Preview deployments and must
+ * be an HTTPS *.vercel.app hostname. Production always uses the explicitly
+ * configured canonical application URL.
+ */
+export function resolveInvitationOrigin(
+  envSource: Record<string, string | undefined>
+): InvitationOriginResolution {
+  const deploymentEnvironment = envSource.VERCEL_ENV?.trim();
+  const configuredAppUrl = envSource.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (deploymentEnvironment === "preview") {
+    const deploymentUrl = envSource.VERCEL_URL?.trim();
+    if (deploymentUrl) {
+      const previewUrl = deploymentUrl.startsWith("http")
+        ? deploymentUrl
+        : `https://${deploymentUrl}`;
+      const parsed = parseTrustedOrigin(previewUrl, "VERCEL_URL");
+      if (!parsed.origin) return parsed;
+      if (!new URL(parsed.origin).hostname.endsWith(".vercel.app")) {
+        return {
+          origin: null,
+          error: "VERCEL_URL must be a trusted Vercel Preview hostname.",
+        };
+      }
+      return parsed;
+    }
+  }
+
+  if (!configuredAppUrl) {
+    return {
+      origin: null,
+      error:
+        "Automatic email is not configured. Set RESEND_API_KEY, RESEND_FROM_EMAIL, and NEXT_PUBLIC_APP_URL (or VERCEL_URL for Preview).",
+    };
+  }
+
+  return parseTrustedOrigin(configuredAppUrl, "NEXT_PUBLIC_APP_URL");
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -51,35 +115,22 @@ export async function sendOrganizationInvitationEmail(
   const attemptedAt = new Date().toISOString();
   const apiKey = envSource.RESEND_API_KEY?.trim();
   const from = envSource.RESEND_FROM_EMAIL?.trim();
-  const appUrlValue = envSource.NEXT_PUBLIC_APP_URL?.trim();
 
-  if (!apiKey || !from || !appUrlValue) {
+  if (!apiKey || !from) {
     return unconfiguredResult(
-      "Automatic email is not configured. Set RESEND_API_KEY, RESEND_FROM_EMAIL, and NEXT_PUBLIC_APP_URL.",
+      "Automatic email is not configured. Set RESEND_API_KEY and RESEND_FROM_EMAIL, plus NEXT_PUBLIC_APP_URL or VERCEL_URL for Preview.",
       attemptedAt
     );
   }
 
-  let appOrigin: string;
-  try {
-    const appUrl = new URL(appUrlValue);
-    if (
-      (appUrl.protocol !== "https:" && appUrl.protocol !== "http:") ||
-      appUrl.username ||
-      appUrl.password
-    ) {
-      return unconfiguredResult(
-        "NEXT_PUBLIC_APP_URL must be a trusted HTTP or HTTPS application URL.",
-        attemptedAt
-      );
-    }
-    appOrigin = appUrl.origin;
-  } catch {
+  const originResolution = resolveInvitationOrigin(envSource);
+  if (!originResolution.origin) {
     return unconfiguredResult(
-      "NEXT_PUBLIC_APP_URL must be a valid application URL.",
+      originResolution.error ?? "Invitation application URL is not configured safely.",
       attemptedAt
     );
   }
+  const appOrigin = originResolution.origin;
 
   const inviteUrl = new URL("/signup", appOrigin);
   inviteUrl.searchParams.set("invite_token", input.invitationToken);

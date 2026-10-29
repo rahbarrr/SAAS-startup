@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { sendOrganizationInvitationEmail } from "@/modules/auth/invitation-email";
+import {
+  resolveInvitationOrigin,
+  sendOrganizationInvitationEmail,
+} from "@/modules/auth/invitation-email";
 
 const invitation = {
   invitationId: "invite-123",
@@ -76,6 +79,60 @@ describe("Organization invitation email delivery", () => {
     });
   });
 
+  it("uses the validated Vercel deployment URL for Preview invitations", async () => {
+    let capturedInit: RequestInit | undefined;
+    const fetchImpl: typeof fetch = async (_input, init) => {
+      capturedInit = init;
+      return new Response(JSON.stringify({ id: "preview_email_123" }), { status: 200 });
+    };
+
+    const result = await sendOrganizationInvitationEmail(
+      invitation,
+      {
+        RESEND_API_KEY: "re_test_key",
+        RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
+        NEXT_PUBLIC_APP_URL: "https://saas-startup1.vercel.app",
+        VERCEL_ENV: "preview",
+        VERCEL_URL: "saas-startup1-git-fix-rahbar1.vercel.app",
+      },
+      fetchImpl
+    );
+
+    const body = JSON.parse(String(capturedInit?.body)) as { text: string };
+    expect(body.text).toContain(
+      "https://saas-startup1-git-fix-rahbar1.vercel.app/signup?invite_token=raw-invite-token"
+    );
+    expect(result.delivered).toBe(true);
+  });
+
+  it("uses the explicit canonical URL for Production invitations", () => {
+    expect(
+      resolveInvitationOrigin({
+        VERCEL_ENV: "production",
+        VERCEL_URL: "saas-startup1-git-fix-rahbar1.vercel.app",
+        NEXT_PUBLIC_APP_URL: "https://saas-startup1.vercel.app",
+      })
+    ).toEqual({ origin: "https://saas-startup1.vercel.app", error: null });
+  });
+
+  it("rejects an untrusted Preview hostname instead of constructing an open redirect", () => {
+    expect(
+      resolveInvitationOrigin({
+        VERCEL_ENV: "preview",
+        VERCEL_URL: "attacker.example.com",
+        NEXT_PUBLIC_APP_URL: "https://saas-startup1.vercel.app",
+      })
+    ).toMatchObject({ origin: null });
+  });
+
+  it("rejects application URLs that contain paths or credentials", () => {
+    expect(
+      resolveInvitationOrigin({
+        NEXT_PUBLIC_APP_URL: "https://user:password@example.com/injected-path",
+      })
+    ).toMatchObject({ origin: null });
+  });
+
   it("returns a truthful failed result when Resend rejects a request", async () => {
     const fetchImpl: typeof fetch = async () =>
       new Response(JSON.stringify({ message: "invalid api key" }), { status: 401 });
@@ -93,5 +150,24 @@ describe("Organization invitation email delivery", () => {
     expect(result.provider).toBe("resend");
     expect(result.delivered).toBe(false);
     expect(result.error).toContain("verify the configured sender domain");
+  });
+
+  it("preserves the invitation fallback when Resend is unreachable", async () => {
+    const fetchImpl: typeof fetch = async () => {
+      throw new Error("network failure");
+    };
+
+    const result = await sendOrganizationInvitationEmail(
+      invitation,
+      {
+        RESEND_API_KEY: "re_test_key",
+        RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
+        NEXT_PUBLIC_APP_URL: "https://app.example.com",
+      },
+      fetchImpl
+    );
+
+    expect(result.delivered).toBe(false);
+    expect(result.error).toContain("invitation exists");
   });
 });
