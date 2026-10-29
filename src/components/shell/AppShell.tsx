@@ -133,11 +133,23 @@ function InnerShell({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSigningOut, startSignOut] = useTransition();
   const { profile } = useCurrentRole();
+  const pathname = usePathname();
 
   function handleSignOut() {
     startSignOut(async () => {
       await signOutAction();
     });
+  }
+
+  const isPublicLanding = pathname === "/landing" || pathname === "/welcome";
+
+  if (isPublicLanding) {
+    return (
+      <div className="landing-viewport">
+        <PwaOfflineSyncIndicator />
+        {children}
+      </div>
+    );
   }
 
   return (
