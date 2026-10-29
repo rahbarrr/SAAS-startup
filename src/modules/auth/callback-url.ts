@@ -53,17 +53,11 @@ export function getCanonicalProductionRedirectUrl(
   currentHref: string,
   vercelEnvironment: string | undefined
 ): URL | null {
-  if (
-    vercelEnvironment?.trim() !== "production" ||
-    !configuredAppUrl?.trim()
-  ) {
+  if (vercelEnvironment?.trim() !== "production" || !configuredAppUrl?.trim()) {
     return null;
   }
 
-  const canonicalOrigin = normalizeOrigin(
-    configuredAppUrl.trim(),
-    "NEXT_PUBLIC_APP_URL"
-  );
+  const canonicalOrigin = normalizeOrigin(configuredAppUrl.trim(), "NEXT_PUBLIC_APP_URL");
   const currentUrl = new URL(currentHref);
   if (currentUrl.origin === canonicalOrigin) {
     return null;
