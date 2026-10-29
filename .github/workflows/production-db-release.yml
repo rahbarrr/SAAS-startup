@@ -54,7 +54,7 @@ jobs:
           elif printf '%s' "$RELEASE_TAG" | grep -Eq '^[0-9a-f]{40}$'; then
             echo "checkout_ref=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
           else
-            echo "::error::release_ref must be a vX.Y.Z tag or a full lowercase 40-character commit SHA."
+            echo "::error::release_tag input must be a vX.Y.Z tag or a full lowercase 40-character commit SHA."
             exit 1
           fi
           for v in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD PRODUCTION_PROJECT_REF; do
