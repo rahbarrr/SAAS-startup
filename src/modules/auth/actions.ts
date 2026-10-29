@@ -80,15 +80,13 @@ export async function signInAction(rawInput: {
         await setActiveOrgCookie(firstActive.organization.id);
       }
     } catch (error) {
-      logger.error("Authentication succeeded but workspace resolution failed", {
+      logger.warn("Authentication succeeded but workspace selection failed", {
         userId: user.id,
         errorCode: error instanceof AppError ? error.code : "INTERNAL_ERROR",
       });
-      return {
-        ok: false,
-        error:
-          "Your credentials are valid, but workspace access is temporarily unavailable. Please try again.",
-      };
+      // The verified auth session is already established. Do not report sign-in
+      // as failed because optional workspace selection could not be persisted;
+      // the authenticated app shell can resolve the user's workspace on redirect.
     }
 
     revalidatePath("/", "layout");
@@ -113,34 +111,38 @@ export async function signUpAction(rawInput: {
     const ip = clientIpFromHeaders(await headers());
     await enforceRateLimit({ supabase, scope: "auth_sign_up", subject: `ip:${ip}` });
 
-    let redirectToUrl: string | undefined;
-    let trustedOrigin: string | undefined;
     const appOriginResolution = resolveAuthAppOrigin();
+    if (!appOriginResolution.origin) {
+      throw new AppError(
+        "INTERNAL_ERROR",
+        "Account confirmation redirects are not configured safely. Please contact the workspace administrator.",
+        503
+      );
+    }
+    const trustedOrigin = appOriginResolution.origin;
     const invitationToken =
       typeof rawInput.inviteToken === "string" &&
       /^[A-Za-z0-9_-]{16,256}$/.test(rawInput.inviteToken)
         ? rawInput.inviteToken
         : null;
-
-    if (appOriginResolution.origin) {
-      trustedOrigin = appOriginResolution.origin;
-      const callbackUrl = new URL("/auth/callback", trustedOrigin);
-      const nextUrl = new URL("/onboarding", trustedOrigin);
-      if (invitationToken) nextUrl.searchParams.set("token", invitationToken);
-      callbackUrl.searchParams.set("next", `${nextUrl.pathname}${nextUrl.search}`);
-      redirectToUrl = callbackUrl.toString();
-      if (!isTrustedRedirectUrl(redirectToUrl, trustedOrigin)) {
-        throw new AppError(
-          "VALIDATION_ERROR",
-          "Account confirmation redirect is not configured safely",
-          400
-        );
-      }
-    } else if (invitationToken) {
+    if (rawInput.inviteToken && !invitationToken) {
       throw new AppError(
-        "INTERNAL_ERROR",
-        "Account confirmation redirects are not configured safely. Please contact the workspace administrator.",
-        503
+        "VALIDATION_ERROR",
+        "The invitation link is not valid. Request a new invitation from your organization administrator.",
+        400
+      );
+    }
+
+    const callbackUrl = new URL("/auth/callback", trustedOrigin);
+    const nextUrl = new URL("/onboarding", trustedOrigin);
+    if (invitationToken) nextUrl.searchParams.set("token", invitationToken);
+    callbackUrl.searchParams.set("next", `${nextUrl.pathname}${nextUrl.search}`);
+    const redirectToUrl = callbackUrl.toString();
+    if (!isTrustedRedirectUrl(redirectToUrl, trustedOrigin)) {
+      throw new AppError(
+        "VALIDATION_ERROR",
+        "Account confirmation redirect is not configured safely",
+        400
       );
     }
 

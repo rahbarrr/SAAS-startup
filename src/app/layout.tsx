@@ -27,6 +27,7 @@ export const metadata: Metadata = {
     title: "FieldTrack",
   },
   icons: {
+    icon: "/icons/icon-192.svg",
     apple: "/icons/icon-192.svg",
   },
 };

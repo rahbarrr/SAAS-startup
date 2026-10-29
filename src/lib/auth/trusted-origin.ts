@@ -69,10 +69,44 @@ export function resolveTrustedAppOrigin(
 export function resolveAuthAppOrigin(
   envSource: Record<string, string | undefined> = process.env
 ): TrustedOriginResolution {
-  if (
-    envSource.VERCEL_ENV?.trim() === "preview" &&
-    envSource.NEXT_PUBLIC_APP_URL?.trim()
-  ) {
+  const vercelEnvironment = envSource.VERCEL_ENV?.trim();
+
+  // Vercel provides this project-level Production domain separately from
+  // VERCEL_URL, which is deployment-specific. Never let a Production auth
+  // callback follow a generated deployment URL.
+  if (vercelEnvironment === "production") {
+    const projectProductionUrl = envSource.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+    if (projectProductionUrl) {
+      const candidate = projectProductionUrl.startsWith("http")
+        ? projectProductionUrl
+        : `https://${projectProductionUrl}`;
+      const productionOrigin = parseOrigin(candidate, "VERCEL_PROJECT_PRODUCTION_URL");
+      if (!productionOrigin.origin) return productionOrigin;
+      if (!productionOrigin.origin.startsWith("https://")) {
+        return {
+          origin: null,
+          error: "The Vercel Production application URL must use HTTPS.",
+        };
+      }
+
+      const appUrl = envSource.NEXT_PUBLIC_APP_URL?.trim();
+      if (appUrl) {
+        const configuredOrigin = parseOrigin(appUrl, "NEXT_PUBLIC_APP_URL");
+        if (!configuredOrigin.origin) return configuredOrigin;
+        if (configuredOrigin.origin !== productionOrigin.origin) {
+          return {
+            origin: null,
+            error:
+              "NEXT_PUBLIC_APP_URL must match VERCEL_PROJECT_PRODUCTION_URL in Production.",
+          };
+        }
+      }
+
+      return productionOrigin;
+    }
+  }
+
+  if (vercelEnvironment === "preview" && envSource.NEXT_PUBLIC_APP_URL?.trim()) {
     return parseOrigin(envSource.NEXT_PUBLIC_APP_URL.trim(), "NEXT_PUBLIC_APP_URL");
   }
 

@@ -2,7 +2,10 @@
 
 import { useState, type ReactNode } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-import { createAuthCallbackUrl } from "@/modules/auth/callback-url";
+import {
+  AuthRedirectConfigurationError,
+  createAuthCallbackUrl,
+} from "@/modules/auth/callback-url";
 
 type GoogleAuthButtonProps = {
   mode: "signup" | "login";
@@ -33,7 +36,13 @@ export function GoogleAuthButton({
       const callbackUrl = createAuthCallbackUrl(
         process.env.NEXT_PUBLIC_APP_URL,
         window.location.origin,
-        safeNextPath
+        safeNextPath,
+        {
+          vercelEnvironment: process.env.NEXT_PUBLIC_VERCEL_ENV,
+          vercelUrl: process.env.NEXT_PUBLIC_VERCEL_URL,
+          vercelProjectProductionUrl:
+            process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
+        }
       );
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -43,9 +52,11 @@ export function GoogleAuthButton({
         },
       });
       if (authError) throw authError;
-    } catch {
+    } catch (error) {
       setError(
-        "Google sign-in could not start. Please check that Google is enabled in Supabase Auth, or use email sign-in."
+        error instanceof AuthRedirectConfigurationError
+          ? error.message
+          : "Google sign-in could not start. Please check that Google is enabled in Supabase Auth, or use email sign-in."
       );
       setIsPending(false);
     }

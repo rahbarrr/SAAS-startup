@@ -1,10 +1,9 @@
 // FieldTrack Service Worker (PWA Shell & Asset Caching)
-// Version: 1.0.0
+// Version: 2.0.0
 
-const CACHE_NAME = "fieldtrack-shell-v1";
+const CACHE_NAME = "fieldtrack-shell-v2";
 const STATIC_ASSETS = [
   "/",
-  "/globals.css",
   "/icons/icon-192.svg",
   "/icons/icon-512.svg",
   "/icons/icon-maskable.svg",

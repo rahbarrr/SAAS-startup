@@ -69,6 +69,23 @@ describe("trusted application origin resolution", () => {
     ).toEqual({ origin: "https://saas-startup1.vercel.app", error: null });
   });
 
+  it("checks Production callback origin against Vercel's project production domain", () => {
+    expect(
+      resolveAuthAppOrigin({
+        VERCEL_ENV: "production",
+        VERCEL_PROJECT_PRODUCTION_URL: "saas-startup1.vercel.app",
+        NEXT_PUBLIC_APP_URL: "https://saas-startup1.vercel.app",
+      })
+    ).toEqual({ origin: "https://saas-startup1.vercel.app", error: null });
+    expect(
+      resolveAuthAppOrigin({
+        VERCEL_ENV: "production",
+        VERCEL_PROJECT_PRODUCTION_URL: "saas-startup1.vercel.app",
+        NEXT_PUBLIC_APP_URL: "https://other-project.vercel.app",
+      }).origin
+    ).toBeNull();
+  });
+
   it("rejects a forged or malformed deployment origin", () => {
     expect(
       resolveTrustedAppOrigin({
