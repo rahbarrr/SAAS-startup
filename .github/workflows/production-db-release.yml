@@ -87,6 +87,7 @@ jobs:
       SUPABASE_DB_PASSWORD: ${{ secrets.PRODUCTION_SUPABASE_DB_PASSWORD }}
       PRODUCTION_PROJECT_REF: ${{ vars.PRODUCTION_SUPABASE_PROJECT_REF }}
       PRODUCTION_DB_URL: ${{ secrets.PRODUCTION_DB_URL }}
+      BACKUP_REFERENCE: ${{ inputs.backup_reference }}
     steps:
       - uses: actions/checkout@v4
         with:
