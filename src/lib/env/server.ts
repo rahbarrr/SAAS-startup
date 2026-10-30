@@ -15,6 +15,9 @@ const serverEnvSchema = z.object({
     .min(3, "RESEND_FROM_EMAIL must be non-empty")
     .max(254)
     .optional(),
+  MAILTRAP_USER: z.string().trim().min(1, "MAILTRAP_USER must be non-empty").optional(),
+  MAILTRAP_PASS: z.string().trim().min(1, "MAILTRAP_PASS must be non-empty").optional(),
+  MAILTRAP_FROM_EMAIL: z.string().trim().min(3).max(254).optional(),
   INVITATION_TOKEN_ENCRYPTION_KEY: z
     .string()
     .trim()
@@ -97,6 +100,9 @@ export function getServerEnv(
     CRON_SECRET: envSource.CRON_SECRET || undefined,
     RESEND_API_KEY: envSource.RESEND_API_KEY || undefined,
     RESEND_FROM_EMAIL: envSource.RESEND_FROM_EMAIL || undefined,
+    MAILTRAP_USER: envSource.MAILTRAP_USER || undefined,
+    MAILTRAP_PASS: envSource.MAILTRAP_PASS || undefined,
+    MAILTRAP_FROM_EMAIL: envSource.MAILTRAP_FROM_EMAIL || undefined,
     INVITATION_TOKEN_ENCRYPTION_KEY:
       envSource.INVITATION_TOKEN_ENCRYPTION_KEY || undefined,
     OPENAI_API_KEY: envSource.OPENAI_API_KEY || undefined,

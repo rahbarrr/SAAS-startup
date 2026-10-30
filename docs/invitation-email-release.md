@@ -1,19 +1,21 @@
 # Invitation email and URL release runbook
 
-Invitation records are created before email delivery. If Resend is not
+Invitation records are created before email delivery. Local development uses
+Mailtrap sandbox SMTP, which captures messages in the Mailtrap inbox. Preview
+and Production continue to use Resend. If the selected provider is not
 configured or rejects a request, the record remains available and the admin
-receives a manual signup link. The API never reports an email as delivered
-unless Resend accepts the request.
+receives a manual signup link. The API reports delivery accepted only after
+the selected provider accepts the message.
 
 ## Root cause of the configuration warnings
 
-The three warnings come from the server-only invitation email module at
+The warnings come from the server-only invitation email module at
 `src/modules/auth/invitation-email.ts`. It returns an `unconfigured` result
-when any of these are unavailable:
+when the selected provider credentials or the app URL are unavailable:
 
-- `RESEND_API_KEY`
-- `RESEND_FROM_EMAIL`
-- `NEXT_PUBLIC_APP_URL`, unless a trusted Vercel Preview URL is available
+- Local development (`NODE_ENV=development`): `MAILTRAP_USER` and `MAILTRAP_PASS`
+- Preview and Production: `RESEND_API_KEY` and `RESEND_FROM_EMAIL`
+- All environments: `NEXT_PUBLIC_APP_URL`, unless a trusted Vercel Preview URL is available
 
 The invitation API passes that result to the team UI, which displays the
 warning and preserves the copy-link fallback. Secret values and provider
@@ -52,6 +54,19 @@ For a normal Vercel Preview deployment, the server prefers Vercel's system
 `VERCEL_ENV` and `VERCEL_URL` are platform-provided system values; do not
 invent or expose them as secrets. Keeping `NEXT_PUBLIC_APP_URL` configured for
 Preview is still recommended as an explicit fallback and for local parity.
+
+### Local development
+
+```text
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+MAILTRAP_USER=<Mailtrap sandbox SMTP username>
+MAILTRAP_PASS=<Mailtrap sandbox SMTP password>
+```
+
+Get the credentials from **Email Testing → Inboxes → your inbox → SMTP
+Settings** in Mailtrap. With `NODE_ENV=development`, invitations are sent to
+`sandbox.smtp.mailtrap.io:2525` and captured there instead of reaching the
+invited address. Do not set these credentials in Vercel Preview or Production.
 
 Do not add `RESEND_API_KEY` to client-exposed variables, source code, or Git.
 Keep `INVITATION_TOKEN_ENCRYPTION_KEY` server-only and use a different value

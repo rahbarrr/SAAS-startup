@@ -138,7 +138,7 @@ export function TeamDirectoryClient({
       const link = `${origin}/signup?invite_token=${encodeURIComponent(token)}`;
       const emailDelivered = payload.data.emailDelivery?.delivered === true;
       const emailStatusMessage = emailDelivered
-        ? "Resend accepted the invitation email for delivery."
+        ? "The email provider accepted the invitation for delivery."
         : (payload.data.emailDelivery?.error ??
           "Automatic email delivery is not configured. Copy the fallback link and send it to the invitee.");
 
