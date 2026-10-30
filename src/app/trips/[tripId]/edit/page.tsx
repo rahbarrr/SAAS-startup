@@ -89,6 +89,8 @@ export default async function EditTripPage(props: EditTripPageProps): Promise<Re
       mode="edit"
       initialTitle={tripDetail.trip.title}
       initialPurpose={tripDetail.trip.purpose}
+      initialStartLocation={tripDetail.trip.startLocation ?? ""}
+      initialDestinationCity={tripDetail.trip.destinationCity ?? ""}
       initialStartDate={tripDetail.trip.startDate}
       initialEndDate={tripDetail.trip.endDate}
       initialStatus={tripDetail.trip.status}
