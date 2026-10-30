@@ -38,6 +38,13 @@ export const SIDEBAR_NAV_SECTIONS: NavSection[] = [
     title: "Field Operations",
     items: [
       { href: "/dashboard", label: "Overview", icon: "grid" },
+      {
+        href: "/dashboard/live-tracking",
+        label: "Live Map",
+        icon: "radar",
+        badge: "LIVE",
+        allowedRoles: ["admin", "manager"],
+      },
       { href: "/trips", label: "Trips", icon: "map-pin" },
       {
         href: "/approvals",
@@ -75,6 +82,23 @@ export const SIDEBAR_NAV_SECTIONS: NavSection[] = [
 
 function NavIcon({ name }: { name: string }) {
   switch (name) {
+    case "radar":
+      return (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" />
+          <path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 8a2 2 0 1 1 2-2 2 2 0 0 1-2 2z" />
+          <line x1="12" y1="12" x2="19" y2="5" />
+        </svg>
+      );
     case "grid":
       return (
         <svg

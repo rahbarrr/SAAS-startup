@@ -300,6 +300,9 @@ export class FieldTrackMobileApiClient {
     latitude?: number | null;
     longitude?: number | null;
     accuracyMeters?: number | null;
+    idempotencyKey?: string;
+    deviceRecordedAt?: string;
+    geofenceRadiusMeters?: number;
   }): Promise<{ visitId: string }> {
     const url = `${this.config.baseUrl}/api/orgs/${this.config.orgId}/visits`;
 
@@ -308,6 +311,10 @@ export class FieldTrackMobileApiClient {
       headers: this.getAuthHeaders(),
       body: JSON.stringify({
         tripStopId: params.tripStopId,
+        idempotencyKey: params.idempotencyKey,
+        deviceRecordedAt: params.deviceRecordedAt ?? new Date().toISOString(),
+        geofenceRadiusMeters: params.geofenceRadiusMeters ?? 150,
+        eventSource: "manual",
         location: {
           latitude: params.latitude ?? null,
           longitude: params.longitude ?? null,
@@ -337,6 +344,8 @@ export class FieldTrackMobileApiClient {
     latitude?: number | null;
     longitude?: number | null;
     accuracyMeters?: number | null;
+    idempotencyKey?: string;
+    deviceRecordedAt?: string;
   }): Promise<void> {
     const url = `${this.config.baseUrl}/api/orgs/${this.config.orgId}/visits/${params.visitId}/checkout`;
 
@@ -345,6 +354,9 @@ export class FieldTrackMobileApiClient {
       headers: this.getAuthHeaders(),
       body: JSON.stringify({
         notes: params.notes,
+        idempotencyKey: params.idempotencyKey,
+        deviceRecordedAt: params.deviceRecordedAt ?? new Date().toISOString(),
+        eventSource: "manual",
         location: {
           latitude: params.latitude ?? null,
           longitude: params.longitude ?? null,
@@ -360,6 +372,91 @@ export class FieldTrackMobileApiClient {
     if (!response.ok) {
       const body = await response.json();
       throw new Error(body?.error?.message ?? `Check-out failed (${response.status})`);
+    }
+  }
+
+  /**
+   * Starts an authorized live tracking session for an approved or in_progress trip.
+   */
+  async startTrackingSession(params: {
+    tripId: string;
+    consentRecordedAt?: string;
+  }): Promise<{ id: string; status: string }> {
+    const url = `${this.config.baseUrl}/api/orgs/${this.config.orgId}/location/sessions`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({
+        tripId: params.tripId,
+        consentRecordedAt: params.consentRecordedAt ?? new Date().toISOString(),
+      }),
+    });
+
+    const body = await response.json();
+    if (!response.ok) {
+      throw new Error(
+        body?.error?.message ?? `Failed to start tracking session (${response.status})`
+      );
+    }
+    return body.data;
+  }
+
+  /**
+   * Stops an active live tracking session.
+   */
+  async stopTrackingSession(params: {
+    tripId: string;
+    reason?: string;
+  }): Promise<void> {
+    const url = `${this.config.baseUrl}/api/orgs/${this.config.orgId}/location/sessions`;
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      const body = await response.json();
+      throw new Error(
+        body?.error?.message ?? `Failed to stop tracking session (${response.status})`
+      );
+    }
+  }
+
+  /**
+   * Sends a live GPS location update to the backend.
+   */
+  async sendLocationEvent(params: {
+    tripId: string;
+    latitude: number;
+    longitude: number;
+    accuracyM?: number | null;
+    speedMps?: number | null;
+    heading?: number | null;
+    recordedAt?: string;
+    source?: "mobile_foreground" | "mobile_background" | "manual_refresh" | "geofence_trigger";
+  }): Promise<void> {
+    const url = `${this.config.baseUrl}/api/orgs/${this.config.orgId}/location/events`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({
+        tripId: params.tripId,
+        latitude: params.latitude,
+        longitude: params.longitude,
+        accuracyM: params.accuracyM ?? null,
+        speedMps: params.speedMps ?? null,
+        heading: params.heading ?? null,
+        recordedAt: params.recordedAt ?? new Date().toISOString(),
+        source: params.source ?? "mobile_foreground",
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.json();
+      throw new Error(
+        body?.error?.message ?? `Failed to send location update (${response.status})`
+      );
     }
   }
 }

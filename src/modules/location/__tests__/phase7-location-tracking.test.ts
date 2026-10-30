@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from "vitest";
 import type {
   InsertAuditEventInput,
@@ -61,6 +62,105 @@ class MockLocationRepo implements LocationRepository {
     // Simulate purge
     this.breadcrumbs = this.breadcrumbs.filter((b) => b.orgId !== orgId);
     return beforeCount - this.breadcrumbs.length;
+  }
+
+  async startTrackingSession(params: any): Promise<any> {
+    return {
+      id: "session-1",
+      orgId: params.orgId,
+      tripId: params.tripId,
+      employeeId: params.employeeId,
+      startedAt: new Date().toISOString(),
+      endedAt: null,
+      consentRecordedAt: params.consentRecordedAt ?? new Date().toISOString(),
+      status: "active",
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  async getActiveTrackingSession(): Promise<any> {
+    return null;
+  }
+
+  async stopTrackingSession(): Promise<any> {
+    return {
+      id: "session-1",
+      status: "stopped",
+      endedAt: new Date().toISOString(),
+    };
+  }
+
+  async recordLocationEvent(params: any): Promise<any> {
+    return {
+      id: "evt-1",
+      orgId: params.orgId,
+      tripId: params.tripId,
+      employeeId: params.employeeId,
+      latitude: params.latitude,
+      longitude: params.longitude,
+      accuracyM: params.accuracyM ?? null,
+      speedMps: params.speedMps ?? null,
+      heading: params.heading ?? null,
+      recordedAt: params.recordedAt,
+      receivedAt: new Date().toISOString(),
+      source: params.source ?? "mobile_foreground",
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  async listLatestEmployeeLocations(): Promise<any[]> {
+    return [];
+  }
+
+  async getLatestEmployeeLocation(): Promise<any> {
+    return null;
+  }
+
+  async listLocationEventsForTrip(): Promise<any[]> {
+    return [];
+  }
+
+  async upsertStoreGeofence(params: any): Promise<any> {
+    return {
+      id: "geo-1",
+      orgId: params.orgId,
+      storeId: params.storeId,
+      latitude: params.latitude,
+      longitude: params.longitude,
+      radiusM: params.radiusM,
+      enabled: params.enabled ?? true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  async getStoreGeofence(): Promise<any> {
+    return null;
+  }
+
+  async listStoreGeofencesForOrg(): Promise<any[]> {
+    return [];
+  }
+
+  async recordGeofenceEvent(params: any): Promise<any> {
+    return {
+      id: "geo-evt-1",
+      orgId: params.orgId,
+      tripId: params.tripId,
+      visitId: params.visitId ?? null,
+      storeId: params.storeId,
+      employeeId: params.employeeId,
+      eventType: params.eventType,
+      latitude: params.latitude,
+      longitude: params.longitude,
+      accuracyM: params.accuracyM ?? null,
+      recordedAt: params.recordedAt ?? new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  async listGeofenceEventsForTrip(): Promise<any[]> {
+    return [];
   }
 }
 

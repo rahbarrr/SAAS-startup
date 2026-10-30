@@ -10,12 +10,16 @@ import {
 } from "react-native";
 import { GeofenceConsentModal } from "../components/GeofenceConsentModal";
 import { GeofenceStatusBanner } from "../components/GeofenceStatusBanner";
+import { CheckInModal } from "../components/CheckInModal";
+import { LiveTrackingBar } from "../components/LiveTrackingBar";
 import type { FieldTrackMobileApiClient } from "../services/api";
 import { ConsentManager } from "../services/consent";
 import { EventQueueManager } from "../services/eventQueue";
-import { GeofenceManager } from "../services/geofencing";
+import { calculateDistanceMeters, GeofenceManager } from "../services/geofencing";
+import { LiveTrackingManager } from "../services/liveTracking";
 import type {
   GeofenceConsentState,
+  LiveTrackingState,
   MobileTrip,
   MobileTripStop,
 } from "../types";
@@ -50,6 +54,30 @@ export function ActiveTripScreen({
   const [activeVisitId, setActiveVisitId] = useState<string | null>(null);
   const [isProcessingManual, setIsProcessingManual] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
+
+  // GPS Check-in Modal state
+  const [selectedStopForCheckIn, setSelectedStopForCheckIn] = useState<MobileTripStop | null>(null);
+  const [checkInCoords, setCheckInCoords] = useState<{
+    latitude: number | null;
+    longitude: number | null;
+    accuracyMeters: number | null;
+  } | null>(null);
+  const [distanceToStore, setDistanceToStore] = useState<number | null>(null);
+
+  // Live Tracking state
+  const [liveTrackingState, setLiveTrackingState] = useState<LiveTrackingState>(
+    LiveTrackingManager.getState()
+  );
+  const [isTogglingTracking, setIsTogglingTracking] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = LiveTrackingManager.subscribeState((state) => {
+      setLiveTrackingState(state);
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -170,6 +198,97 @@ export function ActiveTripScreen({
     return { latitude: null, longitude: null, accuracyMeters: null };
   };
 
+  const handleOpenCheckInModal = async (stop: MobileTripStop) => {
+    setSelectedStopForCheckIn(stop);
+    const coords = await getCurrentDeviceCoords();
+    setCheckInCoords(coords);
+
+    if (coords.latitude !== null && coords.longitude !== null && stop.latitude !== null && stop.longitude !== null) {
+      const dist = calculateDistanceMeters(
+        coords.latitude,
+        coords.longitude,
+        stop.latitude,
+        stop.longitude
+      );
+      setDistanceToStore(dist);
+    } else {
+      setDistanceToStore(null);
+    }
+  };
+
+  const handleRefreshGpsReading = async () => {
+    if (!selectedStopForCheckIn) return;
+    try {
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      if (pos?.coords) {
+        const coords = {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracyMeters: pos.coords.accuracy ?? null,
+        };
+        setCheckInCoords(coords);
+        if (selectedStopForCheckIn.latitude !== null && selectedStopForCheckIn.longitude !== null) {
+          const dist = calculateDistanceMeters(
+            coords.latitude,
+            coords.longitude,
+            selectedStopForCheckIn.latitude,
+            selectedStopForCheckIn.longitude
+          );
+          setDistanceToStore(dist);
+        }
+      }
+    } catch {
+      // Fallback
+    }
+  };
+
+  const handleConfirmGpsCheckIn = async () => {
+    if (!selectedStopForCheckIn) return;
+    setIsProcessingManual(true);
+    try {
+      const res = await apiClient.manualCheckIn({
+        tripStopId: selectedStopForCheckIn.id,
+        latitude: checkInCoords?.latitude,
+        longitude: checkInCoords?.longitude,
+        accuracyMeters: checkInCoords?.accuracyMeters,
+        idempotencyKey: `chk_${selectedStopForCheckIn.id}_${Date.now()}`,
+      });
+      setActiveVisitId(res.visitId);
+      setSelectedStopForCheckIn(null);
+      if (onTripUpdated) {
+        try {
+          const refreshed = await apiClient.getExecutableTrip(trip.id);
+          onTripUpdated(refreshed);
+        } catch {
+          // Non-blocking
+        }
+      }
+      Alert.alert("Check-in Confirmed", `Checked into ${selectedStopForCheckIn.storeName} successfully.`);
+    } catch (err) {
+      Alert.alert("Check-in Error", err instanceof Error ? err.message : "Failed to check in");
+    } finally {
+      setIsProcessingManual(false);
+    }
+  };
+
+  const handleToggleLiveTracking = async () => {
+    setIsTogglingTracking(true);
+    try {
+      if (liveTrackingState.isTracking) {
+        await LiveTrackingManager.stopTracking(apiClient);
+      } else {
+        await LiveTrackingManager.startTracking(trip.id, apiClient);
+      }
+    } catch (err) {
+      Alert.alert(
+        "Live Tracking Error",
+        err instanceof Error ? err.message : "Failed to toggle live tracking"
+      );
+    } finally {
+      setIsTogglingTracking(false);
+    }
+  };
+
   const handleManualCheckIn = async (stop: MobileTripStop) => {
     setIsProcessingManual(true);
     try {
@@ -268,6 +387,13 @@ export function ActiveTripScreen({
         </Text>
       </View>
 
+      {/* Live Tracking Bar */}
+      <LiveTrackingBar
+        trackingState={liveTrackingState}
+        onToggleTracking={handleToggleLiveTracking}
+        isLoading={isTogglingTracking}
+      />
+
       {/* Geofence Status Banner */}
       <GeofenceStatusBanner
         isMonitoring={isMonitoring}
@@ -341,16 +467,28 @@ export function ActiveTripScreen({
                 {item.status === "planned" && !activeVisitId && (
                   <TouchableOpacity
                     style={styles.manualCheckInBtn}
-                    onPress={() => handleManualCheckIn(item)}
+                    onPress={() => handleOpenCheckInModal(item)}
                     disabled={isProcessingManual}
                   >
-                    <Text style={styles.manualBtnText}>Manual Check-in</Text>
+                    <Text style={styles.manualBtnText}>Check-in (GPS)</Text>
                   </TouchableOpacity>
                 )}
               </View>
             </View>
           );
         }}
+      />
+
+      {/* GPS Check-In Modal */}
+      <CheckInModal
+        visible={Boolean(selectedStopForCheckIn)}
+        stop={selectedStopForCheckIn}
+        currentCoords={checkInCoords}
+        distanceMeters={distanceToStore}
+        isSubmitting={isProcessingManual}
+        onConfirm={handleConfirmGpsCheckIn}
+        onCancel={() => setSelectedStopForCheckIn(null)}
+        onRetryGps={handleRefreshGpsReading}
       />
 
       {/* Consent Modal */}

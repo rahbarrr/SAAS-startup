@@ -292,6 +292,73 @@ export interface DbTripLocationBreadcrumbRow {
   created_at: string;
 }
 
+export interface DbStoreGeofenceRow {
+  id: string;
+  org_id: string;
+  store_id: string;
+  latitude: number;
+  longitude: number;
+  radius_m: number;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbTripTrackingSessionRow {
+  id: string;
+  org_id: string;
+  trip_id: string;
+  employee_id: string;
+  started_at: string;
+  ended_at: string | null;
+  consent_recorded_at: string;
+  status: "active" | "stopped" | "completed" | "expired";
+  created_at: string;
+}
+
+export interface DbLocationEventRow {
+  id: string;
+  org_id: string;
+  trip_id: string;
+  employee_id: string;
+  latitude: number;
+  longitude: number;
+  accuracy_m: number | null;
+  speed_mps: number | null;
+  heading: number | null;
+  recorded_at: string;
+  received_at: string;
+  source: "mobile_foreground" | "mobile_background" | "manual_refresh" | "geofence_trigger";
+  created_at: string;
+}
+
+export interface DbLatestEmployeeLocationRow {
+  employee_id: string;
+  org_id: string;
+  trip_id: string;
+  latitude: number;
+  longitude: number;
+  accuracy_m: number | null;
+  recorded_at: string;
+  received_at: string;
+  tracking_status: "active" | "stationary" | "delayed" | "stale" | "offline" | "stopped";
+}
+
+export interface DbGeofenceEventRow {
+  id: string;
+  org_id: string;
+  trip_id: string;
+  visit_id: string | null;
+  store_id: string;
+  employee_id: string;
+  event_type: "enter" | "exit";
+  latitude: number;
+  longitude: number;
+  accuracy_m: number | null;
+  recorded_at: string;
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -339,6 +406,21 @@ export interface Database {
       };
       trip_location_breadcrumbs: {
         Row: DbTripLocationBreadcrumbRow;
+      };
+      store_geofences: {
+        Row: DbStoreGeofenceRow;
+      };
+      trip_tracking_sessions: {
+        Row: DbTripTrackingSessionRow;
+      };
+      location_events: {
+        Row: DbLocationEventRow;
+      };
+      latest_employee_locations: {
+        Row: DbLatestEmployeeLocationRow;
+      };
+      geofence_events: {
+        Row: DbGeofenceEventRow;
       };
     };
     Enums: {

@@ -122,3 +122,27 @@ export interface GeofenceEventSyncResponse {
   syncDelayMs: number;
   message?: string;
 }
+
+export interface QueuedCheckInEvent {
+  clientEventId: string;
+  tripStopId: string;
+  storeName: string;
+  latitude: number | null;
+  longitude: number | null;
+  accuracyMeters: number | null;
+  deviceRecordedAt: string;
+  status: "pending_verification" | "verified" | "failed";
+  lastError?: string;
+}
+
+export interface LiveTrackingState {
+  isTracking: boolean;
+  activeTripId: string | null;
+  sessionId: string | null;
+  lastUpdateAt: string | null;
+  lastLatitude: number | null;
+  lastLongitude: number | null;
+  accuracyMeters: number | null;
+  syncStatus: "synced" | "pending" | "offline";
+}
+

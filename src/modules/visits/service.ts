@@ -138,6 +138,7 @@ export async function checkInStopForOrg(params: {
   rawInput: unknown;
   tenancyRepository: TenancyRepository;
   visitsRepository: VisitsRepository;
+  storesRepository?: Pick<StoresRepository, "getStoreById">;
   locationPolicy?: LocationCapturePolicy;
   now?: Date;
 }): Promise<VisitDetail> {
@@ -233,6 +234,49 @@ export async function checkInStopForOrg(params: {
     actionLabel: "check-in",
   });
 
+  // GPS Rule Verification:
+  // Default store radius: 150m, acceptable GPS accuracy: 50m.
+  // Evaluate distance + GPS accuracy against geofence boundary.
+  let verificationStatus: "verified" | "pending_review" = "verified";
+  let verificationNotes: string | null = null;
+
+  if (location.status === "captured_unverified" && location.latitude !== null && location.longitude !== null) {
+    // If accuracy is poor (> 50m)
+    const accuracy = location.accuracyMeters ?? 0;
+    if (accuracy > 50) {
+      verificationStatus = "pending_review";
+      verificationNotes = `GPS accuracy was poor (${Math.round(accuracy)}m > 50m threshold)`;
+    }
+
+    // Check store coordinates if available
+    let storeLat: number | null = null;
+    let storeLng: number | null = null;
+    if (params.storesRepository) {
+      const store = await params.storesRepository.getStoreById(context.orgId, stopContext.stop.storeId);
+      if (store) {
+        storeLat = store.latitude;
+        storeLng = store.longitude;
+      }
+    }
+
+    if (storeLat !== null && storeLng !== null) {
+      const dist = calculateHaversineMeters(
+        { latitude: location.latitude, longitude: location.longitude },
+        { latitude: storeLat, longitude: storeLng }
+      );
+      const effectiveRadius = input.geofenceRadiusMeters ?? 150;
+      // Outside boundary: distance - accuracy > radius
+      if (dist > effectiveRadius) {
+        verificationStatus = "pending_review";
+        const reason = `Check-in detected at ${Math.round(dist)}m from store (exceeds ${effectiveRadius}m radius; GPS accuracy: ±${Math.round(accuracy)}m)`;
+        verificationNotes = verificationNotes ? `${verificationNotes}; ${reason}` : reason;
+      }
+    }
+  } else if (location.status !== "captured_unverified") {
+    verificationStatus = "pending_review";
+    verificationNotes = `Check-in occurred without verified device GPS coordinates (status: '${location.status}')`;
+  }
+
   const nowIso = (params.now ?? new Date()).toISOString();
 
   return params.visitsRepository.checkInStopAtomic({
@@ -245,6 +289,8 @@ export async function checkInStopForOrg(params: {
     source: input.eventSource ?? "manual",
     deviceTimestamp: input.deviceRecordedAt ?? null,
     radiusMeters: input.geofenceRadiusMeters ?? null,
+    verificationStatus,
+    verificationNotes,
   });
 }
 
