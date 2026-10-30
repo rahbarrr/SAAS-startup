@@ -43,8 +43,8 @@ function unconfiguredResult(error: string, attemptedAt: string): InvitationEmail
 }
 
 /**
- * Sends a one-time workspace invitation using Mailtrap in local development and
- * Resend elsewhere. Invitation records are persisted
+ * Sends a one-time workspace invitation using Mailtrap by default, with Resend
+ * available when explicitly selected. Invitation records are persisted
  * before email delivery; a provider failure is returned honestly so the admin can copy
  * the fallback link without the database transaction being lost.
  */
@@ -55,9 +55,7 @@ export async function sendOrganizationInvitationEmail(
 ): Promise<InvitationEmailResult> {
   const attemptedAt = new Date().toISOString();
   const configuredProvider = envSource.INVITATION_EMAIL_PROVIDER?.trim().toLowerCase();
-  const provider =
-    configuredProvider ||
-    (envSource.NODE_ENV === "development" ? "mailtrap" : "disabled");
+  const provider = configuredProvider || "mailtrap";
   const isMailtrap = provider === "mailtrap";
   const mailtrapUser = envSource.MAILTRAP_USER?.trim();
   const mailtrapPass = envSource.MAILTRAP_PASS?.trim();
@@ -204,11 +202,12 @@ export async function sendOrganizationInvitationEmail(
     };
   } catch {
     return {
-      provider: "resend",
+      provider: isMailtrap ? "smtp" : "resend",
       delivered: false,
       messageId: null,
-      error:
-        "Resend could not be reached. The invitation exists; copy the fallback link and send it manually.",
+      error: isMailtrap
+        ? "Mailtrap could not accept the invitation email. Check the SMTP credentials and connection. The invitation exists; copy the fallback link and send it manually."
+        : "Resend could not be reached. The invitation exists; copy the fallback link and send it manually.",
       attemptedAt,
     };
   }

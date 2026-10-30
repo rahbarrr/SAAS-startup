@@ -27,22 +27,19 @@ If verification fails, the app returns to the login page with a safe error messa
 
 ## Automatic invitation email delivery
 
-For local development, configure Mailtrap Email Testing credentials in `.env.local`:
+Configure Mailtrap Email Testing credentials in `.env.local` for local development and in each deployed environment where invitations should be captured:
 
 ```text
+INVITATION_EMAIL_PROVIDER=mailtrap
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 MAILTRAP_USER=<Mailtrap sandbox SMTP username>
 MAILTRAP_PASS=<Mailtrap sandbox SMTP password>
 ```
 
-Get them from **Email Testing → Inboxes → your inbox → SMTP Settings**. Local invitations go to the Mailtrap sandbox and are captured there. The Mailtrap credentials are used only when `NODE_ENV=development`.
+Get them from **Email Testing → Inboxes → your inbox → SMTP Settings**. Mailtrap is the default invitation email provider in every environment, so invitations are captured in the sandbox rather than delivered to real recipients. Keep the credentials server-only.
 
-For Preview and Production, invitation email delivery is disabled by default.
-To keep real email blocked while testing, leave the provider unset or set
-`INVITATION_EMAIL_PROVIDER=disabled`. To capture invitations from a deployed
-test app in Mailtrap, set `INVITATION_EMAIL_PROVIDER=mailtrap` and configure
-the Mailtrap SMTP credentials in that environment. To re-enable Resend, set
-`INVITATION_EMAIL_PROVIDER=resend`, then configure:
+Resend remains available as an explicit alternative. To enable it in Preview
+or Production, set `INVITATION_EMAIL_PROVIDER=resend`, then configure:
 
 1. Create a Resend account and verify a sending domain you control. Do not use a sender address or domain that Resend has not verified.
 2. Create an API key with permission to send email.
@@ -52,7 +49,7 @@ the Mailtrap SMTP credentials in that environment. To re-enable Resend, set
    - `RESEND_FROM_EMAIL` = a verified sender, for example `FieldTrack <invites@your-verified-domain.com>`
 4. Redeploy after setting the variables.
 
-When an admin invites a manager or field employee, FieldTrack creates a single-use invitation record and sends through the selected provider. Local development defaults to Mailtrap; Preview and Production email is disabled unless a provider is explicitly selected. If the selected provider is unconfigured or rejects the request, the invitation remains available and the admin is shown a fallback signup link to copy. A provider success response means it accepted the message; it does not guarantee inbox delivery.
+When an admin invites a manager or field employee, FieldTrack creates a single-use invitation record and sends through the selected provider. Mailtrap is the default in local development, Preview, and Production. If its credentials are missing or the provider rejects the request, the invitation remains available and the admin is shown a fallback signup link to copy. A provider success response means it accepted the message; it does not guarantee inbox delivery.
 
 ## Company profile and database migration
 

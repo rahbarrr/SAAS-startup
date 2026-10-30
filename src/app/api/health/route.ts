@@ -72,9 +72,7 @@ export async function GET(request?: Request): Promise<NextResponse<HealthCheckRe
   const isPushConfigured = Boolean(
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY
   );
-  const emailProvider =
-    process.env.INVITATION_EMAIL_PROVIDER ??
-    (process.env.NODE_ENV === "development" ? "mailtrap" : "disabled");
+  const emailProvider = process.env.INVITATION_EMAIL_PROVIDER ?? "mailtrap";
   const isEmailConfigured =
     emailProvider === "mailtrap"
       ? Boolean(process.env.MAILTRAP_USER && process.env.MAILTRAP_PASS)

@@ -30,18 +30,27 @@ describe("Organization invitation email delivery", () => {
     sendMailMock.mockResolvedValue({ messageId: "mailtrap-message-123" });
   });
 
-  it("keeps invitation email disabled by default outside local development", async () => {
+  it("defaults to Mailtrap and never falls back to Resend when Mailtrap is unconfigured", async () => {
     let called = false;
     const fetchImpl: typeof fetch = async () => {
       called = true;
       return new Response(null, { status: 500 });
     };
 
-    const result = await sendOrganizationInvitationEmail(invitation, {}, fetchImpl);
+    const result = await sendOrganizationInvitationEmail(
+      invitation,
+      {
+        NODE_ENV: "production",
+        RESEND_API_KEY: "re_test_key",
+        RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
+      },
+      fetchImpl
+    );
 
     expect(result.provider).toBe("unconfigured");
     expect(result.delivered).toBe(false);
-    expect(result.error).toContain("email delivery is disabled");
+    expect(result.error).toContain("MAILTRAP_USER and MAILTRAP_PASS");
+    expect(createTransportMock).not.toHaveBeenCalled();
     expect(called).toBe(false);
   });
 
@@ -96,11 +105,11 @@ describe("Organization invitation email delivery", () => {
     });
   });
 
-  it("sends development invitations through Mailtrap with the single-use invite link", async () => {
+  it("sends invitations through default Mailtrap with the single-use invite link", async () => {
     const result = await sendOrganizationInvitationEmail(
       invitation,
       {
-        NODE_ENV: "development",
+        NODE_ENV: "production",
         MAILTRAP_USER: "sandbox-user",
         MAILTRAP_PASS: "sandbox-password",
         NEXT_PUBLIC_APP_URL: "http://localhost:3000",
@@ -132,6 +141,23 @@ describe("Organization invitation email delivery", () => {
       delivered: true,
       messageId: "mailtrap-message-123",
       error: null,
+    });
+  });
+
+  it("reports Mailtrap failures as SMTP failures", async () => {
+    sendMailMock.mockRejectedValueOnce(new Error("SMTP authentication failed"));
+
+    const result = await sendOrganizationInvitationEmail(invitation, {
+      NODE_ENV: "production",
+      MAILTRAP_USER: "sandbox-user",
+      MAILTRAP_PASS: "sandbox-password",
+      NEXT_PUBLIC_APP_URL: "https://app.example.com",
+    });
+
+    expect(result).toMatchObject({
+      provider: "smtp",
+      delivered: false,
+      error: expect.stringContaining("Check the SMTP credentials"),
     });
   });
 
