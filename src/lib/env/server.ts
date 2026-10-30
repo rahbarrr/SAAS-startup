@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getPublicEnv } from "./public";
 
 const serverEnvSchema = z.object({
+  INVITATION_EMAIL_PROVIDER: z.enum(["mailtrap", "resend", "disabled"]).optional(),
   SUPABASE_SERVICE_ROLE_KEY: z
     .string()
     .min(1, "SUPABASE_SERVICE_ROLE_KEY must be a non-empty string")
@@ -96,6 +97,7 @@ export function getServerEnv(
 ): ServerEnv {
   const publicEnv = getPublicEnv(envSource);
   const serverOnly = serverEnvSchema.parse({
+    INVITATION_EMAIL_PROVIDER: envSource.INVITATION_EMAIL_PROVIDER || undefined,
     SUPABASE_SERVICE_ROLE_KEY: envSource.SUPABASE_SERVICE_ROLE_KEY || undefined,
     CRON_SECRET: envSource.CRON_SECRET || undefined,
     RESEND_API_KEY: envSource.RESEND_API_KEY || undefined,

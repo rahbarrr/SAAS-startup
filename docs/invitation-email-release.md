@@ -14,7 +14,7 @@ The warnings come from the server-only invitation email module at
 when the selected provider credentials or the app URL are unavailable:
 
 - Local development (`NODE_ENV=development`): `MAILTRAP_USER` and `MAILTRAP_PASS`
-- Preview and Production: `RESEND_API_KEY` and `RESEND_FROM_EMAIL`
+- Preview and Production: email is disabled by default. Set `INVITATION_EMAIL_PROVIDER=resend` to enable Resend, then provide `RESEND_API_KEY` and `RESEND_FROM_EMAIL`.
 - All environments: `NEXT_PUBLIC_APP_URL`, unless a trusted Vercel Preview URL is available
 
 The invitation API passes that result to the team UI, which displays the
@@ -48,6 +48,12 @@ RESEND_API_KEY=<the Resend API key, entered as a secret>
 RESEND_FROM_EMAIL=FieldTrack <invites@your-verified-domain.example>
 INVITATION_TOKEN_ENCRYPTION_KEY=<base64url-encoded 32-byte server secret>
 ```
+
+Add `INVITATION_EMAIL_PROVIDER=resend` to enable Resend in Preview or
+Production. To temporarily block invitation emails, leave the provider unset
+or set it to `disabled`. To capture deployed test invitations in Mailtrap, set
+`INVITATION_EMAIL_PROVIDER=mailtrap` and provide the Mailtrap SMTP credentials
+for that environment.
 
 For a normal Vercel Preview deployment, the server prefers Vercel's system
 `VERCEL_URL` and creates an HTTPS link for that exact `*.vercel.app` hostname.

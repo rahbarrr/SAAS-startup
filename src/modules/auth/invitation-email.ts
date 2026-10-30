@@ -54,16 +54,34 @@ export async function sendOrganizationInvitationEmail(
   fetchImpl: typeof fetch = fetch
 ): Promise<InvitationEmailResult> {
   const attemptedAt = new Date().toISOString();
-  const isDevelopment = envSource.NODE_ENV === "development";
+  const configuredProvider = envSource.INVITATION_EMAIL_PROVIDER?.trim().toLowerCase();
+  const provider =
+    configuredProvider ||
+    (envSource.NODE_ENV === "development" ? "mailtrap" : "disabled");
+  const isMailtrap = provider === "mailtrap";
   const mailtrapUser = envSource.MAILTRAP_USER?.trim();
   const mailtrapPass = envSource.MAILTRAP_PASS?.trim();
   const apiKey = envSource.RESEND_API_KEY?.trim();
   const from = envSource.RESEND_FROM_EMAIL?.trim();
 
-  if (isDevelopment ? !mailtrapUser || !mailtrapPass : !apiKey || !from) {
+  if (provider === "disabled") {
     return unconfiguredResult(
-      isDevelopment
-        ? "Local email testing is not configured. Set MAILTRAP_USER and MAILTRAP_PASS."
+      "Invitation email delivery is disabled. Set INVITATION_EMAIL_PROVIDER to mailtrap or resend to enable a provider.",
+      attemptedAt
+    );
+  }
+
+  if (provider !== "mailtrap" && provider !== "resend") {
+    return unconfiguredResult(
+      "Invitation email delivery has an invalid provider setting. Use mailtrap, resend, or disabled.",
+      attemptedAt
+    );
+  }
+
+  if (isMailtrap ? !mailtrapUser || !mailtrapPass : !apiKey || !from) {
+    return unconfiguredResult(
+      isMailtrap
+        ? "Mailtrap email testing is not configured. Set MAILTRAP_USER and MAILTRAP_PASS."
         : "Automatic email is not configured. Set RESEND_API_KEY and RESEND_FROM_EMAIL, plus NEXT_PUBLIC_APP_URL or VERCEL_URL for Preview.",
       attemptedAt
     );
@@ -120,14 +138,16 @@ export async function sendOrganizationInvitationEmail(
 </html>`;
 
   try {
-    if (isDevelopment) {
+    if (isMailtrap) {
       const transporter = nodemailer.createTransport({
         host: "sandbox.smtp.mailtrap.io",
         port: 2525,
         auth: { user: mailtrapUser, pass: mailtrapPass },
       });
       const result = await transporter.sendMail({
-        from: envSource.MAILTRAP_FROM_EMAIL?.trim() || "FieldTrack <invites@fieldtrack.local>",
+        from:
+          envSource.MAILTRAP_FROM_EMAIL?.trim() ||
+          "FieldTrack <invites@fieldtrack.local>",
         to: input.recipientEmail,
         subject,
         text,

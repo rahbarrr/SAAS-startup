@@ -30,7 +30,7 @@ describe("Organization invitation email delivery", () => {
     sendMailMock.mockResolvedValue({ messageId: "mailtrap-message-123" });
   });
 
-  it("reports email as unconfigured instead of pretending an invitation was sent", async () => {
+  it("keeps invitation email disabled by default outside local development", async () => {
     let called = false;
     const fetchImpl: typeof fetch = async () => {
       called = true;
@@ -41,7 +41,7 @@ describe("Organization invitation email delivery", () => {
 
     expect(result.provider).toBe("unconfigured");
     expect(result.delivered).toBe(false);
-    expect(result.error).toContain("RESEND_API_KEY");
+    expect(result.error).toContain("email delivery is disabled");
     expect(called).toBe(false);
   });
 
@@ -60,6 +60,7 @@ describe("Organization invitation email delivery", () => {
     const result = await sendOrganizationInvitationEmail(
       invitation,
       {
+        INVITATION_EMAIL_PROVIDER: "resend",
         RESEND_API_KEY: "re_test_key",
         RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
         NEXT_PUBLIC_APP_URL: "https://app.example.com",
@@ -161,6 +162,7 @@ describe("Organization invitation email delivery", () => {
     const result = await sendOrganizationInvitationEmail(
       invitation,
       {
+        INVITATION_EMAIL_PROVIDER: "resend",
         RESEND_API_KEY: "re_test_key",
         RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
         NEXT_PUBLIC_APP_URL: "https://saas-startup1.vercel.app",
@@ -212,6 +214,7 @@ describe("Organization invitation email delivery", () => {
     const result = await sendOrganizationInvitationEmail(
       invitation,
       {
+        INVITATION_EMAIL_PROVIDER: "resend",
         RESEND_API_KEY: "re_test_key",
         RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
         NEXT_PUBLIC_APP_URL: "https://app.example.com",
@@ -232,6 +235,7 @@ describe("Organization invitation email delivery", () => {
     const result = await sendOrganizationInvitationEmail(
       invitation,
       {
+        INVITATION_EMAIL_PROVIDER: "resend",
         RESEND_API_KEY: "re_test_key",
         RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
         NEXT_PUBLIC_APP_URL: "https://app.example.com",

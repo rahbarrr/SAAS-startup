@@ -37,7 +37,12 @@ MAILTRAP_PASS=<Mailtrap sandbox SMTP password>
 
 Get them from **Email Testing → Inboxes → your inbox → SMTP Settings**. Local invitations go to the Mailtrap sandbox and are captured there. The Mailtrap credentials are used only when `NODE_ENV=development`.
 
-For Preview and Production:
+For Preview and Production, invitation email delivery is disabled by default.
+To keep real email blocked while testing, leave the provider unset or set
+`INVITATION_EMAIL_PROVIDER=disabled`. To capture invitations from a deployed
+test app in Mailtrap, set `INVITATION_EMAIL_PROVIDER=mailtrap` and configure
+the Mailtrap SMTP credentials in that environment. To re-enable Resend, set
+`INVITATION_EMAIL_PROVIDER=resend`, then configure:
 
 1. Create a Resend account and verify a sending domain you control. Do not use a sender address or domain that Resend has not verified.
 2. Create an API key with permission to send email.
