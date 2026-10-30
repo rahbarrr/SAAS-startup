@@ -66,6 +66,8 @@
   --shadow-neu-pressed:
     inset 3px 3px 6px rgba(41, 63, 145, 0.12),
     inset -3px -3px 6px rgba(255, 255, 255, 0.95);
+  --shadow-glow-cyan: 0 0 16px rgba(56, 217, 214, 0.45);
+  --shadow-glow-violet: 0 0 16px rgba(136, 117, 247, 0.4);
 
   /* Typography Colors */
   --text-primary: #20243a;
@@ -468,8 +470,9 @@ svg {
   font-weight: 500;
   font-size: 0.875rem;
   transition:
-    background var(--duration-fast) ease,
-    color var(--duration-fast) ease;
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-smooth);
   position: relative;
   white-space: nowrap;
 }
@@ -478,7 +481,7 @@ svg {
   display: inline-flex;
   flex-shrink: 0;
   color: rgba(255, 255, 255, 0.62);
-  transition: color var(--duration-fast) ease;
+  transition: color var(--duration-fast) var(--ease-smooth);
 }
 
 .sidebar-nav-label {
@@ -489,8 +492,9 @@ svg {
 }
 
 .sidebar-nav-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.09);
   color: #ffffff;
+  transform: translateX(2px);
 }
 
 .sidebar-nav-item:hover .sidebar-nav-icon {
@@ -499,9 +503,10 @@ svg {
 
 .sidebar-nav-item[aria-current="page"],
 .sidebar-nav-item.active {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.16);
   color: #ffffff;
   font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .sidebar-nav-item[aria-current="page"]::before,
@@ -513,7 +518,8 @@ svg {
   bottom: 0.5rem;
   width: 3px;
   border-radius: 0 3px 3px 0;
-  background: var(--brand-violet);
+  background: var(--brand-cyan);
+  box-shadow: 0 0 8px rgba(56, 217, 214, 0.8);
 }
 
 .sidebar-nav-item.active .sidebar-nav-icon,
@@ -1002,16 +1008,17 @@ svg {
   cursor: pointer;
   border: 1px solid transparent;
   transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+    background-color var(--duration-fast) var(--ease-smooth),
+    border-color var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-smooth),
+    filter var(--duration-fast) var(--ease-smooth);
   white-space: nowrap;
 }
 
 .btn:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .btn:active:not(:disabled) {
@@ -1027,12 +1034,16 @@ svg {
 .btn-primary {
   background-color: var(--brand-primary);
   color: var(--brand-on-primary);
-  box-shadow: 0 2px 6px rgba(41, 63, 145, 0.25);
+  box-shadow:
+    0 2px 6px rgba(41, 63, 145, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btn-primary:hover:not(:disabled) {
   background-color: var(--brand-primary-hover);
-  box-shadow: 0 4px 14px rgba(41, 63, 145, 0.35);
+  box-shadow:
+    0 6px 18px rgba(41, 63, 145, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .btn-primary:focus-visible {
@@ -1049,10 +1060,10 @@ svg {
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: var(--bg-muted);
-  border-color: var(--brand-royal-border);
-  color: var(--brand-primary);
-  box-shadow: var(--shadow-sm);
+  background-color: #ffffff;
+  border-color: var(--brand-violet-border);
+  color: var(--brand-royal);
+  box-shadow: var(--shadow-neu-raised);
 }
 
 .btn-neu {
@@ -1242,16 +1253,29 @@ svg {
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    3px 3px 10px rgba(41, 63, 145, 0.04),
+    -2px -2px 10px rgba(255, 255, 255, 0.9);
   transition:
-    box-shadow var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    border-color var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-smooth);
   min-width: 0;
 }
 
 .card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow:
+    5px 5px 16px rgba(41, 63, 145, 0.08),
+    -3px -3px 16px rgba(255, 255, 255, 1);
+}
+
+.card--interactive {
+  cursor: pointer;
+}
+
+.card--interactive:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-violet-border);
 }
 
 /* Subtle Neumorphic Card Component */
@@ -1282,6 +1306,15 @@ svg {
 
 .neu-card--interactive:hover {
   transform: translateY(-2px);
+}
+
+.neu-card--featured {
+  background: #f5f6fa;
+  border: 1px solid rgba(136, 117, 247, 0.35);
+  box-shadow:
+    6px 6px 18px rgba(41, 63, 145, 0.09),
+    -6px -6px 18px rgba(255, 255, 255, 0.95),
+    0 0 16px rgba(56, 217, 214, 0.2);
 }
 
 .neu-card--inset {
@@ -1334,11 +1367,20 @@ svg {
   gap: 0.5rem;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    3px 3px 10px rgba(41, 63, 145, 0.04),
+    -2px -2px 10px rgba(255, 255, 255, 0.9);
   transition:
     box-shadow var(--duration-smooth) var(--ease-smooth),
     transform var(--duration-smooth) var(--ease-smooth),
     border-color var(--duration-smooth) var(--ease-smooth);
+}
+
+.kpi-card:hover {
+  box-shadow:
+    6px 6px 18px rgba(41, 63, 145, 0.08),
+    -4px -4px 18px rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
 }
 
 .kpi-card--neu {
@@ -1349,6 +1391,7 @@ svg {
 
 .kpi-card--neu:hover {
   box-shadow: var(--shadow-neu-raised-hover);
+  transform: translateY(-2px);
 }
 
 .kpi-card::after {
@@ -1367,6 +1410,7 @@ svg {
 
 .kpi-card--cyan::after {
   background: var(--brand-cyan);
+  box-shadow: 0 0 8px rgba(56, 217, 214, 0.5);
 }
 
 .kpi-card--accent::after {
@@ -1403,8 +1447,10 @@ a.kpi-card {
 }
 
 a.kpi-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  box-shadow:
+    6px 6px 20px rgba(41, 63, 145, 0.1),
+    -4px -4px 20px rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
 }
 
 .kpi-card-top {
@@ -1570,16 +1616,23 @@ a.kpi-card:hover {
   text-decoration: none;
   font-weight: 600;
   font-size: 0.875rem;
+  box-shadow:
+    2px 2px 8px rgba(41, 63, 145, 0.04),
+    -2px -2px 8px rgba(255, 255, 255, 0.9);
   transition:
-    border-color var(--duration-fast) ease,
-    box-shadow var(--duration-fast) ease,
-    background var(--duration-fast) ease;
+    border-color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    background var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-smooth);
 }
 
 .quick-action:hover {
   border-color: var(--brand-violet-border);
   background: var(--brand-violet-soft);
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    4px 4px 14px rgba(41, 63, 145, 0.08),
+    -3px -3px 14px rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
 }
 
 .quick-action-icon {
@@ -1624,7 +1677,9 @@ a.kpi-card:hover {
   justify-content: space-between;
   gap: 1.5rem;
   flex-wrap: wrap;
-  box-shadow: var(--shadow-lg);
+  box-shadow:
+    0 14px 34px -8px rgba(41, 63, 145, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.15) inset;
 }
 
 .welcome-banner::after {
@@ -1635,7 +1690,12 @@ a.kpi-card:hover {
   width: 18rem;
   height: 18rem;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(56, 217, 214, 0.22) 0%,
+    rgba(136, 117, 247, 0.15) 45%,
+    transparent 70%
+  );
   pointer-events: none;
 }
 
@@ -1854,10 +1914,11 @@ a.dash-list-title:hover {
   color: var(--text-primary);
   font-family: inherit;
   font-size: 0.9375rem;
+  box-shadow: inset 0 1px 2px rgba(41, 63, 145, 0.04);
   transition:
-    border-color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard),
-    background var(--duration-fast) var(--ease-standard);
+    border-color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    background var(--duration-fast) var(--ease-smooth);
   width: 100%;
 }
 
@@ -1871,6 +1932,7 @@ a.dash-list-title:hover {
 .form-input--neu:focus,
 .input-field--neu:focus {
   background: #ffffff;
+  border-color: var(--brand-violet);
   box-shadow:
     inset 1px 1px 3px rgba(41, 63, 145, 0.05),
     0 0 0 3px rgba(136, 117, 247, 0.28);
@@ -1889,7 +1951,10 @@ a.dash-list-title:hover {
 .input-field:focus {
   outline: none;
   border-color: var(--brand-violet);
-  box-shadow: var(--focus-ring-shadow);
+  box-shadow:
+    0 0 0 3px rgba(136, 117, 247, 0.25),
+    inset 0 1px 2px rgba(41, 63, 145, 0.06);
+  background: #ffffff;
 }
 
 .form-input[aria-invalid="true"],
@@ -2187,10 +2252,10 @@ input[type="radio"] {
   cursor: pointer;
   white-space: nowrap;
   transition:
-    background var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-smooth);
 }
 
 .tab-btn:hover {
@@ -2201,7 +2266,9 @@ input[type="radio"] {
 .tab-btn[aria-selected="true"] {
   background: var(--bg-surface);
   color: var(--brand-violet-strong);
-  box-shadow: var(--shadow-neu-raised-sm);
+  box-shadow:
+    2px 2px 6px rgba(41, 63, 145, 0.08),
+    -2px -2px 6px rgba(255, 255, 255, 0.95);
   transform: translateY(-1px);
 }
 
@@ -2539,16 +2606,17 @@ input[type="radio"] {
 
 .auth-card {
   background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.95);
   border-radius: var(--radius-xl);
   box-shadow:
-    8px 8px 24px rgba(41, 63, 145, 0.08),
-    -8px -8px 24px rgba(255, 255, 255, 0.95);
-  padding: 2rem 1.5rem;
+    10px 10px 30px rgba(41, 63, 145, 0.08),
+    -10px -10px 30px rgba(255, 255, 255, 0.95);
+  padding: 2.25rem 1.75rem;
   display: flex;
   flex-direction: column;
   gap: 1.125rem;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
   transition: box-shadow var(--duration-smooth) var(--ease-smooth);
 }
@@ -3276,13 +3344,33 @@ input[type="radio"] {
   padding: 0.875rem 2rem;
   font-size: 1rem;
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 14px rgba(41, 63, 145, 0.28);
+  box-shadow:
+    0 6px 18px rgba(41, 63, 145, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.hero-primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 24px rgba(41, 63, 145, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .hero-secondary-btn {
   padding: 0.875rem 1.75rem;
   font-size: 1rem;
   border-radius: var(--radius-lg);
+  background: #f5f6fa;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: var(--shadow-neu-raised-sm);
+}
+
+.hero-secondary-btn:hover {
+  background: #ffffff;
+  border-color: var(--brand-violet-border);
+  color: var(--brand-royal);
+  box-shadow: var(--shadow-neu-raised);
+  transform: translateY(-2px);
 }
 
 .hero-guarantee-note {
@@ -6364,4 +6452,69 @@ input[type="radio"] {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ==========================================================================
+   Micro-interactions & Subtle Animation Utilities
+   ========================================================================== */
+
+@keyframes pulse-live {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.5;
+  }
+}
+
+@keyframes float-subtle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes glow-cyan {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(56, 217, 214, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(56, 217, 214, 0.7);
+  }
+}
+
+.animate-pulse-live {
+  animation: pulse-live 2.5s infinite ease-in-out;
+}
+
+.animate-float-subtle {
+  animation: float-subtle 4s infinite ease-in-out;
+}
+
+.animate-glow-cyan {
+  animation: glow-cyan 3s infinite ease-in-out;
+}
+
+/* Staggered entrance helpers for lists and grids */
+.stagger-item-1 {
+  animation: fadeIn var(--duration-base) var(--ease-smooth) both;
+}
+
+.stagger-item-2 {
+  animation: fadeIn var(--duration-base) var(--ease-smooth) 0.05s both;
+}
+
+.stagger-item-3 {
+  animation: fadeIn var(--duration-base) var(--ease-smooth) 0.1s both;
+}
+
+.stagger-item-4 {
+  animation: fadeIn var(--duration-base) var(--ease-smooth) 0.15s both;
 }
