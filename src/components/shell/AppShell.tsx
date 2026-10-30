@@ -53,12 +53,17 @@ function PageBreadcrumb() {
 
   return (
     <nav aria-label="Breadcrumb" className="header-breadcrumb">
-      <Link href="/dashboard">Dashboard</Link>
+      <span className="breadcrumb-ancestor">
+        <Link href="/dashboard">Dashboard</Link>
+      </span>
       {segments.map((seg, idx) => {
         const isLast = idx === segments.length - 1;
         const href = "/" + segments.slice(0, idx + 1).join("/");
         return (
-          <span key={href} className="flex-row-center">
+          <span
+            key={href}
+            className={`flex-row-center ${isLast ? "breadcrumb-current-wrap" : "breadcrumb-ancestor"}`}
+          >
             <span className="header-breadcrumb-sep" aria-hidden="true">
               /
             </span>
@@ -260,6 +265,38 @@ function InnerShell({
   const { profile } = useCurrentRole();
   const pathname = usePathname();
 
+  // Close mobile drawer whenever the active route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Lock background body scroll when mobile drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
+  // Close mobile drawer on Escape key press
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    }
+    if (mobileMenuOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [mobileMenuOpen]);
+
   const isPublicLanding =
     pathname === "/" || pathname === "/landing" || pathname === "/welcome";
 
@@ -410,12 +447,14 @@ function InnerShell({
             </Link>
             <button
               type="button"
-              className="icon-btn"
+              className="icon-btn mobile-drawer-close-btn"
               onClick={() => setMobileMenuOpen(false)}
               aria-label="Close menu"
               style={{
-                width: "2.25rem",
-                height: "2.25rem",
+                width: "var(--touch-target-min)",
+                height: "var(--touch-target-min)",
+                minWidth: "var(--touch-target-min)",
+                minHeight: "var(--touch-target-min)",
                 padding: 0,
               }}
             >
@@ -474,10 +513,9 @@ function InnerShell({
               {/* Mobile hamburger button */}
               <button
                 type="button"
-                className="icon-btn"
+                className="icon-btn mobile-nav-toggle"
                 onClick={() => setMobileMenuOpen(true)}
                 aria-label="Open mobile navigation menu"
-                style={{ display: "none" }}
                 id="mobile-nav-toggle"
               >
                 <svg

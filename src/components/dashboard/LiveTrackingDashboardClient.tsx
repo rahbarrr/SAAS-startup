@@ -166,12 +166,7 @@ export function LiveTrackingDashboardClient({
 
       {/* Main Grid: Map & Detail Panel */}
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: selectedEmployee ? "1fr 340px" : "1fr",
-          gap: "1rem",
-          alignItems: "start",
-        }}
+        className={`live-tracking-layout ${selectedEmployee ? "has-selected-employee" : ""}`}
       >
         <div>
           <LiveManagerMap

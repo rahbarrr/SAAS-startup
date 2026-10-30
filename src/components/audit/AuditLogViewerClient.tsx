@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
@@ -37,6 +37,7 @@ export function AuditLogViewerClient({
   const [inspectingEvent, setInspectingEvent] = useState<OrganizationAuditEvent | null>(
     null
   );
+  const isFirstMountRef = useRef(true);
 
   const fetchLogs = useCallback(
     async (cursor?: string | null) => {
@@ -74,6 +75,10 @@ export function AuditLogViewerClient({
   );
 
   useEffect(() => {
+    if (isFirstMountRef.current) {
+      isFirstMountRef.current = false;
+      return;
+    }
     void fetchLogs();
   }, [fetchLogs]);
 

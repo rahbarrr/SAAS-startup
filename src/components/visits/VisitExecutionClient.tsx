@@ -97,8 +97,21 @@ export function VisitExecutionClient({
 
   // Evidence upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFilePreview, setSelectedFilePreview] = useState<string | null>(null);
   const [evidenceCaption, setEvidenceCaption] = useState<string>("");
   const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (selectedFile && selectedFile.type.startsWith("image/")) {
+      const url = URL.createObjectURL(selectedFile);
+      setSelectedFilePreview(url);
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    }
+    setSelectedFilePreview(null);
+    return undefined;
+  }, [selectedFile]);
 
   // Status & error banners
   const [isSavingChecklist, setIsSavingChecklist] = useState<boolean>(false);
@@ -542,6 +555,32 @@ export function VisitExecutionClient({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      {/* Prominent Location Telemetry & Consent Status Banner */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.75rem",
+          padding: "0.875rem 1rem",
+          borderRadius: "var(--radius-md)",
+          background:
+            "linear-gradient(135deg, rgba(41, 63, 145, 0.05) 0%, rgba(56, 217, 214, 0.08) 100%)",
+          border: "1px solid var(--brand-cyan-border)",
+        }}
+      >
+        <span style={{ fontSize: "1.25rem" }} aria-hidden="true">
+          🛰️
+        </span>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.15rem" }}>
+          <strong style={{ fontSize: "0.875rem", color: "var(--brand-dark)" }}>
+            GPS Point-in-Time Verification Ready
+          </strong>
+          <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+            Proximity to store is captured strictly with device consent on check-in and
+            checkout. No continuous tracking.
+          </span>
+        </div>
+      </div>
       {error ? (
         <ErrorState
           title="Visit execution issue"
@@ -818,7 +857,54 @@ export function VisitExecutionClient({
                 </label>
               </div>
 
-              {selectedFile ? (
+              {selectedFilePreview ? (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    width: "100%",
+                    padding: "0.5rem",
+                    background: "#f8fafc",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--border-default)",
+                  }}
+                >
+                  <img
+                    src={selectedFilePreview}
+                    alt="Selected evidence preview"
+                    style={{
+                      width: "60px",
+                      height: "60px",
+                      objectFit: "cover",
+                      borderRadius: "var(--radius-sm)",
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      minWidth: 0,
+                      flex: 1,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "0.8125rem",
+                        fontWeight: 600,
+                        color: "var(--brand-dark)",
+                      }}
+                      className="text-truncate"
+                    >
+                      {selectedFile?.name}
+                    </span>
+                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                      {selectedFile ? Math.round(selectedFile.size / 1024) : 0} KiB •
+                      Ready to upload
+                    </span>
+                  </div>
+                </div>
+              ) : selectedFile ? (
                 <div
                   style={{
                     fontSize: "0.8125rem",
@@ -862,30 +948,116 @@ export function VisitExecutionClient({
         {evidenceList.length === 0 ? (
           <p className="card-meta">No photo evidence uploaded yet.</p>
         ) : (
-          <ul
+          <div
             style={{
-              margin: 0,
-              paddingLeft: "1.25rem",
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.5rem",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 14rem), 1fr))",
+              gap: "0.875rem",
             }}
           >
-            {evidenceList.map((ev) => (
-              <li key={ev.id}>
-                <strong>{ev.caption || "Evidence photo"}</strong> ({ev.fileType},{" "}
-                {Math.round(ev.fileSize / 1024)} KiB) — Uploaded at{" "}
-                {formatUtcTimestamp(ev.createdAt)} •{" "}
-                <a
-                  href={`/api/orgs/${activeOrgId}/visits/${visitId}/evidence?evidenceId=${ev.id}&download=true`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+            {evidenceList.map((ev) => {
+              const isImage = ev.fileType.startsWith("image/");
+              const evidenceUrl = `/api/orgs/${activeOrgId}/visits/${visitId}/evidence?evidenceId=${ev.id}&download=true`;
+
+              return (
+                <div
+                  key={ev.id}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    padding: "0.75rem",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--border-default)",
+                    backgroundColor: "var(--bg-surface)",
+                    boxShadow: "var(--shadow-neu-raised-sm)",
+                    gap: "0.5rem",
+                  }}
                 >
-                  View / Download Evidence
-                </a>
-              </li>
-            ))}
-          </ul>
+                  {isImage ? (
+                    <div
+                      style={{
+                        position: "relative",
+                        width: "100%",
+                        height: "120px",
+                        backgroundColor: "#f1f5f9",
+                        borderRadius: "var(--radius-sm)",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <img
+                        src={evidenceUrl}
+                        alt={ev.caption || "Evidence photo"}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "80px",
+                        backgroundColor: "#f8fafc",
+                        borderRadius: "var(--radius-sm)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "2rem",
+                      }}
+                    >
+                      📄
+                    </div>
+                  )}
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.2rem",
+                    }}
+                  >
+                    <strong
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "var(--text-primary)",
+                      }}
+                      className="text-truncate"
+                    >
+                      {ev.caption || "Evidence file"}
+                    </strong>
+                    <span className="card-meta" style={{ fontSize: "0.75rem" }}>
+                      {ev.fileType.split("/")[1]?.toUpperCase() ?? "FILE"} •{" "}
+                      {Math.round(ev.fileSize / 1024)} KiB
+                    </span>
+                    <span className="card-meta" style={{ fontSize: "0.75rem" }}>
+                      {formatUtcTimestamp(ev.createdAt)}
+                    </span>
+                  </div>
+
+                  <a
+                    href={evidenceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-sm btn-outline"
+                    style={{
+                      marginTop: "auto",
+                      textAlign: "center",
+                      fontSize: "0.75rem",
+                      minHeight: "36px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    View / Download →
+                  </a>
+                </div>
+              );
+            })}
+          </div>
         )}
       </section>
 

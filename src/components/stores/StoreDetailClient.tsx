@@ -283,7 +283,7 @@ export function StoreDetailClient({
         </div>
       ) : null}
 
-      <div className="card-grid" style={{ gridTemplateColumns: "2fr 1fr" }}>
+      <div className="page-two-col-layout">
         <form
           onSubmit={handleSave}
           className="card"

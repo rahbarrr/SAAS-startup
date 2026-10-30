@@ -422,7 +422,13 @@ export function TeamDirectoryClient({
               fontSize: "0.875rem",
             }}
           >
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 10rem), 1fr))",
+                gap: "1rem",
+              }}
+            >
               <div>
                 <span className="card-meta">FULL NAME</span>
                 <p style={{ margin: "0.25rem 0 0", fontWeight: 600 }}>
@@ -437,7 +443,13 @@ export function TeamDirectoryClient({
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 10rem), 1fr))",
+                gap: "1rem",
+              }}
+            >
               <div>
                 <span className="card-meta">WORKSPACE ROLE</span>
                 <div style={{ marginTop: "0.25rem" }}>

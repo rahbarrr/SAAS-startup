@@ -54,7 +54,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 cursor: "pointer",
                 padding: "0.25rem",
                 color: "var(--text-muted)",
-                fontSize: "1rem",
+                fontSize: "1.25rem",
+                minWidth: "var(--touch-target-min, 2.75rem)",
+                minHeight: "var(--touch-target-min, 2.75rem)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
               aria-label="Close notification"
             >

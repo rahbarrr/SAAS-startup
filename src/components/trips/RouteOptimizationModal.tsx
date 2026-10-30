@@ -117,7 +117,11 @@ export function RouteOptimizationModal({
         </div>
 
         <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.75rem" }}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 7rem), 1fr))",
+            gap: "0.75rem",
+          }}
         >
           <div
             style={{
@@ -270,7 +274,7 @@ export function RouteOptimizationModal({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 12rem), 1fr))",
               gap: "0.75rem",
               fontSize: "0.8125rem",
             }}

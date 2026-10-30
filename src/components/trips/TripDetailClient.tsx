@@ -393,7 +393,7 @@ export function TripDetailClient({
         </div>
       ) : null}
 
-      <div className="card-grid" style={{ gridTemplateColumns: "2fr 1fr" }}>
+      <div className="page-two-col-layout">
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           <section className="card" aria-labelledby="trip-summary-heading">
             <h2
@@ -566,11 +566,12 @@ export function TripDetailClient({
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        flexWrap: "wrap",
                         padding: "0.75rem 1rem",
                         borderRadius: "var(--radius-md)",
                         backgroundColor: "var(--bg-subtle, #f9fafb)",
                         border: "1px solid var(--border-default, #e5e7eb)",
-                        gap: "0.5rem",
+                        gap: "0.75rem",
                       }}
                     >
                       <div
@@ -636,7 +637,12 @@ export function TripDetailClient({
                         </div>
                       </div>
                       <div
-                        style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.75rem",
+                          flexWrap: "wrap",
+                        }}
                       >
                         <span className="card-meta" style={{ fontSize: "0.75rem" }}>
                           Status: <strong>{stop.status}</strong>
@@ -645,7 +651,13 @@ export function TripDetailClient({
                           <Link
                             href={`/visits/${visitsState[stop.id]?.id}`}
                             className="btn btn-secondary"
-                            style={{ fontSize: "0.8125rem", padding: "0.25rem 0.625rem" }}
+                            style={{
+                              fontSize: "0.8125rem",
+                              padding: "0.375rem 0.75rem",
+                              minHeight: "44px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                            }}
                           >
                             Visit ({visitsState[stop.id]?.status}) →
                           </Link>
@@ -657,7 +669,11 @@ export function TripDetailClient({
                             disabled={isCheckingIn === stop.id}
                             onClick={() => handleCheckIn(stop.id)}
                             className="btn btn-primary"
-                            style={{ fontSize: "0.8125rem", padding: "0.25rem 0.625rem" }}
+                            style={{
+                              fontSize: "0.8125rem",
+                              padding: "0.375rem 0.875rem",
+                              minHeight: "44px",
+                            }}
                           >
                             {isCheckingIn === stop.id ? "Checking in…" : "Check In"}
                           </button>

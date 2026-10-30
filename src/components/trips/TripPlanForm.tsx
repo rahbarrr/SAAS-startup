@@ -672,13 +672,30 @@ export function TripPlanForm({
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", gap: "0.25rem", flexShrink: 0 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "0.375rem",
+                        flexShrink: 0,
+                        alignItems: "center",
+                      }}
+                    >
                       <button
                         type="button"
                         onClick={() => handleMoveStop(idx, -1)}
                         disabled={idx === 0}
                         aria-label={`Move stop ${idx + 1} up`}
-                        style={{ padding: "0.25rem 0.5rem" }}
+                        className="btn btn-secondary"
+                        style={{
+                          width: "var(--touch-target-min, 2.75rem)",
+                          height: "var(--touch-target-min, 2.75rem)",
+                          minWidth: "var(--touch-target-min, 2.75rem)",
+                          minHeight: "var(--touch-target-min, 2.75rem)",
+                          padding: 0,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
                       >
                         ▲
                       </button>
@@ -687,7 +704,17 @@ export function TripPlanForm({
                         onClick={() => handleMoveStop(idx, 1)}
                         disabled={idx === stops.length - 1}
                         aria-label={`Move stop ${idx + 1} down`}
-                        style={{ padding: "0.25rem 0.5rem" }}
+                        className="btn btn-secondary"
+                        style={{
+                          width: "var(--touch-target-min, 2.75rem)",
+                          height: "var(--touch-target-min, 2.75rem)",
+                          minWidth: "var(--touch-target-min, 2.75rem)",
+                          minHeight: "var(--touch-target-min, 2.75rem)",
+                          padding: 0,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
                       >
                         ▼
                       </button>
@@ -695,9 +722,16 @@ export function TripPlanForm({
                         type="button"
                         onClick={() => handleRemoveStop(idx)}
                         aria-label={`Remove stop ${idx + 1}`}
+                        className="btn btn-danger"
                         style={{
-                          padding: "0.25rem 0.5rem",
-                          color: "var(--color-danger-text, #991b1b)",
+                          width: "var(--touch-target-min, 2.75rem)",
+                          height: "var(--touch-target-min, 2.75rem)",
+                          minWidth: "var(--touch-target-min, 2.75rem)",
+                          minHeight: "var(--touch-target-min, 2.75rem)",
+                          padding: 0,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
                         ✕
@@ -710,11 +744,12 @@ export function TripPlanForm({
           )}
         </section>
 
-        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem" }}>
+        <div className="form-sticky-actions">
           <button
             type="submit"
             disabled={isSubmitting || stops.length === 0}
             className="btn btn-primary"
+            style={{ minHeight: "44px" }}
           >
             {isSubmitting
               ? "Saving Trip…"
@@ -722,7 +757,16 @@ export function TripPlanForm({
                 ? "Save Trip Draft"
                 : "Save Changes"}
           </button>
-          <Link href="/trips" className="btn btn-secondary">
+          <Link
+            href="/trips"
+            className="btn btn-secondary"
+            style={{
+              minHeight: "44px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             Cancel
           </Link>
         </div>

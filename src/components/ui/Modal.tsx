@@ -58,10 +58,10 @@ export function Modal({
             onClick={onClose}
             aria-label="Close modal dialog"
             style={{
-              width: "2rem",
-              height: "2rem",
-              minHeight: "2rem",
-              minWidth: "2rem",
+              width: "var(--touch-target-min, 2.75rem)",
+              height: "var(--touch-target-min, 2.75rem)",
+              minHeight: "var(--touch-target-min, 2.75rem)",
+              minWidth: "var(--touch-target-min, 2.75rem)",
               padding: 0,
             }}
           >

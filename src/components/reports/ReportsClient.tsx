@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
@@ -30,6 +30,7 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isFirstMountRef = useRef(true);
 
   const fetchReport = useCallback(
     async (range: string, territory: string) => {
@@ -68,6 +69,10 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
   );
 
   useEffect(() => {
+    if (isFirstMountRef.current) {
+      isFirstMountRef.current = false;
+      return;
+    }
     if (orgId) {
       void fetchReport(selectedRange, selectedTerritory);
     }
@@ -331,7 +336,7 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 20rem), 1fr))",
               gap: "1.25rem",
             }}
           >
@@ -772,7 +777,7 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 14rem), 1fr))",
                 gap: "1rem",
               }}
             >

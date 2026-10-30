@@ -224,7 +224,7 @@ function OnboardingContent(): ReactNode {
       <div
         className="card-grid"
         style={{
-          gridTemplateColumns: "repeat(auto-fit, minmax(22rem, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 20rem), 1fr))",
           gap: "1.5rem",
         }}
       >

@@ -579,7 +579,7 @@ export function AiInsightsClient({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 16rem), 1fr))",
               gap: "0.875rem",
             }}
           >

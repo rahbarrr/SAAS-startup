@@ -178,24 +178,9 @@ export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClien
   ];
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "240px 1fr",
-        gap: "1.5rem",
-        alignItems: "start",
-      }}
-    >
+    <div className="settings-layout">
       {/* Settings Navigation Sidebar */}
-      <div
-        className="card"
-        style={{
-          padding: "0.5rem",
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.25rem",
-        }}
-      >
+      <div className="card settings-nav-sidebar">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -893,7 +878,7 @@ export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClien
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 12rem), 1fr))",
                   gap: "1rem",
                   marginBottom: "1.5rem",
                 }}

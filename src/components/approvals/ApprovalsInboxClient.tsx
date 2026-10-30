@@ -223,7 +223,7 @@ export function ApprovalsInboxClient({
           </button>
         </div>
 
-        <div className="search-input-wrapper" style={{ minWidth: "16rem" }}>
+        <div className="search-input-wrapper" style={{ minWidth: "min(100%, 16rem)" }}>
           <span className="search-icon">🔍</span>
           <input
             type="search"
@@ -330,7 +330,15 @@ export function ApprovalsInboxClient({
                     borderTop: "1px solid var(--border-default)",
                   }}
                 >
-                  <Link href={`/trips/${trip.id}`} className="btn btn-sm btn-secondary">
+                  <Link
+                    href={`/trips/${trip.id}`}
+                    className="btn btn-sm btn-secondary"
+                    style={{
+                      minHeight: "44px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                    }}
+                  >
                     Inspect Full Itinerary →
                   </Link>
 
@@ -346,11 +354,18 @@ export function ApprovalsInboxClient({
                         Self-approval restricted by policy (peer manager required)
                       </span>
                     ) : (
-                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <div
+                        className="approvals-action-buttons"
+                        style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}
+                      >
                         <button
                           type="button"
                           className="btn btn-sm btn-secondary"
-                          style={{ color: "var(--brand-accent)" }}
+                          style={{
+                            color: "var(--brand-accent)",
+                            minHeight: "44px",
+                            padding: "0.5rem 0.875rem",
+                          }}
                           onClick={() => openDecisionDialog(trip, "changes_requested")}
                         >
                           Request Changes
@@ -358,6 +373,7 @@ export function ApprovalsInboxClient({
                         <button
                           type="button"
                           className="btn btn-sm btn-danger"
+                          style={{ minHeight: "44px", padding: "0.5rem 0.875rem" }}
                           onClick={() => openDecisionDialog(trip, "rejected")}
                         >
                           Reject
@@ -365,6 +381,7 @@ export function ApprovalsInboxClient({
                         <button
                           type="button"
                           className="btn btn-sm btn-primary"
+                          style={{ minHeight: "44px", padding: "0.5rem 0.875rem" }}
                           onClick={() => openDecisionDialog(trip, "approved")}
                         >
                           ✓ Approve Trip
@@ -372,7 +389,15 @@ export function ApprovalsInboxClient({
                       </div>
                     )
                   ) : (
-                    <Link href={`/trips/${trip.id}`} className="btn btn-sm btn-outline">
+                    <Link
+                      href={`/trips/${trip.id}`}
+                      className="btn btn-sm btn-outline"
+                      style={{
+                        minHeight: "44px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                      }}
+                    >
                       View Audit Details →
                     </Link>
                   )}
