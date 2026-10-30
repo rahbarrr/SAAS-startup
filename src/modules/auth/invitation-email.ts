@@ -127,7 +127,9 @@ export async function sendOrganizationInvitationEmail(
         auth: { user: mailtrapUser, pass: mailtrapPass },
       });
       const result = await transporter.sendMail({
-        from: envSource.MAILTRAP_FROM_EMAIL?.trim() || "FieldTrack <invites@fieldtrack.local>",
+        from:
+          envSource.MAILTRAP_FROM_EMAIL?.trim() ||
+          "FieldTrack <invites@fieldtrack.local>",
         to: input.recipientEmail,
         subject,
         text,
