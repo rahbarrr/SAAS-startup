@@ -43,8 +43,8 @@ function unconfiguredResult(error: string, attemptedAt: string): InvitationEmail
 }
 
 /**
- * Sends a one-time workspace invitation using Mailtrap in local development and
- * Resend elsewhere. Invitation records are persisted
+ * Sends a one-time workspace invitation using Mailtrap by default, with Resend
+ * available when explicitly selected. Invitation records are persisted
  * before email delivery; a provider failure is returned honestly so the admin can copy
  * the fallback link without the database transaction being lost.
  */
@@ -54,16 +54,32 @@ export async function sendOrganizationInvitationEmail(
   fetchImpl: typeof fetch = fetch
 ): Promise<InvitationEmailResult> {
   const attemptedAt = new Date().toISOString();
-  const isDevelopment = envSource.NODE_ENV === "development";
+  const configuredProvider = envSource.INVITATION_EMAIL_PROVIDER?.trim().toLowerCase();
+  const provider = configuredProvider || "mailtrap";
+  const isMailtrap = provider === "mailtrap";
   const mailtrapUser = envSource.MAILTRAP_USER?.trim();
   const mailtrapPass = envSource.MAILTRAP_PASS?.trim();
   const apiKey = envSource.RESEND_API_KEY?.trim();
   const from = envSource.RESEND_FROM_EMAIL?.trim();
 
-  if (isDevelopment ? !mailtrapUser || !mailtrapPass : !apiKey || !from) {
+  if (provider === "disabled") {
     return unconfiguredResult(
-      isDevelopment
-        ? "Local email testing is not configured. Set MAILTRAP_USER and MAILTRAP_PASS."
+      "Invitation email delivery is disabled. Set INVITATION_EMAIL_PROVIDER to mailtrap or resend to enable a provider.",
+      attemptedAt
+    );
+  }
+
+  if (provider !== "mailtrap" && provider !== "resend") {
+    return unconfiguredResult(
+      "Invitation email delivery has an invalid provider setting. Use mailtrap, resend, or disabled.",
+      attemptedAt
+    );
+  }
+
+  if (isMailtrap ? !mailtrapUser || !mailtrapPass : !apiKey || !from) {
+    return unconfiguredResult(
+      isMailtrap
+        ? "Mailtrap email testing is not configured. Set MAILTRAP_USER and MAILTRAP_PASS."
         : "Automatic email is not configured. Set RESEND_API_KEY and RESEND_FROM_EMAIL, plus NEXT_PUBLIC_APP_URL or VERCEL_URL for Preview.",
       attemptedAt
     );
@@ -120,7 +136,7 @@ export async function sendOrganizationInvitationEmail(
 </html>`;
 
   try {
-    if (isDevelopment) {
+    if (isMailtrap) {
       const transporter = nodemailer.createTransport({
         host: "sandbox.smtp.mailtrap.io",
         port: 2525,
@@ -186,11 +202,12 @@ export async function sendOrganizationInvitationEmail(
     };
   } catch {
     return {
-      provider: "resend",
+      provider: isMailtrap ? "smtp" : "resend",
       delivered: false,
       messageId: null,
-      error:
-        "Resend could not be reached. The invitation exists; copy the fallback link and send it manually.",
+      error: isMailtrap
+        ? "Mailtrap could not accept the invitation email. Check the SMTP credentials and connection. The invitation exists; copy the fallback link and send it manually."
+        : "Resend could not be reached. The invitation exists; copy the fallback link and send it manually.",
       attemptedAt,
     };
   }

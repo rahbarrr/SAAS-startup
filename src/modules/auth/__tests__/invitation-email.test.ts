@@ -30,18 +30,27 @@ describe("Organization invitation email delivery", () => {
     sendMailMock.mockResolvedValue({ messageId: "mailtrap-message-123" });
   });
 
-  it("reports email as unconfigured instead of pretending an invitation was sent", async () => {
+  it("defaults to Mailtrap and never falls back to Resend when Mailtrap is unconfigured", async () => {
     let called = false;
     const fetchImpl: typeof fetch = async () => {
       called = true;
       return new Response(null, { status: 500 });
     };
 
-    const result = await sendOrganizationInvitationEmail(invitation, {}, fetchImpl);
+    const result = await sendOrganizationInvitationEmail(
+      invitation,
+      {
+        NODE_ENV: "production",
+        RESEND_API_KEY: "re_test_key",
+        RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
+      },
+      fetchImpl
+    );
 
     expect(result.provider).toBe("unconfigured");
     expect(result.delivered).toBe(false);
-    expect(result.error).toContain("RESEND_API_KEY");
+    expect(result.error).toContain("MAILTRAP_USER and MAILTRAP_PASS");
+    expect(createTransportMock).not.toHaveBeenCalled();
     expect(called).toBe(false);
   });
 
@@ -60,6 +69,7 @@ describe("Organization invitation email delivery", () => {
     const result = await sendOrganizationInvitationEmail(
       invitation,
       {
+        INVITATION_EMAIL_PROVIDER: "resend",
         RESEND_API_KEY: "re_test_key",
         RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
         NEXT_PUBLIC_APP_URL: "https://app.example.com",
@@ -95,11 +105,11 @@ describe("Organization invitation email delivery", () => {
     });
   });
 
-  it("sends development invitations through Mailtrap with the single-use invite link", async () => {
+  it("sends invitations through default Mailtrap with the single-use invite link", async () => {
     const result = await sendOrganizationInvitationEmail(
       invitation,
       {
-        NODE_ENV: "development",
+        NODE_ENV: "production",
         MAILTRAP_USER: "sandbox-user",
         MAILTRAP_PASS: "sandbox-password",
         NEXT_PUBLIC_APP_URL: "http://localhost:3000",
@@ -134,6 +144,23 @@ describe("Organization invitation email delivery", () => {
     });
   });
 
+  it("reports Mailtrap failures as SMTP failures", async () => {
+    sendMailMock.mockRejectedValueOnce(new Error("SMTP authentication failed"));
+
+    const result = await sendOrganizationInvitationEmail(invitation, {
+      NODE_ENV: "production",
+      MAILTRAP_USER: "sandbox-user",
+      MAILTRAP_PASS: "sandbox-password",
+      NEXT_PUBLIC_APP_URL: "https://app.example.com",
+    });
+
+    expect(result).toMatchObject({
+      provider: "smtp",
+      delivered: false,
+      error: expect.stringContaining("Check the SMTP credentials"),
+    });
+  });
+
   it("fails closed in development when Mailtrap credentials are missing", async () => {
     const fetchImpl: typeof fetch = async () => {
       throw new Error("Resend must not receive local invitations");
@@ -161,6 +188,7 @@ describe("Organization invitation email delivery", () => {
     const result = await sendOrganizationInvitationEmail(
       invitation,
       {
+        INVITATION_EMAIL_PROVIDER: "resend",
         RESEND_API_KEY: "re_test_key",
         RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
         NEXT_PUBLIC_APP_URL: "https://saas-startup1.vercel.app",
@@ -212,6 +240,7 @@ describe("Organization invitation email delivery", () => {
     const result = await sendOrganizationInvitationEmail(
       invitation,
       {
+        INVITATION_EMAIL_PROVIDER: "resend",
         RESEND_API_KEY: "re_test_key",
         RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
         NEXT_PUBLIC_APP_URL: "https://app.example.com",
@@ -232,6 +261,7 @@ describe("Organization invitation email delivery", () => {
     const result = await sendOrganizationInvitationEmail(
       invitation,
       {
+        INVITATION_EMAIL_PROVIDER: "resend",
         RESEND_API_KEY: "re_test_key",
         RESEND_FROM_EMAIL: "FieldTrack <invites@example.com>",
         NEXT_PUBLIC_APP_URL: "https://app.example.com",

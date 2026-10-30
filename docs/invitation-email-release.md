@@ -1,8 +1,8 @@
 # Invitation email and URL release runbook
 
-Invitation records are created before email delivery. Local development uses
-Mailtrap sandbox SMTP, which captures messages in the Mailtrap inbox. Preview
-and Production continue to use Resend. If the selected provider is not
+Invitation records are created before email delivery. Mailtrap sandbox SMTP
+is the default in every environment and captures messages in the Mailtrap inbox.
+Set `INVITATION_EMAIL_PROVIDER=resend` to use Resend. If the selected provider is not
 configured or rejects a request, the record remains available and the admin
 receives a manual signup link. The API reports delivery accepted only after
 the selected provider accepts the message.
@@ -13,8 +13,8 @@ The warnings come from the server-only invitation email module at
 `src/modules/auth/invitation-email.ts`. It returns an `unconfigured` result
 when the selected provider credentials or the app URL are unavailable:
 
-- Local development (`NODE_ENV=development`): `MAILTRAP_USER` and `MAILTRAP_PASS`
-- Preview and Production: `RESEND_API_KEY` and `RESEND_FROM_EMAIL`
+- All environments by default: `MAILTRAP_USER` and `MAILTRAP_PASS`
+- To use Resend: set `INVITATION_EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, and `RESEND_FROM_EMAIL`
 - All environments: `NEXT_PUBLIC_APP_URL`, unless a trusted Vercel Preview URL is available
 
 The invitation API passes that result to the team UI, which displays the
@@ -32,22 +32,27 @@ appropriate Vercel Environment selector when saving each value.
 
 ```text
 NEXT_PUBLIC_APP_URL=https://saas-startup1.vercel.app
-RESEND_API_KEY=<the Resend API key, entered as a secret>
-RESEND_FROM_EMAIL=FieldTrack <invites@your-verified-domain.example>
+INVITATION_EMAIL_PROVIDER=mailtrap
+MAILTRAP_USER=<Mailtrap sandbox SMTP username>
+MAILTRAP_PASS=<Mailtrap sandbox SMTP password>
 INVITATION_TOKEN_ENCRYPTION_KEY=<base64url-encoded 32-byte server secret>
 ```
 
-Use the real verified sender address; the example domain above is a
-placeholder and must not be copied literally.
+Mailtrap is selected by default; the provider setting is shown explicitly here.
 
 ### Preview
 
 ```text
 NEXT_PUBLIC_APP_URL=https://<your-preview-domain>
-RESEND_API_KEY=<the Resend API key, entered as a secret>
-RESEND_FROM_EMAIL=FieldTrack <invites@your-verified-domain.example>
+INVITATION_EMAIL_PROVIDER=mailtrap
+MAILTRAP_USER=<Mailtrap sandbox SMTP username>
+MAILTRAP_PASS=<Mailtrap sandbox SMTP password>
 INVITATION_TOKEN_ENCRYPTION_KEY=<base64url-encoded 32-byte server secret>
 ```
+
+Mailtrap is selected by default. Add `INVITATION_EMAIL_PROVIDER=resend` to
+enable Resend in Preview or Production. Set `INVITATION_EMAIL_PROVIDER=disabled`
+to temporarily block invitation emails.
 
 For a normal Vercel Preview deployment, the server prefers Vercel's system
 `VERCEL_URL` and creates an HTTPS link for that exact `*.vercel.app` hostname.
@@ -55,18 +60,19 @@ For a normal Vercel Preview deployment, the server prefers Vercel's system
 invent or expose them as secrets. Keeping `NEXT_PUBLIC_APP_URL` configured for
 Preview is still recommended as an explicit fallback and for local parity.
 
-### Local development
+### Mailtrap credentials
 
 ```text
-NEXT_PUBLIC_APP_URL=http://localhost:3000
 MAILTRAP_USER=<Mailtrap sandbox SMTP username>
 MAILTRAP_PASS=<Mailtrap sandbox SMTP password>
 ```
 
 Get the credentials from **Email Testing → Inboxes → your inbox → SMTP
-Settings** in Mailtrap. With `NODE_ENV=development`, invitations are sent to
-`sandbox.smtp.mailtrap.io:2525` and captured there instead of reaching the
-invited address. Do not set these credentials in Vercel Preview or Production.
+Settings** in Mailtrap. Invitations are sent to `sandbox.smtp.mailtrap.io:2525`
+and captured there instead of reaching the invited address. Configure them in
+local `.env.local` and in Vercel Preview and Production. Resend is available
+only when `INVITATION_EMAIL_PROVIDER=resend` is explicitly selected and its
+API key and verified sender are configured.
 
 Do not add `RESEND_API_KEY` to client-exposed variables, source code, or Git.
 Keep `INVITATION_TOKEN_ENCRYPTION_KEY` server-only and use a different value
