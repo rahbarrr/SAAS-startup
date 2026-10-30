@@ -326,6 +326,7 @@ export async function submitTripForApproval(params: {
       sequenceNumber: s.sequenceNumber,
       plannedAt: s.plannedAt,
     })),
+    destinationCity: verifiedTrip.destinationCity ?? "Not specified",
     storesRepository: params.storesRepository,
   });
 
