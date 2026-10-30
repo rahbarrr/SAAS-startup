@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { resolveAuthAppOrigin, resolveAuthCallbackResponseOrigin, resolveTrustedAppOrigin } from "@/lib/auth/trusted-origin";
+import {
+  resolveAuthAppOrigin,
+  resolveAuthCallbackResponseOrigin,
+  resolveTrustedAppOrigin,
+} from "@/lib/auth/trusted-origin";
 
 describe("trusted application origin resolution", () => {
   it("uses the exact Vercel deployment hostname for Preview", () => {
