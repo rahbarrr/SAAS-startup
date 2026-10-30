@@ -24,6 +24,7 @@ import {
 async function assertAllStopStoresActiveInOrg(params: {
   orgId: string;
   stops: readonly TripStopInput[];
+  destinationCity: string;
   storesRepository: StoresRepository;
 }): Promise<void> {
   if (params.stops.length === 0) {
@@ -51,6 +52,13 @@ async function assertAllStopStoresActiveInOrg(params: {
       throw new AppError(
         "VALIDATION_ERROR",
         `Store '${store.name}' is archived and cannot be added to a trip`,
+        400
+      );
+    }
+    if (store.city.trim().toLocaleLowerCase() !== params.destinationCity.trim().toLocaleLowerCase()) {
+      throw new AppError(
+        "VALIDATION_ERROR",
+        `Store '${store.name}' is in ${store.city}, not the trip destination ${params.destinationCity}`,
         400
       );
     }
@@ -177,6 +185,7 @@ export async function createTripDraftForOrg(params: {
   await assertAllStopStoresActiveInOrg({
     orgId: context.orgId,
     stops: input.stops,
+    destinationCity: input.destinationCity,
     storesRepository: params.storesRepository,
   });
 
