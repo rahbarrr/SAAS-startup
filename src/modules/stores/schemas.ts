@@ -8,10 +8,13 @@ export const storeIdParamSchema = z.object({
 export const listStoresQuerySchema = cursorPaginationQuerySchema.extend({
   search: z.string().trim().max(120).optional(),
   region: z.string().trim().max(100).optional(),
-  active: z
-    .enum(["true", "false"])
-    .transform((v) => v === "true")
-    .optional(),
+  active: z.preprocess(
+    (value) => (typeof value === "boolean" ? String(value) : value),
+    z
+      .enum(["true", "false"])
+      .transform((value) => value === "true")
+      .optional()
+  ),
 });
 
 export type ListStoresQuery = z.infer<typeof listStoresQuerySchema>;
