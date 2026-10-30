@@ -537,6 +537,16 @@ function InnerShell({
               </button>
 
               <PageBreadcrumb />
+
+              {activeOrgName ? (
+                <div
+                  className="header-org-pill"
+                  title={`Active Tenant Workspace: ${activeOrgName}`}
+                >
+                  <span className="header-org-dot" aria-hidden="true" />
+                  <span className="header-org-name text-truncate">{activeOrgName}</span>
+                </div>
+              ) : null}
             </div>
 
             <div className="top-header-right">
@@ -546,7 +556,7 @@ function InnerShell({
               {/* In-app notification bell */}
               <Link
                 href="/notifications"
-                className="icon-btn"
+                className="icon-btn header-notification-btn"
                 aria-label="View notifications"
                 title="Notifications"
                 style={{ position: "relative" }}
@@ -565,6 +575,7 @@ function InnerShell({
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                   <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
+                <span className="header-notification-dot" aria-hidden="true" />
               </Link>
 
               {/* User profile dropdown menu */}

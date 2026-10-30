@@ -27,33 +27,26 @@ export function ManagerDashboardClient({
   activeOrgId: _activeOrgId,
 }: ManagerDashboardClientProps): ReactNode {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
-      {/* Date Range & Operations Bar */}
-      <div className="welcome-banner">
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      {/* Operational Queues & Live Activity Header */}
+      <div className="dashboard-section-header">
         <div>
-          <span className="welcome-banner-eyebrow">Operational Telemetry Overview</span>
-          <h2>Field Operations &amp; Travel Control</h2>
-          <p>
-            Committed records from authorized workspace. Check-ins, evidence capture, and
-            approvals enforced with Row-Level Security.
+          <h2 className="dashboard-section-title">
+            Operational Queues &amp; Live Activity
+          </h2>
+          <p className="dashboard-section-subtitle">
+            Manager action queues, in-progress itineraries, store check-in evidence, and
+            real-time audit stream.
           </p>
         </div>
-
-        <div className="welcome-banner-actions">
-          <Link href="/trips/new" className="btn btn-on-dark" style={{ fontWeight: 700 }}>
-            + Plan New Field Trip
-          </Link>
+        <div className="dashboard-section-badge">
+          <span className="dashboard-live-dot" aria-hidden="true" />
+          <span>Telemetry Active • RLS Protected</span>
         </div>
       </div>
 
       {/* 2-Column Operations Grid: Pending Approvals & Today's Active Trips */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 26rem), 1fr))",
-          gap: "1.5rem",
-        }}
-      >
+      <div className="dashboard-activity-grid">
         {/* Pending Approvals Queue */}
         <section className="neu-card" aria-labelledby="pending-approvals-heading">
           <div className="card-header">
@@ -226,13 +219,7 @@ export function ManagerDashboardClient({
       </div>
 
       {/* Recent Store Visits & Live Timeline */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 26rem), 1fr))",
-          gap: "1.5rem",
-        }}
-      >
+      <div className="dashboard-activity-grid">
         {/* Recent Store Visits Feed */}
         <section className="neu-card" aria-labelledby="recent-visits-heading">
           <div className="card-header">

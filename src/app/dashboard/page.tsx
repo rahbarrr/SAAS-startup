@@ -203,30 +203,100 @@ export default async function DashboardPage(
 
   const exportHref = `/api/orgs/${activeOrgId}/dashboard/export${exportQuery.toString() ? `?${exportQuery.toString()}` : ""}`;
 
+  const totalTrips =
+    metrics.tripsByStatus.draft +
+    metrics.tripsByStatus.submitted +
+    metrics.tripsByStatus.approved +
+    metrics.tripsByStatus.in_progress +
+    metrics.tripsByStatus.completed +
+    metrics.tripsByStatus.changes_requested +
+    metrics.tripsByStatus.rejected;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
-      {/* Header Section */}
-      <section className="page-header" aria-labelledby="overview-heading">
-        <div className="page-header-text">
-          <p className="page-eyebrow">Workspace Telemetry</p>
-          <h1 id="overview-heading" className="page-title">
-            {role === "field_employee"
-              ? `My Field Operations — ${activeOrg.name}`
-              : `Operations Dashboard — ${activeOrg.name}`}
-          </h1>
-          <p className="page-subtitle">
-            Operational metrics computed from committed database state. All check-ins and
-            evidence strictly isolated per tenant.
-          </p>
+      {/* Workspace Context & Header Section */}
+      <section className="dashboard-hero" aria-labelledby="overview-heading">
+        <div className="dashboard-hero-content">
+          <div className="workspace-context-chips">
+            <span className="workspace-context-pill">
+              <span className="workspace-context-dot" aria-hidden="true" />
+              {activeOrg.name}
+            </span>
+            <span className="workspace-isolation-pill">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              Tenant Isolated (RLS)
+            </span>
+            <span className="workspace-date-pill">
+              UTC Reference: <code>{referenceDateUtc}</code>
+            </span>
+          </div>
+
+          <div className="dashboard-hero-titles">
+            <h1 id="overview-heading" className="dashboard-hero-title">
+              {role === "field_employee"
+                ? `My Field Operations — ${activeOrg.name}`
+                : `Operations Dashboard — ${activeOrg.name}`}
+            </h1>
+            <p className="dashboard-hero-subtitle">
+              Live operational telemetry computed from committed database state. All
+              check-ins and evidence strictly isolated per tenant.
+            </p>
+          </div>
         </div>
 
-        <div className="page-actions">
-          <Link href="/trips/new" className="btn btn-primary">
-            + Plan New Trip
+        <div className="dashboard-hero-actions">
+          <Link href="/trips/new" className="btn btn-primary dashboard-primary-cta">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span>Plan New Trip</span>
           </Link>
           {role === "manager" || role === "admin" ? (
-            <a href={exportHref} className="btn btn-secondary">
-              Export CSV
+            <a
+              href={exportHref}
+              className="btn btn-secondary dashboard-export-cta"
+              title="Export authorized dataset as CSV"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span>Export CSV</span>
             </a>
           ) : null}
         </div>
@@ -256,7 +326,20 @@ export default async function DashboardPage(
               <div className="kpi-card-top">
                 <span className="kpi-label">My Field Trips</span>
                 <span className="kpi-icon" aria-hidden="true">
-                  🗺️
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+                    <line x1="9" y1="3" x2="9" y2="18" />
+                    <line x1="15" y1="6" x2="15" y2="21" />
+                  </svg>
                 </span>
               </div>
               <div className="kpi-value">{employeeTrips.length}</div>
@@ -272,7 +355,19 @@ export default async function DashboardPage(
               <div className="kpi-card-top">
                 <span className="kpi-label">Recorded Visits</span>
                 <span className="kpi-icon" aria-hidden="true">
-                  📍
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
                 </span>
               </div>
               <div className="kpi-value">{employeeVisits.length}</div>
@@ -288,7 +383,19 @@ export default async function DashboardPage(
               <div className="kpi-card-top">
                 <span className="kpi-label">Stores Directory</span>
                 <span className="kpi-icon" aria-hidden="true">
-                  🏢
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
                 </span>
               </div>
               <div className="kpi-value">Directory</div>
@@ -388,7 +495,7 @@ export default async function DashboardPage(
       ) : (
         /* Manager / Admin View */
         <>
-          {/* KPI Cards Grid */}
+          {/* Section 5: Operational KPI Cards Grid */}
           <section
             className="kpi-grid"
             aria-label="Documented operational metrics summary"
@@ -396,7 +503,19 @@ export default async function DashboardPage(
             <article className="kpi-card kpi-card--warning">
               <div className="kpi-card-top">
                 <span className="kpi-icon" aria-hidden="true">
-                  ⏳
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
                 </span>
                 <Link href="/approvals" style={{ textDecoration: "none" }}>
                   <StatusBadge descriptor={getApprovalStatusDescriptor("submitted")} />
@@ -428,7 +547,19 @@ export default async function DashboardPage(
             <article className="kpi-card kpi-card--primary">
               <div className="kpi-card-top">
                 <span className="kpi-icon" aria-hidden="true">
-                  ✓
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
                 </span>
                 <Link
                   href="/dashboard?tripStatus=approved"
@@ -466,7 +597,19 @@ export default async function DashboardPage(
             <article className="kpi-card kpi-card--success">
               <div className="kpi-card-top">
                 <span className="kpi-icon" aria-hidden="true">
-                  📍
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
                 </span>
                 <Link
                   href="/dashboard?visitStatus=submitted"
@@ -502,7 +645,21 @@ export default async function DashboardPage(
             <article className="kpi-card kpi-card--info">
               <div className="kpi-card-top">
                 <span className="kpi-icon" aria-hidden="true">
-                  🕒
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
                 </span>
                 <Link
                   href="/dashboard?visitStatus=in_progress"
@@ -536,7 +693,20 @@ export default async function DashboardPage(
             <article className="kpi-card kpi-card--danger">
               <div className="kpi-card-top">
                 <span className="kpi-icon" aria-hidden="true">
-                  ⚠️
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
                 </span>
                 <Link
                   href="/dashboard?onlyExceptions=true"
@@ -572,40 +742,229 @@ export default async function DashboardPage(
                 </details>
               </div>
             </article>
+          </section>
 
-            <article className="kpi-card kpi-card--neutral">
-              <div className="kpi-card-top">
-                <span className="kpi-icon" aria-hidden="true">
-                  📊
-                </span>
-                <Link
-                  href="/reports"
-                  className="btn btn-sm btn-outline kpi-action-btn"
-                  style={{ minHeight: "auto", padding: "0.2rem 0.5rem" }}
-                >
-                  Reports →
+          {/* Section 6: Trips by Status Lifecycle Visualization */}
+          <section
+            className="status-distribution-card"
+            aria-labelledby="status-distribution-heading"
+          >
+            <div className="status-distribution-header">
+              <div>
+                <h2 id="status-distribution-heading" className="card-title">
+                  Trip Lifecycle Distribution
+                </h2>
+                <p className="card-meta">
+                  Fleet status breakdown across {totalTrips} scheduled itineraries in
+                  active scope
+                </p>
+              </div>
+              <div className="status-distribution-actions">
+                <Link href="/trips" className="btn btn-sm btn-outline">
+                  All Itineraries ({totalTrips}) →
                 </Link>
               </div>
-              <h2 className="kpi-label">Trips by Status</h2>
-              <p className="kpi-subtitle">Lifecycle distribution for active scope</p>
-              <div className="kpi-status-chips">
-                <span className="status-chip">
-                  Submitted: <strong>{metrics.tripsByStatus.submitted}</strong>
+            </div>
+
+            {/* Segmented Distribution Progress Bar */}
+            <div
+              className="status-bar-track"
+              role="progressbar"
+              aria-label="Trip status distribution"
+              aria-valuenow={totalTrips}
+            >
+              {totalTrips > 0 ? (
+                <>
+                  {metrics.tripsByStatus.approved > 0 ? (
+                    <div
+                      className="status-bar-segment status-bar-segment--approved"
+                      style={{
+                        width: `${(metrics.tripsByStatus.approved / totalTrips) * 100}%`,
+                      }}
+                      title={`Approved: ${metrics.tripsByStatus.approved} (${Math.round((metrics.tripsByStatus.approved / totalTrips) * 100)}%)`}
+                    />
+                  ) : null}
+                  {metrics.tripsByStatus.in_progress > 0 ? (
+                    <div
+                      className="status-bar-segment status-bar-segment--in-progress"
+                      style={{
+                        width: `${(metrics.tripsByStatus.in_progress / totalTrips) * 100}%`,
+                      }}
+                      title={`In Progress: ${metrics.tripsByStatus.in_progress} (${Math.round((metrics.tripsByStatus.in_progress / totalTrips) * 100)}%)`}
+                    />
+                  ) : null}
+                  {metrics.tripsByStatus.completed > 0 ? (
+                    <div
+                      className="status-bar-segment status-bar-segment--completed"
+                      style={{
+                        width: `${(metrics.tripsByStatus.completed / totalTrips) * 100}%`,
+                      }}
+                      title={`Completed: ${metrics.tripsByStatus.completed} (${Math.round((metrics.tripsByStatus.completed / totalTrips) * 100)}%)`}
+                    />
+                  ) : null}
+                  {metrics.tripsByStatus.submitted > 0 ? (
+                    <div
+                      className="status-bar-segment status-bar-segment--submitted"
+                      style={{
+                        width: `${(metrics.tripsByStatus.submitted / totalTrips) * 100}%`,
+                      }}
+                      title={`Submitted: ${metrics.tripsByStatus.submitted} (${Math.round((metrics.tripsByStatus.submitted / totalTrips) * 100)}%)`}
+                    />
+                  ) : null}
+                  {metrics.tripsByStatus.changes_requested > 0 ? (
+                    <div
+                      className="status-bar-segment status-bar-segment--changes"
+                      style={{
+                        width: `${(metrics.tripsByStatus.changes_requested / totalTrips) * 100}%`,
+                      }}
+                      title={`Changes Requested: ${metrics.tripsByStatus.changes_requested} (${Math.round((metrics.tripsByStatus.changes_requested / totalTrips) * 100)}%)`}
+                    />
+                  ) : null}
+                  {metrics.tripsByStatus.rejected > 0 ? (
+                    <div
+                      className="status-bar-segment status-bar-segment--rejected"
+                      style={{
+                        width: `${(metrics.tripsByStatus.rejected / totalTrips) * 100}%`,
+                      }}
+                      title={`Rejected: ${metrics.tripsByStatus.rejected} (${Math.round((metrics.tripsByStatus.rejected / totalTrips) * 100)}%)`}
+                    />
+                  ) : null}
+                  {metrics.tripsByStatus.draft > 0 ? (
+                    <div
+                      className="status-bar-segment status-bar-segment--draft"
+                      style={{
+                        width: `${(metrics.tripsByStatus.draft / totalTrips) * 100}%`,
+                      }}
+                      title={`Draft: ${metrics.tripsByStatus.draft} (${Math.round((metrics.tripsByStatus.draft / totalTrips) * 100)}%)`}
+                    />
+                  ) : null}
+                </>
+              ) : (
+                <div
+                  className="status-bar-segment status-bar-segment--empty"
+                  style={{ width: "100%" }}
+                />
+              )}
+            </div>
+
+            {/* Status Tiles Grid */}
+            <div className="status-tiles-grid kpi-status-chips">
+              <Link
+                href="/dashboard?tripStatus=submitted"
+                className={`status-tile ${tripStatus === "submitted" ? "status-tile--active" : ""}`}
+              >
+                <div className="status-tile-header">
+                  <span className="status-tile-dot status-tile-dot--warning" />
+                  <span className="status-tile-name">Submitted</span>
+                </div>
+                <div className="status-tile-count">{metrics.tripsByStatus.submitted}</div>
+                <span className="status-tile-pct">
+                  {totalTrips > 0
+                    ? `${Math.round((metrics.tripsByStatus.submitted / totalTrips) * 100)}%`
+                    : "0%"}
                 </span>
-                <span className="status-chip">
-                  Approved: <strong>{metrics.tripsByStatus.approved}</strong>
+              </Link>
+
+              <Link
+                href="/dashboard?tripStatus=approved"
+                className={`status-tile ${tripStatus === "approved" ? "status-tile--active" : ""}`}
+              >
+                <div className="status-tile-header">
+                  <span className="status-tile-dot status-tile-dot--primary" />
+                  <span className="status-tile-name">Approved</span>
+                </div>
+                <div className="status-tile-count">{metrics.tripsByStatus.approved}</div>
+                <span className="status-tile-pct">
+                  {totalTrips > 0
+                    ? `${Math.round((metrics.tripsByStatus.approved / totalTrips) * 100)}%`
+                    : "0%"}
                 </span>
-                <span className="status-chip">
-                  Active: <strong>{metrics.tripsByStatus.in_progress}</strong>
+              </Link>
+
+              <Link
+                href="/dashboard?tripStatus=in_progress"
+                className={`status-tile ${tripStatus === "in_progress" ? "status-tile--active" : ""}`}
+              >
+                <div className="status-tile-header">
+                  <span className="status-tile-dot status-tile-dot--info" />
+                  <span className="status-tile-name">In Progress</span>
+                </div>
+                <div className="status-tile-count">
+                  {metrics.tripsByStatus.in_progress}
+                </div>
+                <span className="status-tile-pct">
+                  {totalTrips > 0
+                    ? `${Math.round((metrics.tripsByStatus.in_progress / totalTrips) * 100)}%`
+                    : "0%"}
                 </span>
-                <span className="status-chip">
-                  Done: <strong>{metrics.tripsByStatus.completed}</strong>
+              </Link>
+
+              <Link
+                href="/dashboard?tripStatus=completed"
+                className={`status-tile ${tripStatus === "completed" ? "status-tile--active" : ""}`}
+              >
+                <div className="status-tile-header">
+                  <span className="status-tile-dot status-tile-dot--success" />
+                  <span className="status-tile-name">Completed</span>
+                </div>
+                <div className="status-tile-count">{metrics.tripsByStatus.completed}</div>
+                <span className="status-tile-pct">
+                  {totalTrips > 0
+                    ? `${Math.round((metrics.tripsByStatus.completed / totalTrips) * 100)}%`
+                    : "0%"}
                 </span>
-                <span className="status-chip">
-                  Draft: <strong>{metrics.tripsByStatus.draft}</strong>
+              </Link>
+
+              <Link
+                href="/dashboard?tripStatus=draft"
+                className={`status-tile ${tripStatus === "draft" ? "status-tile--active" : ""}`}
+              >
+                <div className="status-tile-header">
+                  <span className="status-tile-dot status-tile-dot--neutral" />
+                  <span className="status-tile-name">Draft</span>
+                </div>
+                <div className="status-tile-count">{metrics.tripsByStatus.draft}</div>
+                <span className="status-tile-pct">
+                  {totalTrips > 0
+                    ? `${Math.round((metrics.tripsByStatus.draft / totalTrips) * 100)}%`
+                    : "0%"}
                 </span>
-              </div>
-            </article>
+              </Link>
+
+              <Link
+                href="/dashboard?tripStatus=changes_requested"
+                className={`status-tile ${tripStatus === "changes_requested" ? "status-tile--active" : ""}`}
+              >
+                <div className="status-tile-header">
+                  <span className="status-tile-dot status-tile-dot--warning" />
+                  <span className="status-tile-name">Changes Req.</span>
+                </div>
+                <div className="status-tile-count">
+                  {metrics.tripsByStatus.changes_requested}
+                </div>
+                <span className="status-tile-pct">
+                  {totalTrips > 0
+                    ? `${Math.round((metrics.tripsByStatus.changes_requested / totalTrips) * 100)}%`
+                    : "0%"}
+                </span>
+              </Link>
+
+              <Link
+                href="/dashboard?tripStatus=rejected"
+                className={`status-tile ${tripStatus === "rejected" ? "status-tile--active" : ""}`}
+              >
+                <div className="status-tile-header">
+                  <span className="status-tile-dot status-tile-dot--danger" />
+                  <span className="status-tile-name">Rejected</span>
+                </div>
+                <div className="status-tile-count">{metrics.tripsByStatus.rejected}</div>
+                <span className="status-tile-pct">
+                  {totalTrips > 0
+                    ? `${Math.round((metrics.tripsByStatus.rejected / totalTrips) * 100)}%`
+                    : "0%"}
+                </span>
+              </Link>
+            </div>
           </section>
 
           {/* Database-Driven Manager Operations Telemetry */}
