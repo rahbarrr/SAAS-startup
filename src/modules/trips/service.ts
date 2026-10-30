@@ -250,6 +250,7 @@ export async function updateTripDraftForOrg(params: {
   await assertAllStopStoresActiveInOrg({
     orgId: context.orgId,
     stops: input.stops,
+    destinationCity: input.destinationCity,
     storesRepository: params.storesRepository,
   });
 
