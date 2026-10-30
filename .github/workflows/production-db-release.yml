@@ -61,11 +61,11 @@ jobs:
             if [ -z "${!v}" ]; then echo "::error::Missing required production configuration: $v"; exit 1; fi
           done
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ steps.validate_inputs.outputs.checkout_ref }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
 
@@ -105,7 +105,7 @@ jobs:
       RELEASE_TAG: ${{ inputs.release_tag }}
       ROLLBACK_PLAN: ${{ inputs.rollback_plan }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ needs.plan.outputs.checkout_ref }}
 

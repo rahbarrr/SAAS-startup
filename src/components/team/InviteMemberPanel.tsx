@@ -85,7 +85,7 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
         expiresAt: payload.data.invitation.expiresAt,
         emailDelivered,
         emailStatusMessage: emailDelivered
-        ? "The email provider accepted the invitation for delivery."
+          ? "The email provider accepted the invitation for delivery."
           : (payload.data.emailDelivery?.error ??
             "Automatic email delivery is not configured. Copy and share the fallback link."),
       });
@@ -127,7 +127,8 @@ export function InviteMemberPanel({ orgId }: InviteMemberPanelProps): ReactNode 
           ? {
               ...current,
               emailDelivered: true,
-              emailStatusMessage: "The email provider accepted the invitation for delivery.",
+              emailStatusMessage:
+                "The email provider accepted the invitation for delivery.",
             }
           : current
       );

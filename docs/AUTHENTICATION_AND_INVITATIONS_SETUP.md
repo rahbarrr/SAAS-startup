@@ -52,7 +52,7 @@ the Mailtrap SMTP credentials in that environment. To re-enable Resend, set
    - `RESEND_FROM_EMAIL` = a verified sender, for example `FieldTrack <invites@your-verified-domain.com>`
 4. Redeploy after setting the variables.
 
-When an admin invites a manager or field employee, FieldTrack creates a single-use invitation record and sends through Mailtrap in local development or Resend in Preview and Production. If the selected provider is unconfigured or rejects the request, the invitation remains available and the admin is shown a fallback signup link to copy. A provider success response means it accepted the message; it does not guarantee inbox delivery.
+When an admin invites a manager or field employee, FieldTrack creates a single-use invitation record and sends through the selected provider. Local development defaults to Mailtrap; Preview and Production email is disabled unless a provider is explicitly selected. If the selected provider is unconfigured or rejects the request, the invitation remains available and the admin is shown a fallback signup link to copy. A provider success response means it accepted the message; it does not guarantee inbox delivery.
 
 ## Company profile and database migration
 
