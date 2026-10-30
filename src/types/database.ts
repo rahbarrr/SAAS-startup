@@ -112,6 +112,8 @@ export interface DbTripRow {
   start_date: string;
   end_date: string;
   purpose: string;
+  start_location: string | null;
+  destination_city: string | null;
   status: DbTripStatus;
   submitted_at: string | null;
   decided_by: string | null;
