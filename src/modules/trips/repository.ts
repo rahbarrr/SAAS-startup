@@ -89,6 +89,8 @@ function mapTripRow(row: DbTripRow): Trip {
     startDate: row.start_date,
     endDate: row.end_date,
     purpose: row.purpose,
+    startLocation: row.start_location ?? null,
+    destinationCity: row.destination_city ?? null,
     status: row.status,
     submittedAt: row.submitted_at,
     decidedBy: row.decided_by,
@@ -139,7 +141,7 @@ export class SupabaseTripsRepository implements TripsRepository {
     let builder = this.supabase
       .from("trips")
       .select(
-        "id, organization_id, owner_user_id, title, start_date, end_date, purpose, status, submitted_at, decided_by, decided_at, decision_note, created_at, updated_at"
+        "id, organization_id, owner_user_id, title, start_date, end_date, purpose, start_location, destination_city, status, submitted_at, decided_by, decided_at, decision_note, created_at, updated_at"
       )
       .eq("organization_id", orgId)
       .order("created_at", { ascending: false })
@@ -202,7 +204,7 @@ export class SupabaseTripsRepository implements TripsRepository {
     const { data: tripData, error: tripError } = await this.supabase
       .from("trips")
       .select(
-        "id, organization_id, owner_user_id, title, start_date, end_date, purpose, status, submitted_at, decided_by, decided_at, decision_note, created_at, updated_at"
+        "id, organization_id, owner_user_id, title, start_date, end_date, purpose, start_location, destination_city, status, submitted_at, decided_by, decided_at, decision_note, created_at, updated_at"
       )
       .eq("organization_id", orgId)
       .eq("id", tripId)
@@ -336,12 +338,14 @@ export class SupabaseTripsRepository implements TripsRepository {
         owner_user_id: params.ownerUserId,
         title: params.input.title,
         purpose: params.input.purpose,
+        start_location: params.input.startLocation,
+        destination_city: params.input.destinationCity,
         start_date: params.input.startDate,
         end_date: params.input.endDate,
         status: "draft",
       })
       .select(
-        "id, organization_id, owner_user_id, title, start_date, end_date, purpose, status, submitted_at, decided_by, decided_at, decision_note, created_at, updated_at"
+        "id, organization_id, owner_user_id, title, start_date, end_date, purpose, start_location, destination_city, status, submitted_at, decided_by, decided_at, decision_note, created_at, updated_at"
       )
       .single<DbTripRow>();
 
@@ -387,6 +391,8 @@ export class SupabaseTripsRepository implements TripsRepository {
     const patch: Record<string, unknown> = {
       title: params.input.title,
       purpose: params.input.purpose,
+      start_location: params.input.startLocation,
+      destination_city: params.input.destinationCity,
       start_date: params.input.startDate,
       end_date: params.input.endDate,
       status: nextStatus,
@@ -405,7 +411,7 @@ export class SupabaseTripsRepository implements TripsRepository {
       .eq("organization_id", params.orgId)
       .eq("id", params.tripId)
       .select(
-        "id, organization_id, owner_user_id, title, start_date, end_date, purpose, status, submitted_at, decided_by, decided_at, decision_note, created_at, updated_at"
+        "id, organization_id, owner_user_id, title, start_date, end_date, purpose, start_location, destination_city, status, submitted_at, decided_by, decided_at, decision_note, created_at, updated_at"
       )
       .single<DbTripRow>();
 
