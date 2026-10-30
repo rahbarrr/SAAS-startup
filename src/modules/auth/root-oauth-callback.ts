@@ -7,9 +7,18 @@ function firstValue(value: string | string[] | undefined): string | null {
   return typeof selected === "string" && selected.length > 0 ? selected : null;
 }
 
+function hasControlCharacters(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const characterCode = value.charCodeAt(index);
+    if (characterCode <= 0x1f || characterCode === 0x7f) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function isSafeAuthorizationCode(code: string): boolean {
-  const hasControlCharacters = /[\u0000-\u001f\u007f]/.test(code);
-  return code.length <= 4096 && !hasControlCharacters;
+  return code.length <= 4096 && !hasControlCharacters(code);
 }
 
 /**
@@ -35,15 +44,11 @@ export function buildRootOAuthCallbackRedirect(
   const invitationToken =
     firstValue(searchParams.invite_token) ?? firstValue(searchParams.token);
   const hasValidInvitationToken =
-    invitationToken !== null &&
-    /^[A-Za-z0-9_-]{16,256}$/.test(invitationToken);
+    invitationToken !== null && /^[A-Za-z0-9_-]{16,256}$/.test(invitationToken);
   const invitationNext = hasValidInvitationToken
     ? `/onboarding?token=${encodeURIComponent(invitationToken)}`
     : "/dashboard";
-  const nextPath = sanitizeRedirectPath(
-    firstValue(searchParams.next),
-    invitationNext
-  );
+  const nextPath = sanitizeRedirectPath(firstValue(searchParams.next), invitationNext);
 
   const callbackParams = new URLSearchParams();
   if (code) callbackParams.set("code", code);
