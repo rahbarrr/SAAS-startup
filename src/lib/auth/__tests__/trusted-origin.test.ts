@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveAuthAppOrigin, resolveTrustedAppOrigin } from "@/lib/auth/trusted-origin";
+import { resolveAuthAppOrigin, resolveAuthCallbackResponseOrigin, resolveTrustedAppOrigin } from "@/lib/auth/trusted-origin";
 
 describe("trusted application origin resolution", () => {
   it("uses the exact Vercel deployment hostname for Preview", () => {
@@ -84,6 +84,32 @@ describe("trusted application origin resolution", () => {
         NEXT_PUBLIC_APP_URL: "https://other-project.vercel.app",
       }).origin
     ).toBeNull();
+  });
+
+  it("keeps a trusted Production Vercel alias for OAuth cookie continuity", () => {
+    expect(
+      resolveAuthCallbackResponseOrigin(
+        "https://saas-startup1-rahbar1.vercel.app",
+        "https://saas-startup1.vercel.app",
+        {
+          VERCEL_ENV: "production",
+          VERCEL_PROJECT_PRODUCTION_URL: "saas-startup1.vercel.app",
+        }
+      )
+    ).toBe("https://saas-startup1-rahbar1.vercel.app");
+  });
+
+  it("does not allow an unrelated host to override the canonical callback origin", () => {
+    expect(
+      resolveAuthCallbackResponseOrigin(
+        "https://attacker.example",
+        "https://saas-startup1.vercel.app",
+        {
+          VERCEL_ENV: "production",
+          VERCEL_PROJECT_PRODUCTION_URL: "saas-startup1.vercel.app",
+        }
+      )
+    ).toBe("https://saas-startup1.vercel.app");
   });
 
   it("rejects a forged or malformed deployment origin", () => {
