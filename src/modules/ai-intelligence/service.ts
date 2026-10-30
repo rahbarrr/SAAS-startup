@@ -297,6 +297,8 @@ export async function applyTripPlanRecommendationForOrg(params: {
     input: {
       title: detail.trip.title,
       purpose: detail.trip.purpose,
+      startLocation: detail.trip.startLocation ?? "Not specified",
+      destinationCity: detail.trip.destinationCity ?? "Not specified",
       startDate: detail.trip.startDate,
       endDate: detail.trip.endDate,
       stops: parsed.proposedStopOrder.map((s, idx) => ({
