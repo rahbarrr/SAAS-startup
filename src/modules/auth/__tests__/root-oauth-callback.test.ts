@@ -51,12 +51,8 @@ describe("root OAuth callback fallback", () => {
   });
 
   it("rejects oversized or control-character authorization codes", () => {
-    expect(
-      buildRootOAuthCallbackRedirect({ code: "a".repeat(4097) })
-    ).toBeNull();
-    expect(
-      buildRootOAuthCallbackRedirect({ code: "invalid\\ncode" })
-    ).toBeNull();
+    expect(buildRootOAuthCallbackRedirect({ code: "a".repeat(4097) })).toBeNull();
+    expect(buildRootOAuthCallbackRedirect({ code: "invalid\\ncode" })).toBeNull();
   });
 
   it("sanitizes external next destinations", () => {
