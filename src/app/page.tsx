@@ -1,5 +1,7 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { buildRootOAuthCallbackRedirect } from "@/modules/auth/root-oauth-callback";
 import {
   LandingAnnouncement,
   LandingHeader,
@@ -41,7 +43,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLandingPage(): ReactNode {
+interface RootLandingPageProps {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function RootLandingPage({
+  searchParams,
+}: RootLandingPageProps): Promise<ReactNode> {
+  const callbackRedirect = buildRootOAuthCallbackRedirect((await searchParams) ?? {});
+  if (callbackRedirect) {
+    // Supabase can fall back to the Site URL ("/") for OAuth responses.
+    // Exchange the code on this same origin so the PKCE cookie remains available.
+    redirect(callbackRedirect);
+  }
+
   return (
     <div className="landing-page-root" aria-labelledby="hero-heading">
       <h1 className="sr-only">
