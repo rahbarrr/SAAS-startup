@@ -26,8 +26,12 @@ describe("invitation token vault", () => {
       INVITATION_TOKEN_ENCRYPTION_KEY: key,
     });
     expect(encryptInvitationToken("raw-invitation-token", {})).toBeNull();
+    const parts = (encrypted ?? "").split(".");
+    const tag = parts[1] ?? "";
+    const changedTag = `${tag.startsWith("A") ? "B" : "A"}${tag.slice(1)}`;
+    parts[1] = changedTag;
     expect(
-      decryptInvitationToken(encrypted?.replace(/.$/, "x") ?? "", {
+      decryptInvitationToken(parts.join("."), {
         INVITATION_TOKEN_ENCRYPTION_KEY: key,
       })
     ).toBeNull();
