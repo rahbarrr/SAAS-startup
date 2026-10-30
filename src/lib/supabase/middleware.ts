@@ -2,6 +2,7 @@ import { type CookieOptions, createServerClient } from "@supabase/ssr";
 import { isSameOriginMutation } from "@/lib/http/envelope";
 import { REQUEST_ID_HEADER, resolveRequestId } from "@/lib/observability/logger";
 import { resolveAuthenticatedDestination } from "@/modules/auth/authenticated-destination";
+import { sanitizeRedirectPath } from "@/modules/auth/schemas";
 import { type NextRequest, NextResponse } from "next/server";
 
 const PROTECTED_PREFIXES = [
