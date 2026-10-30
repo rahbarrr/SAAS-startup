@@ -87,8 +87,10 @@ export const upsertTripDraftInputSchema = z
     purpose: z
       .string()
       .trim()
-      .max(1000, "Purpose must be at most 1000 characters")
-      .default(""),
+      .min(3, "Please describe the operational purpose")
+      .max(1000, "Purpose must be at most 1000 characters"),
+    startLocation: z.string().trim().min(2, "Starting location is required").max(200),
+    destinationCity: z.string().trim().min(2, "Destination city is required").max(120),
     startDate: isoDateStringSchema,
     endDate: isoDateStringSchema,
     stops: z.array(tripStopInputSchema).max(50).default([]),
