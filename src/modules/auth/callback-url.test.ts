@@ -49,6 +49,8 @@ describe("getCanonicalProductionRedirectUrl", () => {
         "https://saas-startup1-rahbar1.vercel.app/login",
         "production"
       )
-    ).toThrow("NEXT_PUBLIC_APP_URL must be a valid application origin. Check the deployment URL configuration.");
+    ).toThrow(
+      "NEXT_PUBLIC_APP_URL must be a valid application origin. Check the deployment URL configuration."
+    );
   });
 });
