@@ -238,13 +238,20 @@ describe("Phase 1: proxy session and access enforcement", () => {
     }
   });
 
-  it("sends signed-in users away from login/signup/forgot-password", async () => {
+  it("sends signed-in users to the correct workspace entry point", async () => {
     stubSupabaseEnv(true);
     getUser.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
-    for (const path of ["/login", "/signup", "/forgot-password"]) {
+
+    const destinations = [
+      ["/login", "/dashboard"],
+      ["/signup", "/onboarding"],
+      ["/forgot-password", "/dashboard"],
+    ] as const;
+
+    for (const [path, expectedPath] of destinations) {
       const res = await updateSessionAndEnforceAuth(req(path));
       expect(res.status).toBe(307);
-      expect(new URL(res.headers.get("location") ?? "").pathname).toBe("/");
+      expect(new URL(res.headers.get("location") ?? "").pathname).toBe(expectedPath);
     }
   });
 
