@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveAuthenticatedDestination } from "@/modules/auth/authenticated-destination";
+import { resolveAuthenticatedDestination } from "../authenticated-destination";
 
 describe("authenticated destination", () => {
   it("defaults existing login sessions to the dashboard", () => {
