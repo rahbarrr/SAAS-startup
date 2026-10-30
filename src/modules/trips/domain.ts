@@ -69,8 +69,8 @@ export interface Trip {
   startDate: string;
   endDate: string;
   purpose: string;
-  startLocation: string | null;
-  destinationCity: string | null;
+  startLocation?: string | null;
+  destinationCity?: string | null;
   status: TripStatus;
   submittedAt: string | null;
   decidedBy: string | null;
