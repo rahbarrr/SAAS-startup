@@ -55,7 +55,7 @@ export function ManagerDashboardClient({
         }}
       >
         {/* Pending Approvals Queue */}
-        <section className="card" aria-labelledby="pending-approvals-heading">
+        <section className="neu-card" aria-labelledby="pending-approvals-heading">
           <div className="card-header">
             <div>
               <h2 id="pending-approvals-heading" className="card-title">
@@ -73,11 +73,12 @@ export function ManagerDashboardClient({
                   pendingApprovals.length > 0
                     ? "var(--status-warning-text)"
                     : "var(--status-success-text)",
-                padding: "0.125rem 0.625rem",
+                padding: "0.1875rem 0.625rem",
                 borderRadius: "var(--radius-full)",
                 fontSize: "0.75rem",
                 fontWeight: 700,
                 border: "1px solid var(--border-default)",
+                boxShadow: "var(--shadow-neu-raised-sm)",
               }}
             >
               {pendingApprovals.length} Awaiting
@@ -96,13 +97,16 @@ export function ManagerDashboardClient({
                 <div
                   key={trip.id}
                   style={{
-                    background: "var(--bg-subtle)",
-                    border: "1px solid var(--border-default)",
+                    background: "#ffffff",
+                    border: "1px solid rgba(255, 255, 255, 0.9)",
+                    boxShadow: "var(--shadow-neu-raised-sm)",
                     borderRadius: "var(--radius-md)",
                     padding: "1rem",
                     display: "flex",
                     flexDirection: "column",
                     gap: "0.625rem",
+                    transition:
+                      "transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard)",
                   }}
                 >
                   <div
@@ -145,7 +149,7 @@ export function ManagerDashboardClient({
         </section>
 
         {/* Active & Today's Field Trips */}
-        <section className="card" aria-labelledby="active-trips-heading">
+        <section className="neu-card" aria-labelledby="active-trips-heading">
           <div className="card-header">
             <div>
               <h2 id="active-trips-heading" className="card-title">
@@ -230,7 +234,7 @@ export function ManagerDashboardClient({
         }}
       >
         {/* Recent Store Visits Feed */}
-        <section className="card" aria-labelledby="recent-visits-heading">
+        <section className="neu-card" aria-labelledby="recent-visits-heading">
           <div className="card-header">
             <div>
               <h2 id="recent-visits-heading" className="card-title">
@@ -334,7 +338,7 @@ export function ManagerDashboardClient({
         </section>
 
         {/* Live Operations Activity Timeline */}
-        <section className="card" aria-labelledby="timeline-heading">
+        <section className="neu-card" aria-labelledby="timeline-heading">
           <div className="card-header">
             <div>
               <h2 id="timeline-heading" className="card-title">
@@ -372,7 +376,8 @@ export function ManagerDashboardClient({
                         width: "0.75rem",
                         height: "0.75rem",
                         borderRadius: "50%",
-                        background: "var(--brand-primary)",
+                        background: "var(--brand-cyan)",
+                        boxShadow: "0 0 8px rgba(56, 217, 214, 0.7)",
                         marginTop: "0.25rem",
                       }}
                     />
