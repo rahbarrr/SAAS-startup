@@ -160,6 +160,7 @@ function UserProfileMenu({
           stroke="currentColor"
           strokeWidth="2"
           aria-hidden="true"
+          className="user-menu-trigger-chevron"
           style={{
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 0.15s ease",

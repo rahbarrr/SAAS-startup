@@ -260,7 +260,12 @@ export default async function DashboardPage(
                 </span>
               </div>
               <div className="kpi-value">{employeeTrips.length}</div>
-              <p className="kpi-footnote">Assigned itineraries</p>
+              <p className="kpi-subtitle">Assigned itineraries</p>
+              <div className="kpi-card-footer">
+                <Link href="/trips" className="btn btn-sm btn-outline kpi-action-btn">
+                  View Trips →
+                </Link>
+              </div>
             </div>
 
             <div className="kpi-card kpi-card--success">
@@ -271,19 +276,29 @@ export default async function DashboardPage(
                 </span>
               </div>
               <div className="kpi-value">{employeeVisits.length}</div>
-              <p className="kpi-footnote">Recent store executions</p>
+              <p className="kpi-subtitle">Recent store executions</p>
+              <div className="kpi-card-footer">
+                <Link href="/visits" className="btn btn-sm btn-outline kpi-action-btn">
+                  View Visits →
+                </Link>
+              </div>
             </div>
 
-            <Link href="/stores" className="kpi-card kpi-card--violet">
+            <div className="kpi-card kpi-card--violet">
               <div className="kpi-card-top">
                 <span className="kpi-label">Stores Directory</span>
                 <span className="kpi-icon" aria-hidden="true">
                   🏢
                 </span>
               </div>
-              <div className="kpi-value">Directory →</div>
-              <p className="kpi-footnote">Browse retail accounts</p>
-            </Link>
+              <div className="kpi-value">Directory</div>
+              <p className="kpi-subtitle">Browse retail accounts</p>
+              <div className="kpi-card-footer">
+                <Link href="/stores" className="btn btn-sm btn-outline kpi-action-btn">
+                  Browse Stores →
+                </Link>
+              </div>
+            </div>
           </div>
 
           {/* Quick Actions */}
@@ -380,42 +395,41 @@ export default async function DashboardPage(
           >
             <article className="kpi-card kpi-card--warning">
               <div className="kpi-card-top">
-                <h2 className="kpi-label">
-                  {metrics.definitions.tripsAwaitingApproval.label}
-                </h2>
+                <span className="kpi-icon" aria-hidden="true">
+                  ⏳
+                </span>
                 <Link href="/approvals" style={{ textDecoration: "none" }}>
                   <StatusBadge descriptor={getApprovalStatusDescriptor("submitted")} />
                 </Link>
               </div>
+              <h2 className="kpi-label">
+                {metrics.definitions.tripsAwaitingApproval.label}
+              </h2>
               <div className="kpi-value" style={{ color: "var(--status-warning-text)" }}>
                 {metrics.tripsAwaitingApproval}
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: "auto",
-                  paddingTop: "0.25rem",
-                }}
-              >
-                <p className="kpi-footnote">
-                  <strong>Rule:</strong>{" "}
-                  {metrics.definitions.tripsAwaitingApproval.formulaSummary}
-                </p>
-                <Link
-                  href="/approvals"
-                  className="btn btn-sm btn-outline"
-                  style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
-                >
+              <p className="kpi-subtitle">Awaiting manager review</p>
+              <div className="kpi-card-footer">
+                <Link href="/approvals" className="btn btn-sm btn-outline kpi-action-btn">
                   Review →
                 </Link>
+                <details className="kpi-rule-details">
+                  <summary className="kpi-rule-summary" title="View calculation rule">
+                    Rule
+                  </summary>
+                  <div className="kpi-rule-content">
+                    <strong>Rule:</strong>{" "}
+                    {metrics.definitions.tripsAwaitingApproval.formulaSummary}
+                  </div>
+                </details>
               </div>
             </article>
 
             <article className="kpi-card kpi-card--primary">
               <div className="kpi-card-top">
-                <h2 className="kpi-label">{metrics.definitions.approvedTrips.label}</h2>
+                <span className="kpi-icon" aria-hidden="true">
+                  ✓
+                </span>
                 <Link
                   href="/dashboard?tripStatus=approved"
                   style={{ textDecoration: "none" }}
@@ -423,37 +437,37 @@ export default async function DashboardPage(
                   <StatusBadge descriptor={getApprovalStatusDescriptor("approved")} />
                 </Link>
               </div>
+              <h2 className="kpi-label">{metrics.definitions.approvedTrips.label}</h2>
               <div className="kpi-value">{metrics.approvedTrips}</div>
-              <p className="kpi-footnote" style={{ margin: "0 0 0.25rem" }}>
-                Not Started: {metrics.approvedTripsBreakdown.approvedNotStarted} • In
-                Progress: {metrics.approvedTripsBreakdown.inProgress} • Completed:{" "}
-                {metrics.approvedTripsBreakdown.completedAllStopsCheckedOut}
+              <p className="kpi-subtitle">
+                {metrics.approvedTripsBreakdown.approvedNotStarted} not started •{" "}
+                {metrics.approvedTripsBreakdown.inProgress} active •{" "}
+                {metrics.approvedTripsBreakdown.completedAllStopsCheckedOut} done
               </p>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: "auto",
-                }}
-              >
-                <p className="kpi-footnote">
-                  <strong>Rule:</strong>{" "}
-                  {metrics.definitions.approvedTrips.completionRuleNote}
-                </p>
+              <div className="kpi-card-footer">
                 <Link
                   href="/dashboard?tripStatus=approved"
-                  className="btn btn-sm btn-outline"
-                  style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+                  className="btn btn-sm btn-outline kpi-action-btn"
                 >
                   Filter →
                 </Link>
+                <details className="kpi-rule-details">
+                  <summary className="kpi-rule-summary" title="View calculation rule">
+                    Rule
+                  </summary>
+                  <div className="kpi-rule-content">
+                    <strong>Rule:</strong>{" "}
+                    {metrics.definitions.approvedTrips.completionRuleNote}
+                  </div>
+                </details>
               </div>
             </article>
 
             <article className="kpi-card kpi-card--success">
               <div className="kpi-card-top">
-                <h2 className="kpi-label">{metrics.definitions.completedVisits.label}</h2>
+                <span className="kpi-icon" aria-hidden="true">
+                  📍
+                </span>
                 <Link
                   href="/dashboard?visitStatus=submitted"
                   style={{ textDecoration: "none" }}
@@ -461,34 +475,35 @@ export default async function DashboardPage(
                   <StatusBadge descriptor={getApprovalStatusDescriptor("completed")} />
                 </Link>
               </div>
+              <h2 className="kpi-label">{metrics.definitions.completedVisits.label}</h2>
               <div className="kpi-value" style={{ color: "var(--status-success)" }}>
                 {metrics.completedVisits}
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: "auto",
-                }}
-              >
-                <p className="kpi-footnote">
-                  <strong>Rule:</strong>{" "}
-                  {metrics.definitions.completedVisits.formulaSummary}
-                </p>
+              <p className="kpi-subtitle">Completed &amp; submitted visits</p>
+              <div className="kpi-card-footer">
                 <Link
                   href="/dashboard?visitStatus=submitted"
-                  className="btn btn-sm btn-outline"
-                  style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+                  className="btn btn-sm btn-outline kpi-action-btn"
                 >
                   Filter →
                 </Link>
+                <details className="kpi-rule-details">
+                  <summary className="kpi-rule-summary" title="View calculation rule">
+                    Rule
+                  </summary>
+                  <div className="kpi-rule-content">
+                    <strong>Rule:</strong>{" "}
+                    {metrics.definitions.completedVisits.formulaSummary}
+                  </div>
+                </details>
               </div>
             </article>
 
             <article className="kpi-card kpi-card--info">
               <div className="kpi-card-top">
-                <h2 className="kpi-label">{metrics.definitions.pendingVisits.label}</h2>
+                <span className="kpi-icon" aria-hidden="true">
+                  🕒
+                </span>
                 <Link
                   href="/dashboard?visitStatus=in_progress"
                   style={{ textDecoration: "none" }}
@@ -496,34 +511,33 @@ export default async function DashboardPage(
                   <StatusBadge descriptor={getApprovalStatusDescriptor("in_progress")} />
                 </Link>
               </div>
+              <h2 className="kpi-label">{metrics.definitions.pendingVisits.label}</h2>
               <div className="kpi-value">{metrics.pendingVisits}</div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: "auto",
-                }}
-              >
-                <p className="kpi-footnote">
-                  <strong>Rule:</strong>{" "}
-                  {metrics.definitions.pendingVisits.formulaSummary}
-                </p>
+              <p className="kpi-subtitle">Scheduled or active in field</p>
+              <div className="kpi-card-footer">
                 <Link
                   href="/dashboard?visitStatus=in_progress"
-                  className="btn btn-sm btn-outline"
-                  style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+                  className="btn btn-sm btn-outline kpi-action-btn"
                 >
                   Filter →
                 </Link>
+                <details className="kpi-rule-details">
+                  <summary className="kpi-rule-summary" title="View calculation rule">
+                    Rule
+                  </summary>
+                  <div className="kpi-rule-content">
+                    <strong>Rule:</strong>{" "}
+                    {metrics.definitions.pendingVisits.formulaSummary}
+                  </div>
+                </details>
               </div>
             </article>
 
             <article className="kpi-card kpi-card--danger">
               <div className="kpi-card-top">
-                <h2 className="kpi-label">
-                  {metrics.definitions.exceptionsRequiringAttention.label}
-                </h2>
+                <span className="kpi-icon" aria-hidden="true">
+                  ⚠️
+                </span>
                 <Link
                   href="/dashboard?onlyExceptions=true"
                   style={{ textDecoration: "none" }}
@@ -533,71 +547,61 @@ export default async function DashboardPage(
                   />
                 </Link>
               </div>
+              <h2 className="kpi-label">
+                {metrics.definitions.exceptionsRequiringAttention.label}
+              </h2>
               <div className="kpi-value" style={{ color: "var(--status-danger)" }}>
                 {metrics.exceptionsRequiringAttention}
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: "auto",
-                }}
-              >
-                <p className="kpi-footnote">
-                  <strong>Rule:</strong>{" "}
-                  {metrics.definitions.exceptionsRequiringAttention.formulaSummary}
-                </p>
+              <p className="kpi-subtitle">Discrepancies needing action</p>
+              <div className="kpi-card-footer">
                 <Link
                   href="/dashboard?onlyExceptions=true"
-                  className="btn btn-sm btn-outline"
-                  style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem", flexShrink: 0 }}
+                  className="btn btn-sm btn-outline kpi-action-btn"
                 >
                   Exceptions →
                 </Link>
+                <details className="kpi-rule-details">
+                  <summary className="kpi-rule-summary" title="View calculation rule">
+                    Rule
+                  </summary>
+                  <div className="kpi-rule-content">
+                    <strong>Rule:</strong>{" "}
+                    {metrics.definitions.exceptionsRequiringAttention.formulaSummary}
+                  </div>
+                </details>
               </div>
             </article>
 
             <article className="kpi-card kpi-card--neutral">
               <div className="kpi-card-top">
-                <h2 className="kpi-label">Trips by Status</h2>
+                <span className="kpi-icon" aria-hidden="true">
+                  📊
+                </span>
                 <Link
                   href="/reports"
-                  className="btn btn-sm btn-outline"
-                  style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
+                  className="btn btn-sm btn-outline kpi-action-btn"
+                  style={{ minHeight: "auto", padding: "0.2rem 0.5rem" }}
                 >
                   Reports →
                 </Link>
               </div>
-              <p className="kpi-footnote" style={{ margin: "0.25rem 0" }}>
-                Lifecycle distribution for active scope.
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "0.375rem",
-                  marginTop: "auto",
-                  fontSize: "0.8125rem",
-                }}
-              >
-                <span className="card-meta">
+              <h2 className="kpi-label">Trips by Status</h2>
+              <p className="kpi-subtitle">Lifecycle distribution for active scope</p>
+              <div className="kpi-status-chips">
+                <span className="status-chip">
                   Submitted: <strong>{metrics.tripsByStatus.submitted}</strong>
                 </span>
-                <span className="card-meta">•</span>
-                <span className="card-meta">
+                <span className="status-chip">
                   Approved: <strong>{metrics.tripsByStatus.approved}</strong>
                 </span>
-                <span className="card-meta">•</span>
-                <span className="card-meta">
-                  In Progress: <strong>{metrics.tripsByStatus.in_progress}</strong>
+                <span className="status-chip">
+                  Active: <strong>{metrics.tripsByStatus.in_progress}</strong>
                 </span>
-                <span className="card-meta">•</span>
-                <span className="card-meta">
-                  Completed: <strong>{metrics.tripsByStatus.completed}</strong>
+                <span className="status-chip">
+                  Done: <strong>{metrics.tripsByStatus.completed}</strong>
                 </span>
-                <span className="card-meta">•</span>
-                <span className="card-meta">
+                <span className="status-chip">
                   Draft: <strong>{metrics.tripsByStatus.draft}</strong>
                 </span>
               </div>
