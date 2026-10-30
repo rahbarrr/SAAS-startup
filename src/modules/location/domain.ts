@@ -43,7 +43,8 @@ export interface LocationEvent {
   heading: number | null;
   recordedAt: string;
   receivedAt: string;
-  source: "mobile_foreground" | "mobile_background" | "manual_refresh" | "geofence_trigger";
+  source:
+    "mobile_foreground" | "mobile_background" | "manual_refresh" | "geofence_trigger";
   createdAt: string;
 }
 
@@ -121,7 +122,9 @@ export function assessLocationFreshness(
       status: "fresh",
       ageSeconds,
       isAccurate,
-      warningNote: !isAccurate ? `GPS accuracy is low (${Math.round(accuracyM ?? 0)}m)` : null,
+      warningNote: !isAccurate
+        ? `GPS accuracy is low (${Math.round(accuracyM ?? 0)}m)`
+        : null,
     };
   }
 
@@ -142,4 +145,3 @@ export function assessLocationFreshness(
     warningNote: `Location is stale (${Math.round(ageSeconds / 60)} minutes old)`,
   };
 }
-

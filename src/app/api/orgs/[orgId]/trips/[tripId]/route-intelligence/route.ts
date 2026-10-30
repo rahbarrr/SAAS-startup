@@ -56,7 +56,9 @@ export async function GET(
           storeId: stop.storeId,
           sequenceNumber: stop.sequenceNumber,
           status: stop.status,
-          store: store ? { name: store.name, latitude: store.latitude, longitude: store.longitude } : null,
+          store: store
+            ? { name: store.name, latitude: store.latitude, longitude: store.longitude }
+            : null,
         };
       })
     );

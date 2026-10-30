@@ -97,8 +97,8 @@ export function CheckInModal({
           {isAccuracyPoor && (
             <View style={styles.alertBanner}>
               <Text style={styles.alertText}>
-                ⚠️ GPS accuracy is ±{Math.round(accuracy ?? 0)}m (threshold is 50m). Consider
-                retrying outdoors.
+                ⚠️ GPS accuracy is ±{Math.round(accuracy ?? 0)}m (threshold is 50m).
+                Consider retrying outdoors.
               </Text>
             </View>
           )}
@@ -130,10 +130,7 @@ export function CheckInModal({
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.confirmBtn,
-                isSubmitting && styles.btnDisabled,
-              ]}
+              style={[styles.confirmBtn, isSubmitting && styles.btnDisabled]}
               onPress={onConfirm}
               disabled={isSubmitting}
             >

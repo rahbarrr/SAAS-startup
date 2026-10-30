@@ -71,7 +71,7 @@ describe("Live Location, Freshness & Route Intelligence Engine", () => {
           checkedOutAt: "2026-10-30T10:45:00Z",
           status: "submitted",
           checkInLocation: {
-            latitude: 37.7800, // ~600m away from store
+            latitude: 37.78, // ~600m away from store
             longitude: -122.4194,
             accuracyMeters: 20,
             status: "captured_unverified",
@@ -133,6 +133,8 @@ describe("Live Location, Freshness & Route Intelligence Engine", () => {
     const inactivityAlert = analysis.alerts.find((a) => a.type === "extended_inactivity");
     expect(inactivityAlert).toBeDefined();
     expect(inactivityAlert?.severity).toBe("critical");
-    expect(inactivityAlert?.message).toContain("No GPS location updates received for 120 minutes");
+    expect(inactivityAlert?.message).toContain(
+      "No GPS location updates received for 120 minutes"
+    );
   });
 });

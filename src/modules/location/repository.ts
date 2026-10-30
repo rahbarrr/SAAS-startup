@@ -60,10 +60,14 @@ export interface LocationRepository {
     speedMps?: number | null;
     heading?: number | null;
     recordedAt: string;
-    source?: "mobile_foreground" | "mobile_background" | "manual_refresh" | "geofence_trigger";
+    source?:
+      "mobile_foreground" | "mobile_background" | "manual_refresh" | "geofence_trigger";
   }): Promise<LocationEvent>;
   listLatestEmployeeLocations(orgId: string): Promise<LatestEmployeeLocation[]>;
-  getLatestEmployeeLocation(orgId: string, employeeId: string): Promise<LatestEmployeeLocation | null>;
+  getLatestEmployeeLocation(
+    orgId: string,
+    employeeId: string
+  ): Promise<LatestEmployeeLocation | null>;
   listLocationEventsForTrip(
     orgId: string,
     tripId: string,
@@ -118,7 +122,9 @@ export function mapBreadcrumbRow(
   };
 }
 
-export function mapTrackingSessionRow(row: DbTripTrackingSessionRow): LocationTrackingSession {
+export function mapTrackingSessionRow(
+  row: DbTripTrackingSessionRow
+): LocationTrackingSession {
   return {
     id: row.id,
     orgId: row.org_id,
@@ -378,7 +384,8 @@ export class SupabaseLocationRepository implements LocationRepository {
     speedMps?: number | null;
     heading?: number | null;
     recordedAt: string;
-    source?: "mobile_foreground" | "mobile_background" | "manual_refresh" | "geofence_trigger";
+    source?:
+      "mobile_foreground" | "mobile_background" | "manual_refresh" | "geofence_trigger";
   }): Promise<LocationEvent> {
     const { data, error } = await this.supabase
       .from("location_events")
@@ -410,11 +417,13 @@ export class SupabaseLocationRepository implements LocationRepository {
   async listLatestEmployeeLocations(orgId: string): Promise<LatestEmployeeLocation[]> {
     const { data, error } = await this.supabase
       .from("latest_employee_locations")
-      .select(`
+      .select(
+        `
         *,
         profiles:employee_id(full_name, email),
         trips:trip_id(title)
-      `)
+      `
+      )
       .eq("org_id", orgId)
       .order("recorded_at", { ascending: false });
 
@@ -434,11 +443,13 @@ export class SupabaseLocationRepository implements LocationRepository {
   ): Promise<LatestEmployeeLocation | null> {
     const { data, error } = await this.supabase
       .from("latest_employee_locations")
-      .select(`
+      .select(
+        `
         *,
         profiles:employee_id(full_name, email),
         trips:trip_id(title)
-      `)
+      `
+      )
       .eq("org_id", orgId)
       .eq("employee_id", employeeId)
       .maybeSingle();

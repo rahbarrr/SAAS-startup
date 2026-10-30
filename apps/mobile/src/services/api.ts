@@ -102,8 +102,7 @@ export class FieldTrackMobileApiClient {
     const body = await response.json();
     if (!response.ok || !body?.data?.id) {
       throw new Error(
-        body?.error?.message ??
-          `Failed to create organization (${response.status})`
+        body?.error?.message ?? `Failed to create organization (${response.status})`
       );
     }
 
@@ -128,8 +127,7 @@ export class FieldTrackMobileApiClient {
     const body = await response.json();
     if (!response.ok || !body?.data?.orgId) {
       throw new Error(
-        body?.error?.message ??
-          `Failed to accept invitation (${response.status})`
+        body?.error?.message ?? `Failed to accept invitation (${response.status})`
       );
     }
 
@@ -404,10 +402,7 @@ export class FieldTrackMobileApiClient {
   /**
    * Stops an active live tracking session.
    */
-  async stopTrackingSession(params: {
-    tripId: string;
-    reason?: string;
-  }): Promise<void> {
+  async stopTrackingSession(params: { tripId: string; reason?: string }): Promise<void> {
     const url = `${this.config.baseUrl}/api/orgs/${this.config.orgId}/location/sessions`;
     const response = await fetch(url, {
       method: "DELETE",
@@ -434,7 +429,8 @@ export class FieldTrackMobileApiClient {
     speedMps?: number | null;
     heading?: number | null;
     recordedAt?: string;
-    source?: "mobile_foreground" | "mobile_background" | "manual_refresh" | "geofence_trigger";
+    source?:
+      "mobile_foreground" | "mobile_background" | "manual_refresh" | "geofence_trigger";
   }): Promise<void> {
     const url = `${this.config.baseUrl}/api/orgs/${this.config.orgId}/location/events`;
     const response = await fetch(url, {

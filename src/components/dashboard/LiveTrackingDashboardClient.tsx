@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { LiveManagerMap, type LiveEmployeeMarkerData, type StoreMapData } from "@/components/maps";
+import {
+  LiveManagerMap,
+  type LiveEmployeeMarkerData,
+  type StoreMapData,
+} from "@/components/maps";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 export interface LiveTrackingDashboardClientProps {
@@ -21,7 +25,9 @@ export function LiveTrackingDashboardClient({
   const [filter, setFilter] = useState<FilterStatus>("all");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastRefreshed, setLastRefreshed] = useState<string>(new Date().toLocaleTimeString());
+  const [lastRefreshed, setLastRefreshed] = useState<string>(
+    new Date().toLocaleTimeString()
+  );
 
   const selectedEmployee = useMemo(
     () => locations.find((e) => e.employeeId === selectedEmployeeId) ?? null,
@@ -80,7 +86,8 @@ export function LiveTrackingDashboardClient({
       if (filter === "active") return loc.freshness.status === "fresh";
       if (filter === "delayed") return loc.freshness.status === "delayed";
       if (filter === "stale") return loc.freshness.status === "stale";
-      if (filter === "offline") return loc.trackingStatus === "offline" || loc.trackingStatus === "stopped";
+      if (filter === "offline")
+        return loc.trackingStatus === "offline" || loc.trackingStatus === "stopped";
       return true;
     });
   }, [locations, filter]);
@@ -105,25 +112,41 @@ export function LiveTrackingDashboardClient({
           <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#475569" }}>
             Filter Status:
           </span>
-          {(["all", "active", "delayed", "stale", "offline"] as FilterStatus[]).map((st) => (
-            <button
-              key={st}
-              onClick={() => setFilter(st)}
-              className="btn btn-sm"
-              style={{
-                fontSize: "0.75rem",
-                textTransform: "capitalize",
-                backgroundColor: filter === st ? "var(--brand-primary, #2563eb)" : "#f1f5f9",
-                color: filter === st ? "#ffffff" : "#334155",
-                border: "none",
-                borderRadius: "6px",
-                padding: "0.35rem 0.75rem",
-                cursor: "pointer",
-              }}
-            >
-              {st} ({st === "all" ? locations.length : locations.filter((l) => (st === "active" ? l.freshness.status === "fresh" : st === "delayed" ? l.freshness.status === "delayed" : st === "stale" ? l.freshness.status === "stale" : l.trackingStatus === "offline" || l.trackingStatus === "stopped")).length})
-            </button>
-          ))}
+          {(["all", "active", "delayed", "stale", "offline"] as FilterStatus[]).map(
+            (st) => (
+              <button
+                key={st}
+                onClick={() => setFilter(st)}
+                className="btn btn-sm"
+                style={{
+                  fontSize: "0.75rem",
+                  textTransform: "capitalize",
+                  backgroundColor:
+                    filter === st ? "var(--brand-primary, #2563eb)" : "#f1f5f9",
+                  color: filter === st ? "#ffffff" : "#334155",
+                  border: "none",
+                  borderRadius: "6px",
+                  padding: "0.35rem 0.75rem",
+                  cursor: "pointer",
+                }}
+              >
+                {st} (
+                {st === "all"
+                  ? locations.length
+                  : locations.filter((l) =>
+                      st === "active"
+                        ? l.freshness.status === "fresh"
+                        : st === "delayed"
+                          ? l.freshness.status === "delayed"
+                          : st === "stale"
+                            ? l.freshness.status === "stale"
+                            : l.trackingStatus === "offline" ||
+                              l.trackingStatus === "stopped"
+                    ).length}
+                )
+              </button>
+            )
+          )}
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -174,9 +197,22 @@ export function LiveTrackingDashboardClient({
               boxShadow: "var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05))",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+              }}
+            >
               <div>
-                <h3 style={{ margin: 0, fontSize: "1.125rem", fontWeight: 700, color: "#0f172a" }}>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: "1.125rem",
+                    fontWeight: 700,
+                    color: "#0f172a",
+                  }}
+                >
                   {selectedEmployee.employeeName ?? "Field Employee"}
                 </h3>
                 <p style={{ margin: "2px 0 0", fontSize: "0.75rem", color: "#64748b" }}>
@@ -203,29 +239,43 @@ export function LiveTrackingDashboardClient({
                   selectedEmployee.freshness.status === "fresh"
                     ? "#ecfdf5"
                     : selectedEmployee.freshness.status === "delayed"
-                    ? "#fffbeb"
-                    : "#fef2f2",
+                      ? "#fffbeb"
+                      : "#fef2f2",
                 border: `1px solid ${
                   selectedEmployee.freshness.status === "fresh"
                     ? "#a7f3d0"
                     : selectedEmployee.freshness.status === "delayed"
-                    ? "#fde68a"
-                    : "#fecaca"
+                      ? "#fde68a"
+                      : "#fecaca"
                 }`,
                 borderRadius: "8px",
                 padding: "0.75rem",
                 fontSize: "0.8125rem",
               }}
             >
-              <div style={{ fontWeight: 600, textTransform: "uppercase", fontSize: "0.75rem" }}>
+              <div
+                style={{
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  fontSize: "0.75rem",
+                }}
+              >
                 Status: {selectedEmployee.freshness.status}
               </div>
               <div style={{ color: "#475569", fontSize: "0.75rem", marginTop: "2px" }}>
-                {selectedEmployee.freshness.warningNote ?? "Fresh GPS fix reported within SLA"}
+                {selectedEmployee.freshness.warningNote ??
+                  "Fresh GPS fix reported within SLA"}
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.8125rem" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+                fontSize: "0.8125rem",
+              }}
+            >
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ color: "#64748b" }}>Active Trip:</span>
                 <span style={{ fontWeight: 600, color: "#0f172a" }}>
@@ -241,13 +291,22 @@ export function LiveTrackingDashboardClient({
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ color: "#64748b" }}>Accuracy:</span>
                 <span style={{ color: "#0f172a" }}>
-                  {selectedEmployee.accuracyM ? `±${Math.round(selectedEmployee.accuracyM)}m` : "Unavailable"}
+                  {selectedEmployee.accuracyM
+                    ? `±${Math.round(selectedEmployee.accuracyM)}m`
+                    : "Unavailable"}
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ color: "#64748b" }}>Coordinates:</span>
-                <span style={{ fontFamily: "monospace", fontSize: "0.75rem", color: "#334155" }}>
-                  {selectedEmployee.latitude.toFixed(4)}, {selectedEmployee.longitude.toFixed(4)}
+                <span
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: "0.75rem",
+                    color: "#334155",
+                  }}
+                >
+                  {selectedEmployee.latitude.toFixed(4)},{" "}
+                  {selectedEmployee.longitude.toFixed(4)}
                 </span>
               </div>
             </div>
@@ -256,7 +315,12 @@ export function LiveTrackingDashboardClient({
               <a
                 href={`/trips/${selectedEmployee.tripId}`}
                 className="btn btn-secondary"
-                style={{ width: "100%", textAlign: "center", display: "block", fontSize: "0.8125rem" }}
+                style={{
+                  width: "100%",
+                  textAlign: "center",
+                  display: "block",
+                  fontSize: "0.8125rem",
+                }}
               >
                 Inspect Full Trip →
               </a>

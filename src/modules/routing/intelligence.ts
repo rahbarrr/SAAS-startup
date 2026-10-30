@@ -92,12 +92,22 @@ export function evaluateTripRouteActivity(params: {
     const visit = visitsByStop.get(stop.id);
     const storeLat = stop.store?.latitude ?? null;
     const storeLng = stop.store?.longitude ?? null;
-    const storeCoords = storeLat !== null && storeLng !== null ? { latitude: storeLat, longitude: storeLng } : null;
+    const storeCoords =
+      storeLat !== null && storeLng !== null
+        ? { latitude: storeLat, longitude: storeLng }
+        : null;
 
     let distFromStore: number | null = null;
-    if (storeCoords && visit?.checkInLocation.latitude && visit?.checkInLocation.longitude) {
+    if (
+      storeCoords &&
+      visit?.checkInLocation.latitude &&
+      visit?.checkInLocation.longitude
+    ) {
       distFromStore = calculateHaversineMeters(
-        { latitude: visit.checkInLocation.latitude, longitude: visit.checkInLocation.longitude },
+        {
+          latitude: visit.checkInLocation.latitude,
+          longitude: visit.checkInLocation.longitude,
+        },
         storeCoords
       );
     }
@@ -108,7 +118,11 @@ export function evaluateTripRouteActivity(params: {
       visitedCount += 1;
 
       // Check boundary alert: if checked in outside 150m boundary with good GPS
-      if (distFromStore !== null && distFromStore > 150 && (visit?.checkInLocation.accuracyMeters ?? 0) <= 50) {
+      if (
+        distFromStore !== null &&
+        distFromStore > 150 &&
+        (visit?.checkInLocation.accuracyMeters ?? 0) <= 50
+      ) {
         alerts.push({
           type: "out_of_boundary_checkin",
           severity: "warning",
@@ -130,7 +144,10 @@ export function evaluateTripRouteActivity(params: {
           metadata: { visitId: visit.id, tripStopId: stop.id },
         });
       }
-    } else if (stop.status === "skipped" || (params.trip.status === "completed" && !visit)) {
+    } else if (
+      stop.status === "skipped" ||
+      (params.trip.status === "completed" && !visit)
+    ) {
       status = "missed";
       missedCount += 1;
       alerts.push({
@@ -151,7 +168,9 @@ export function evaluateTripRouteActivity(params: {
       plannedCoordinates: storeCoords,
       actualVisitedAt: visit?.checkedInAt ?? null,
       actualArrivalCoordinates:
-        visit && visit.checkInLocation.latitude !== null && visit.checkInLocation.longitude !== null
+        visit &&
+        visit.checkInLocation.latitude !== null &&
+        visit.checkInLocation.longitude !== null
           ? {
               latitude: visit.checkInLocation.latitude as number,
               longitude: visit.checkInLocation.longitude as number,

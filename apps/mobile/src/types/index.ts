@@ -145,4 +145,3 @@ export interface LiveTrackingState {
   accuracyMeters: number | null;
   syncStatus: "synced" | "pending" | "offline";
 }
-

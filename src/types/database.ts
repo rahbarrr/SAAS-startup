@@ -328,7 +328,8 @@ export interface DbLocationEventRow {
   heading: number | null;
   recorded_at: string;
   received_at: string;
-  source: "mobile_foreground" | "mobile_background" | "manual_refresh" | "geofence_trigger";
+  source:
+    "mobile_foreground" | "mobile_background" | "manual_refresh" | "geofence_trigger";
   created_at: string;
 }
 

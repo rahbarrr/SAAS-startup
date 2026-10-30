@@ -18,12 +18,7 @@ export function LiveTrackingBar({
   return (
     <View style={[styles.bar, isTracking ? styles.barActive : styles.barInactive]}>
       <View style={styles.left}>
-        <View
-          style={[
-            styles.dot,
-            isTracking ? styles.dotPulse : styles.dotInactive,
-          ]}
-        />
+        <View style={[styles.dot, isTracking ? styles.dotPulse : styles.dotInactive]} />
         <View>
           <Text style={styles.statusTitle}>
             {isTracking ? "Live GPS Location Sharing Active" : "Location Sharing Paused"}

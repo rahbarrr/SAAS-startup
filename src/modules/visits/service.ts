@@ -240,7 +240,11 @@ export async function checkInStopForOrg(params: {
   let verificationStatus: "verified" | "pending_review" = "verified";
   let verificationNotes: string | null = null;
 
-  if (location.status === "captured_unverified" && location.latitude !== null && location.longitude !== null) {
+  if (
+    location.status === "captured_unverified" &&
+    location.latitude !== null &&
+    location.longitude !== null
+  ) {
     // If accuracy is poor (> 50m)
     const accuracy = location.accuracyMeters ?? 0;
     if (accuracy > 50) {
@@ -252,7 +256,10 @@ export async function checkInStopForOrg(params: {
     let storeLat: number | null = null;
     let storeLng: number | null = null;
     if (params.storesRepository) {
-      const store = await params.storesRepository.getStoreById(context.orgId, stopContext.stop.storeId);
+      const store = await params.storesRepository.getStoreById(
+        context.orgId,
+        stopContext.stop.storeId
+      );
       if (store) {
         storeLat = store.latitude;
         storeLng = store.longitude;
@@ -269,7 +276,9 @@ export async function checkInStopForOrg(params: {
       if (dist > effectiveRadius) {
         verificationStatus = "pending_review";
         const reason = `Check-in detected at ${Math.round(dist)}m from store (exceeds ${effectiveRadius}m radius; GPS accuracy: ±${Math.round(accuracy)}m)`;
-        verificationNotes = verificationNotes ? `${verificationNotes}; ${reason}` : reason;
+        verificationNotes = verificationNotes
+          ? `${verificationNotes}; ${reason}`
+          : reason;
       }
     }
   } else if (location.status !== "captured_unverified") {

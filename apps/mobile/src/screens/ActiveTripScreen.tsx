@@ -1,13 +1,6 @@
 import * as Location from "expo-location";
 import React, { useEffect, useState } from "react";
-import {
-  Alert,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GeofenceConsentModal } from "../components/GeofenceConsentModal";
 import { GeofenceStatusBanner } from "../components/GeofenceStatusBanner";
 import { CheckInModal } from "../components/CheckInModal";
@@ -56,7 +49,8 @@ export function ActiveTripScreen({
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
 
   // GPS Check-in Modal state
-  const [selectedStopForCheckIn, setSelectedStopForCheckIn] = useState<MobileTripStop | null>(null);
+  const [selectedStopForCheckIn, setSelectedStopForCheckIn] =
+    useState<MobileTripStop | null>(null);
   const [checkInCoords, setCheckInCoords] = useState<{
     latitude: number | null;
     longitude: number | null;
@@ -107,8 +101,8 @@ export function ActiveTripScreen({
     // Set callback when geofence event is processed
     GeofenceManager.configure({
       onEventProcessed: async () => {
-        const { synced, failed } = await EventQueueManager.syncPendingEvents(
-          (event) => apiClient.sendGeofenceEvent(event)
+        const { synced, failed } = await EventQueueManager.syncPendingEvents((event) =>
+          apiClient.sendGeofenceEvent(event)
         );
         if (mounted) {
           setSyncStatus(`Auto Sync: ${synced} sent, ${failed} queued.`);
@@ -133,11 +127,7 @@ export function ActiveTripScreen({
 
   const handleConsentUpdated = async (newState: GeofenceConsentState) => {
     setConsentState(newState);
-    if (
-      newState.consented &&
-      newState.foregroundGranted &&
-      newState.backgroundGranted
-    ) {
+    if (newState.consented && newState.foregroundGranted && newState.backgroundGranted) {
       try {
         const res = await GeofenceManager.registerTripGeofences(trip, {
           currentUserId,
@@ -203,7 +193,12 @@ export function ActiveTripScreen({
     const coords = await getCurrentDeviceCoords();
     setCheckInCoords(coords);
 
-    if (coords.latitude !== null && coords.longitude !== null && stop.latitude !== null && stop.longitude !== null) {
+    if (
+      coords.latitude !== null &&
+      coords.longitude !== null &&
+      stop.latitude !== null &&
+      stop.longitude !== null
+    ) {
       const dist = calculateDistanceMeters(
         coords.latitude,
         coords.longitude,
@@ -219,7 +214,9 @@ export function ActiveTripScreen({
   const handleRefreshGpsReading = async () => {
     if (!selectedStopForCheckIn) return;
     try {
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
       if (pos?.coords) {
         const coords = {
           latitude: pos.coords.latitude,
@@ -227,7 +224,10 @@ export function ActiveTripScreen({
           accuracyMeters: pos.coords.accuracy ?? null,
         };
         setCheckInCoords(coords);
-        if (selectedStopForCheckIn.latitude !== null && selectedStopForCheckIn.longitude !== null) {
+        if (
+          selectedStopForCheckIn.latitude !== null &&
+          selectedStopForCheckIn.longitude !== null
+        ) {
           const dist = calculateDistanceMeters(
             coords.latitude,
             coords.longitude,
@@ -263,9 +263,15 @@ export function ActiveTripScreen({
           // Non-blocking
         }
       }
-      Alert.alert("Check-in Confirmed", `Checked into ${selectedStopForCheckIn.storeName} successfully.`);
+      Alert.alert(
+        "Check-in Confirmed",
+        `Checked into ${selectedStopForCheckIn.storeName} successfully.`
+      );
     } catch (err) {
-      Alert.alert("Check-in Error", err instanceof Error ? err.message : "Failed to check in");
+      Alert.alert(
+        "Check-in Error",
+        err instanceof Error ? err.message : "Failed to check in"
+      );
     } finally {
       setIsProcessingManual(false);
     }
@@ -308,10 +314,7 @@ export function ActiveTripScreen({
           // Non-blocking
         }
       }
-      Alert.alert(
-        "Check-in Recorded",
-        `Checked into ${stop.storeName} successfully.`
-      );
+      Alert.alert("Check-in Recorded", `Checked into ${stop.storeName} successfully.`);
     } catch (err) {
       Alert.alert(
         "Check-in Error",
@@ -342,10 +345,7 @@ export function ActiveTripScreen({
           // Non-blocking
         }
       }
-      Alert.alert(
-        "Check-out Recorded",
-        "Visit completed and submitted for review."
-      );
+      Alert.alert("Check-out Recorded", "Visit completed and submitted for review.");
     } catch (err) {
       Alert.alert(
         "Check-out Error",
@@ -381,8 +381,7 @@ export function ActiveTripScreen({
       <View style={styles.header}>
         <Text style={styles.tripTitle}>{trip.title}</Text>
         <Text style={styles.tripMeta}>
-          Status:{" "}
-          <Text style={styles.tripStatus}>{trip.status.toUpperCase()}</Text> •{" "}
+          Status: <Text style={styles.tripStatus}>{trip.status.toUpperCase()}</Text> •{" "}
           {trip.stops.length} Planned Stops
         </Text>
       </View>
@@ -448,9 +447,7 @@ export function ActiveTripScreen({
                 <Text
                   style={[
                     styles.stopStatusBadge,
-                    item.status === "visited"
-                      ? styles.badgeVisited
-                      : styles.badgePlanned,
+                    item.status === "visited" ? styles.badgeVisited : styles.badgePlanned,
                   ]}
                 >
                   {item.status}

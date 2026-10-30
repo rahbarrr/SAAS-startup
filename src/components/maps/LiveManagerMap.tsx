@@ -147,10 +147,10 @@ export function LiveManagerMap({
         freshness === "fresh"
           ? "#16a34a" // Green
           : freshness === "delayed"
-          ? "#d97706" // Amber
-          : freshness === "stale"
-          ? "#dc2626" // Red
-          : "#64748b"; // Grey
+            ? "#d97706" // Amber
+            : freshness === "stale"
+              ? "#dc2626" // Red
+              : "#64748b"; // Grey
 
       let marker = currentMap.get(emp.employeeId);
       if (!marker) {
@@ -225,7 +225,8 @@ export function LiveManagerMap({
 
   // Pan to selected employee
   useEffect(() => {
-    if (status !== "ready" || !google || !mapInstanceRef.current || !selectedEmployeeId) return;
+    if (status !== "ready" || !google || !mapInstanceRef.current || !selectedEmployeeId)
+      return;
     const target = employees.find((e) => e.employeeId === selectedEmployeeId);
     if (target) {
       mapInstanceRef.current.panTo({ lat: target.latitude, lng: target.longitude });

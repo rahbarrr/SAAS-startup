@@ -451,4 +451,3 @@ export async function submitGeofenceTelemetryEvent(params: {
     recordedAt: input.recordedAt,
   });
 }
-

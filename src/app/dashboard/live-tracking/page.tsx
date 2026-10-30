@@ -20,7 +20,8 @@ export default async function LiveTrackingPage(): Promise<ReactNode> {
         <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
           <h2>Access Restricted</h2>
           <p style={{ color: "#64748b" }}>
-            The Live Manager Map is restricted to organization managers and administrators.
+            The Live Manager Map is restricted to organization managers and
+            administrators.
           </p>
         </div>
       </div>
@@ -37,7 +38,9 @@ export default async function LiveTrackingPage(): Promise<ReactNode> {
       tenancyRepository,
       locationRepository,
     }).catch(() => []),
-    storesRepository.listStores(activeOrgId, { limit: 100 }).catch(() => ({ items: [], nextCursor: null })),
+    storesRepository
+      .listStores(activeOrgId, { limit: 100 })
+      .catch(() => ({ items: [], nextCursor: null })),
   ]);
 
   const validStores = storesResult.items
@@ -54,11 +57,19 @@ export default async function LiveTrackingPage(): Promise<ReactNode> {
   return (
     <div className="page-container">
       <div style={{ marginBottom: "1.5rem" }}>
-        <h1 style={{ fontSize: "1.75rem", fontWeight: 700, margin: "0 0 0.25rem", color: "#0f172a" }}>
+        <h1
+          style={{
+            fontSize: "1.75rem",
+            fontWeight: 700,
+            margin: "0 0 0.25rem",
+            color: "#0f172a",
+          }}
+        >
           📡 Live Location Tracking
         </h1>
         <p style={{ margin: 0, color: "#64748b", fontSize: "0.875rem" }}>
-          Real-time GPS tracking of field employees on authorized active work trips. Stale & delayed location warnings applied automatically.
+          Real-time GPS tracking of field employees on authorized active work trips. Stale
+          & delayed location warnings applied automatically.
         </p>
       </div>
 

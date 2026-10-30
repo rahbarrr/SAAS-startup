@@ -57,12 +57,14 @@ export const submitLocationEventInputSchema = z.object({
   speedMps: z.number().min(0).max(500).nullable().optional(),
   heading: z.number().min(0).max(360).nullable().optional(),
   recordedAt: z.string().datetime({ offset: true }),
-  source: z.enum([
-    "mobile_foreground",
-    "mobile_background",
-    "manual_refresh",
-    "geofence_trigger",
-  ]).default("mobile_foreground"),
+  source: z
+    .enum([
+      "mobile_foreground",
+      "mobile_background",
+      "manual_refresh",
+      "geofence_trigger",
+    ])
+    .default("mobile_foreground"),
 });
 export type SubmitLocationEventInput = z.infer<typeof submitLocationEventInputSchema>;
 
@@ -85,5 +87,6 @@ export const submitGeofenceEventRecordInputSchema = z.object({
   accuracyM: z.number().min(0).max(50000).nullable().optional(),
   recordedAt: z.string().datetime({ offset: true }),
 });
-export type SubmitGeofenceEventRecordInput = z.infer<typeof submitGeofenceEventRecordInputSchema>;
-
+export type SubmitGeofenceEventRecordInput = z.infer<
+  typeof submitGeofenceEventRecordInputSchema
+>;
