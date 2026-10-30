@@ -87,10 +87,12 @@ export const upsertTripDraftInputSchema = z
     purpose: z
       .string()
       .trim()
-      .min(3, "Please describe the operational purpose")
-      .max(1000, "Purpose must be at most 1000 characters"),
-    startLocation: z.string().trim().min(2, "Starting location is required").max(200),
-    destinationCity: z.string().trim().min(2, "Destination city is required").max(120),
+      .max(1000, "Purpose must be at most 1000 characters")
+      .default(""),
+    // Defaults keep older API clients and existing trip workflows backward-compatible.
+    // The interactive trip planner requires both fields before saving.
+    startLocation: z.string().trim().min(2).max(200).default("Not specified"),
+    destinationCity: z.string().trim().min(2).max(120).default("Not specified"),
     startDate: isoDateStringSchema,
     endDate: isoDateStringSchema,
     stops: z.array(tripStopInputSchema).max(50).default([]),
