@@ -7,6 +7,10 @@ function firstValue(value: string | string[] | undefined): string | null {
   return typeof selected === "string" && selected.length > 0 ? selected : null;
 }
 
+function isSafeAuthorizationCode(code: string): boolean {
+  return code.length <= 4096 && !/[\\u0000-\\u001f\\u007f]/.test(code);
+}
+
 /**
  * Supabase may use the configured Site URL when a redirect target is not
  * accepted. If that Site URL is "/", forward its authorization response to
@@ -23,19 +27,17 @@ export function buildRootOAuthCallbackRedirect(
     return null;
   }
 
-  if (
-    code &&
-    (code.length > 4096 || /[\u0000-\u001f\u007f]/.test(code))
-  ) {
+  if (code && !isSafeAuthorizationCode(code)) {
     return null;
   }
 
   const invitationToken =
     firstValue(searchParams.invite_token) ?? firstValue(searchParams.token);
-  const invitationNext =
-    invitationToken && /^[A-Za-z0-9_-]{16,256}$/.test(invitationToken)
-      ? `/onboarding?token=${encodeURIComponent(invitationToken)}`
-      : "/dashboard";
+  const isValidInvitationToken =
+    invitationToken && /^[A-Za-z0-9_-]{16,256}$/.test(invitationToken);
+  const invitationNext = isValidInvitationToken
+    ? `/onboarding?token=${encodeURIComponent(invitationToken)}`
+    : "/dashboard";
   const nextPath = sanitizeRedirectPath(
     firstValue(searchParams.next),
     invitationNext
