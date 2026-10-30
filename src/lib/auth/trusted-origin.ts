@@ -112,3 +112,50 @@ export function resolveAuthAppOrigin(
 
   return resolveTrustedAppOrigin(envSource);
 }
+
+/**
+ * Keeps the OAuth session cookie on the host that received the authorization
+ * code. Production project aliases are accepted only when their hostname is
+ * derived from Vercel's configured project Production domain.
+ */
+export function resolveAuthCallbackResponseOrigin(
+  requestOrigin: string,
+  canonicalOrigin: string,
+  envSource: Record<string, string | undefined> = process.env
+): string {
+  const request = parseOrigin(requestOrigin, "OAuth callback request URL");
+  const canonical = parseOrigin(canonicalOrigin, "Canonical application URL");
+  if (!canonical.origin) {
+    throw new Error(canonical.error ?? "Canonical application URL is invalid.");
+  }
+  if (!request.origin || request.origin === canonical.origin) {
+    return canonical.origin;
+  }
+
+  if (envSource.VERCEL_ENV?.trim() === "production") {
+    const projectDomain = envSource.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+    if (projectDomain) {
+      const candidate = projectDomain.startsWith("http")
+        ? projectDomain
+        : `https://${projectDomain}`;
+      const project = parseOrigin(candidate, "VERCEL_PROJECT_PRODUCTION_URL");
+      if (project.origin) {
+        const projectUrl = new URL(project.origin);
+        const requestUrl = new URL(request.origin);
+        const projectSuffix = ".vercel.app";
+        if (
+          projectUrl.hostname.endsWith(projectSuffix) &&
+          requestUrl.protocol === "https:" &&
+          requestUrl.hostname.endsWith(projectSuffix) &&
+          requestUrl.hostname.startsWith(
+            `${projectUrl.hostname.slice(0, -projectSuffix.length)}-`
+          )
+        ) {
+          return request.origin;
+        }
+      }
+    }
+  }
+
+  return canonical.origin;
+}
