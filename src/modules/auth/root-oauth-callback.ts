@@ -8,7 +8,8 @@ function firstValue(value: string | string[] | undefined): string | null {
 }
 
 function isSafeAuthorizationCode(code: string): boolean {
-  return code.length <= 4096 && !/[\\u0000-\\u001f\\u007f]/.test(code);
+  const hasControlCharacters = /[\u0000-\u001f\u007f]/.test(code);
+  return code.length <= 4096 && !hasControlCharacters;
 }
 
 /**
@@ -33,9 +34,10 @@ export function buildRootOAuthCallbackRedirect(
 
   const invitationToken =
     firstValue(searchParams.invite_token) ?? firstValue(searchParams.token);
-  const isValidInvitationToken =
-    invitationToken && /^[A-Za-z0-9_-]{16,256}$/.test(invitationToken);
-  const invitationNext = isValidInvitationToken
+  const hasValidInvitationToken =
+    invitationToken !== null &&
+    /^[A-Za-z0-9_-]{16,256}$/.test(invitationToken);
+  const invitationNext = hasValidInvitationToken
     ? `/onboarding?token=${encodeURIComponent(invitationToken)}`
     : "/dashboard";
   const nextPath = sanitizeRedirectPath(
