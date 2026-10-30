@@ -27,8 +27,7 @@ export function normalizeOrganizationMemberships(
         : null;
     if (!orgRaw || typeof orgRaw.id !== "string" || !orgRaw.id) continue;
 
-    const orgStatus =
-      orgRaw.status === "suspended" ? "suspended" : ("active" as const);
+    const orgStatus = orgRaw.status === "suspended" ? "suspended" : ("active" as const);
     if (orgStatus !== "active") continue;
 
     const nestedMembership =
@@ -38,15 +37,11 @@ export function normalizeOrganizationMemberships(
 
     const rawRole = nestedMembership?.role ?? record.role;
     const role: MobileOrganizationMembership["role"] =
-      rawRole === "admin" || rawRole === "manager"
-        ? rawRole
-        : "field_employee";
+      rawRole === "admin" || rawRole === "manager" ? rawRole : "field_employee";
 
     const rawStatus = nestedMembership?.status ?? record.status ?? "active";
     const status: MobileOrganizationMembership["status"] =
-      rawStatus === "invited" || rawStatus === "deactivated"
-        ? rawStatus
-        : "active";
+      rawStatus === "invited" || rawStatus === "deactivated" ? rawStatus : "active";
 
     if (status !== "active") continue;
 
@@ -170,10 +165,7 @@ export class MobileAuthService {
   static async saveSession(session: MobileAuthSession): Promise<void> {
     this.cachedSession = { ...session };
     try {
-      await SecureStore.setItemAsync(
-        MOBILE_SESSION_STORAGE_KEY,
-        JSON.stringify(session)
-      );
+      await SecureStore.setItemAsync(MOBILE_SESSION_STORAGE_KEY, JSON.stringify(session));
     } catch {
       // Non-blocking if SecureStore value cannot be written
     }
@@ -249,9 +241,7 @@ export class MobileAuthService {
       );
     }
 
-    const activeOrgs = normalizeOrganizationMemberships(
-      body.data.organizations
-    );
+    const activeOrgs = normalizeOrganizationMemberships(body.data.organizations);
 
     const session: MobileAuthSession = {
       baseUrl,
@@ -289,8 +279,7 @@ export class MobileAuthService {
     const body = await response.json();
     if (!response.ok) {
       throw new Error(
-        body?.error?.message ??
-          `Failed to refresh workspaces (HTTP ${response.status}).`
+        body?.error?.message ?? `Failed to refresh workspaces (HTTP ${response.status}).`
       );
     }
 
@@ -321,12 +310,8 @@ export class MobileAuthService {
 
     const updated: MobileAuthSession = {
       ...current,
-      ...(params.activeOrgId !== undefined
-        ? { activeOrgId: params.activeOrgId }
-        : {}),
-      ...(params.activeTripId !== undefined
-        ? { activeTripId: params.activeTripId }
-        : {}),
+      ...(params.activeOrgId !== undefined ? { activeOrgId: params.activeOrgId } : {}),
+      ...(params.activeTripId !== undefined ? { activeTripId: params.activeTripId } : {}),
     };
     await this.saveSession(updated);
     return updated;

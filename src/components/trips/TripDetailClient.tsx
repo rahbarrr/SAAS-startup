@@ -404,13 +404,38 @@ export function TripDetailClient({
             </h2>
             <p className="break-long-words">{trip.purpose}</p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: ".75rem", marginTop: "1rem" }}>
-              <div style={{ padding: ".9rem 1rem", borderRadius: "var(--radius-md)", border: "1px solid var(--border-default, #dbe2ef)", background: "var(--bg-subtle, #f8fafc)" }}>
-                <div className="card-meta" style={{ marginBottom: ".35rem" }}>STARTING POINT</div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: ".75rem",
+                marginTop: "1rem",
+              }}
+            >
+              <div
+                style={{
+                  padding: ".9rem 1rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-default, #dbe2ef)",
+                  background: "var(--bg-subtle, #f8fafc)",
+                }}
+              >
+                <div className="card-meta" style={{ marginBottom: ".35rem" }}>
+                  STARTING POINT
+                </div>
                 <strong>{trip.startLocation || "Not specified"}</strong>
               </div>
-              <div style={{ padding: ".9rem 1rem", borderRadius: "var(--radius-md)", border: "1px solid var(--border-default, #dbe2ef)", background: "var(--bg-subtle, #f8fafc)" }}>
-                <div className="card-meta" style={{ marginBottom: ".35rem" }}>DESTINATION CITY / AREA</div>
+              <div
+                style={{
+                  padding: ".9rem 1rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-default, #dbe2ef)",
+                  background: "var(--bg-subtle, #f8fafc)",
+                }}
+              >
+                <div className="card-meta" style={{ marginBottom: ".35rem" }}>
+                  DESTINATION CITY / AREA
+                </div>
                 <strong>{trip.destinationCity || "Not specified"}</strong>
               </div>
             </div>

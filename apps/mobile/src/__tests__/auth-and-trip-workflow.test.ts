@@ -120,9 +120,7 @@ describe("FieldTrack Mobile Auth & Trip Loading Workflow", () => {
 
     await MobileAuthService.updateActiveSelection({ activeTripId: "trip-99" });
     MobileAuthService.resetMemoryCache();
-    expect((await MobileAuthService.getSavedSession())?.activeTripId).toBe(
-      "trip-99"
-    );
+    expect((await MobileAuthService.getSavedSession())?.activeTripId).toBe("trip-99");
 
     await MobileAuthService.clearSession();
     expect(await MobileAuthService.getSavedSession()).toBeNull();
@@ -348,65 +346,67 @@ describe("FieldTrack Mobile Auth & Trip Loading Workflow", () => {
   });
 
   it("supports workspace creation, invitation acceptance, and rejects draft/unauthorized trips without fabricating data", async () => {
-    const mockFetch = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.endsWith("/api/orgs") && init?.method === "POST") {
-        return {
-          ok: true,
-          status: 201,
-          json: async () => ({
-            data: {
-              id: "org-created-1",
-              name: "New Field Ops",
-              slug: "new-field-ops",
-            },
-            error: null,
-          }),
-        };
-      }
-      if (url.endsWith("/api/invitations/accept") && init?.method === "POST") {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({
-            data: {
-              orgId: "org-invited-1",
-              role: "field_employee",
-            },
-            error: null,
-          }),
-        };
-      }
-      if (url.endsWith("/api/orgs/org-created-1/trips/trip-draft")) {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({
-            data: {
-              trip: {
-                id: "trip-draft",
-                orgId: "org-created-1",
-                ownerUserId: "emp-1",
-                title: "Unapproved Draft Trip",
-                startDate: "2026-10-28",
-                endDate: "2026-10-29",
-                purpose: "Draft",
-                status: "draft",
+    const mockFetch = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (url.endsWith("/api/orgs") && init?.method === "POST") {
+          return {
+            ok: true,
+            status: 201,
+            json: async () => ({
+              data: {
+                id: "org-created-1",
+                name: "New Field Ops",
+                slug: "new-field-ops",
               },
-              stops: [],
-            },
-            error: null,
-          }),
-        };
-      }
-      if (url.includes("/api/orgs/org-created-1/stores")) {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({ data: [], error: null }),
-        };
-      }
-      throw new Error(`Unexpected URL: ${url}`);
-    });
+              error: null,
+            }),
+          };
+        }
+        if (url.endsWith("/api/invitations/accept") && init?.method === "POST") {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              data: {
+                orgId: "org-invited-1",
+                role: "field_employee",
+              },
+              error: null,
+            }),
+          };
+        }
+        if (url.endsWith("/api/orgs/org-created-1/trips/trip-draft")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              data: {
+                trip: {
+                  id: "trip-draft",
+                  orgId: "org-created-1",
+                  ownerUserId: "emp-1",
+                  title: "Unapproved Draft Trip",
+                  startDate: "2026-10-28",
+                  endDate: "2026-10-29",
+                  purpose: "Draft",
+                  status: "draft",
+                },
+                stops: [],
+              },
+              error: null,
+            }),
+          };
+        }
+        if (url.includes("/api/orgs/org-created-1/stores")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ data: [], error: null }),
+          };
+        }
+        throw new Error(`Unexpected URL: ${url}`);
+      });
     vi.stubGlobal("fetch", mockFetch);
 
     const apiClient = new FieldTrackMobileApiClient({

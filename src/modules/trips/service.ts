@@ -58,7 +58,8 @@ async function assertAllStopStoresActiveInOrg(params: {
     if (
       params.destinationCity &&
       params.destinationCity !== "Not specified" &&
-      store.city.trim().toLocaleLowerCase() !== params.destinationCity.trim().toLocaleLowerCase()
+      store.city.trim().toLocaleLowerCase() !==
+        params.destinationCity.trim().toLocaleLowerCase()
     ) {
       throw new AppError(
         "VALIDATION_ERROR",

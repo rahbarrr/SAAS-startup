@@ -11,10 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  MobileAuthService,
-  resolveDefaultApiBaseUrl,
-} from "../services/auth";
+import { MobileAuthService, resolveDefaultApiBaseUrl } from "../services/auth";
 import type { MobileAuthSession } from "../types";
 
 export interface SignInScreenProps {
@@ -77,16 +74,15 @@ export function SignInScreen({
           </View>
           <Text style={styles.title}>FieldTrack Mobile Companion</Text>
           <Text style={styles.subtitle}>
-            Sign in and select an approved or in-progress field trip to enable
-            smart store geofence check-in and check-out.
+            Sign in and select an approved or in-progress field trip to enable smart store
+            geofence check-in and check-out.
           </Text>
         </View>
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Sign in to your account</Text>
           <Text style={styles.cardMeta}>
-            Access your organization’s approved field itineraries and store
-            geofences.
+            Access your organization’s approved field itineraries and store geofences.
           </Text>
 
           {errorMessage ? (
@@ -118,9 +114,7 @@ export function SignInScreen({
                 onPress={() => setShowPassword((prev) => !prev)}
                 disabled={isSubmitting}
               >
-                <Text style={styles.toggleText}>
-                  {showPassword ? "Hide" : "Show"}
-                </Text>
+                <Text style={styles.toggleText}>{showPassword ? "Hide" : "Show"}</Text>
               </TouchableOpacity>
             </View>
             <TextInput
@@ -163,19 +157,16 @@ export function SignInScreen({
                   editable={!isSubmitting}
                 />
                 <Text style={styles.helperText}>
-                  For local development on a physical Android device, ensure
-                  `npm run dev` is running on your computer (port 3000) or enter
-                  your deployed Vercel URL.
+                  For local development on a physical Android device, ensure `npm run dev`
+                  is running on your computer (port 3000) or enter your deployed Vercel
+                  URL.
                 </Text>
               </View>
             ) : null}
           </View>
 
           <TouchableOpacity
-            style={[
-              styles.submitBtn,
-              isSubmitting ? styles.submitBtnDisabled : null,
-            ]}
+            style={[styles.submitBtn, isSubmitting ? styles.submitBtnDisabled : null]}
             onPress={handleSignIn}
             disabled={isSubmitting}
           >

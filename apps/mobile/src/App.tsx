@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import "./services/geofencing";
-import {
-  ActiveTripScreen,
-  type ActiveTripScreenProps,
-} from "./screens/ActiveTripScreen";
+import { ActiveTripScreen, type ActiveTripScreenProps } from "./screens/ActiveTripScreen";
 import { SignInScreen } from "./screens/SignInScreen";
 import { TripSelectorScreen } from "./screens/TripSelectorScreen";
 import { FieldTrackMobileApiClient } from "./services/api";
@@ -22,9 +19,7 @@ export function App({
   apiClient = null,
 }: FieldTrackMobileAppProps): React.JSX.Element {
   const [session, setSession] = useState<MobileAuthSession | null>(null);
-  const [selectedTrip, setSelectedTrip] = useState<MobileTrip | null>(
-    activeTrip
-  );
+  const [selectedTrip, setSelectedTrip] = useState<MobileTrip | null>(activeTrip);
   const [selectedApiClient, setSelectedApiClient] =
     useState<FieldTrackMobileApiClient | null>(apiClient);
   const [isRestoringSession, setIsRestoringSession] = useState<boolean>(
@@ -152,18 +147,14 @@ export function App({
           trip={selectedTrip}
           apiClient={selectedApiClient}
           currentUserId={session?.user.id}
-          onBackToTrips={
-            activeTrip && apiClient ? undefined : handleBackToTrips
-          }
+          onBackToTrips={activeTrip && apiClient ? undefined : handleBackToTrips}
           onSignOut={activeTrip && apiClient ? undefined : handleSignOut}
           onTripUpdated={(updated) => setSelectedTrip(updated)}
         />
       ) : isRestoringSession ? (
         <View style={styles.loadingState}>
           <ActivityIndicator size="large" color="#0284c7" />
-          <Text style={styles.loadingText}>
-            Initializing FieldTrack Mobile…
-          </Text>
+          <Text style={styles.loadingText}>Initializing FieldTrack Mobile…</Text>
         </View>
       ) : session ? (
         <TripSelectorScreen

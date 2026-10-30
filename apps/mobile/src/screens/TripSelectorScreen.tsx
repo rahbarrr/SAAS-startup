@@ -10,11 +10,7 @@ import {
 } from "react-native";
 import { FieldTrackMobileApiClient } from "../services/api";
 import { MobileAuthService } from "../services/auth";
-import type {
-  MobileAuthSession,
-  MobileTrip,
-  MobileTripSummary,
-} from "../types";
+import type { MobileAuthSession, MobileTrip, MobileTripSummary } from "../types";
 
 export interface TripSelectorScreenProps {
   session: MobileAuthSession;
@@ -53,9 +49,7 @@ export function TripSelectorScreen({
         if (refreshed) {
           onSessionUpdated?.(refreshed);
           resolvedOrgId =
-            refreshed.activeOrgId ??
-            refreshed.organizations[0]?.organization.id ??
-            null;
+            refreshed.activeOrgId ?? refreshed.organizations[0]?.organization.id ?? null;
         }
       }
 
@@ -76,9 +70,7 @@ export function TripSelectorScreen({
       });
       setTrips(allUserTrips);
     } catch (err) {
-      setErrorMessage(
-        err instanceof Error ? err.message : "Failed to load field trips."
-      );
+      setErrorMessage(err instanceof Error ? err.message : "Failed to load field trips.");
     } finally {
       setIsLoading(false);
     }
@@ -122,9 +114,7 @@ export function TripSelectorScreen({
       setOrgNameInput("");
       setOrgSlugInput("");
     } catch (err) {
-      setErrorMessage(
-        err instanceof Error ? err.message : "Failed to create workspace."
-      );
+      setErrorMessage(err instanceof Error ? err.message : "Failed to create workspace.");
     } finally {
       setIsOnboardingSubmitting(false);
     }
@@ -190,9 +180,7 @@ export function TripSelectorScreen({
   );
   const pendingOrDraftCount = trips.filter(
     (t) =>
-      t.status === "draft" ||
-      t.status === "submitted" ||
-      t.status === "changes_requested"
+      t.status === "draft" || t.status === "submitted" || t.status === "changes_requested"
   ).length;
 
   return (
@@ -218,13 +206,8 @@ export function TripSelectorScreen({
               return (
                 <TouchableOpacity
                   key={membership.organization.id}
-                  style={[
-                    styles.orgPill,
-                    isSelected ? styles.orgPillSelected : null,
-                  ]}
-                  onPress={() =>
-                    onSelectOrganization(membership.organization.id)
-                  }
+                  style={[styles.orgPill, isSelected ? styles.orgPillSelected : null]}
+                  onPress={() => onSelectOrganization(membership.organization.id)}
                 >
                   <Text
                     style={[
@@ -242,8 +225,8 @@ export function TripSelectorScreen({
       ) : (
         <View style={styles.warningBox}>
           <Text style={styles.warningText}>
-            Your account does not belong to an active organization workspace yet.
-            Create a workspace or accept an invitation token below, or tap Refresh.
+            Your account does not belong to an active organization workspace yet. Create a
+            workspace or accept an invitation token below, or tap Refresh.
           </Text>
 
           <View style={styles.onboardingCard}>
@@ -271,9 +254,7 @@ export function TripSelectorScreen({
               disabled={isOnboardingSubmitting}
             >
               <Text style={styles.onboardingBtnText}>
-                {isOnboardingSubmitting
-                  ? "Working…"
-                  : "Create Organization Workspace"}
+                {isOnboardingSubmitting ? "Working…" : "Create Organization Workspace"}
               </Text>
             </TouchableOpacity>
 
@@ -326,9 +307,8 @@ export function TripSelectorScreen({
       {pendingOrDraftCount > 0 ? (
         <View style={styles.infoBanner}>
           <Text style={styles.infoBannerText}>
-            ℹ️ You also have {pendingOrDraftCount} trip(s) in draft/submitted
-            status. Only manager-approved or in-progress trips can activate
-            store geofencing.
+            ℹ️ You also have {pendingOrDraftCount} trip(s) in draft/submitted status. Only
+            manager-approved or in-progress trips can activate store geofencing.
           </Text>
         </View>
       ) : null}
@@ -340,13 +320,10 @@ export function TripSelectorScreen({
         </View>
       ) : executableTrips.length === 0 ? (
         <View style={styles.emptyCard}>
-          <Text style={styles.emptyTitle}>
-            No Approved or In-Progress Trips Found
-          </Text>
+          <Text style={styles.emptyTitle}>No Approved or In-Progress Trips Found</Text>
           <Text style={styles.emptySubtitle}>
-            To start smart store geofencing, create a trip with store stops in
-            FieldTrack and have a manager approve it. Once approved, tap Refresh
-            above.
+            To start smart store geofencing, create a trip with store stops in FieldTrack
+            and have a manager approve it. Once approved, tap Refresh above.
           </Text>
         </View>
       ) : (
@@ -676,4 +653,3 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
-

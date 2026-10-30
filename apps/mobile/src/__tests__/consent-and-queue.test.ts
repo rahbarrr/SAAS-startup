@@ -151,9 +151,9 @@ describe("FieldTrack Mobile Consent and Event Queue", () => {
     expect(recoveredQueue.find((x) => x.clientEventId === e1.clientEventId)?.status).toBe(
       "queued"
     );
-    expect(recoveredQueue.find((x) => x.clientEventId === e2.clientEventId)?.dwellTimeSeconds).toBe(
-      900
-    );
+    expect(
+      recoveredQueue.find((x) => x.clientEventId === e2.clientEventId)?.dwellTimeSeconds
+    ).toBe(900);
   });
 
   it("syncs queued events chronologically and applies exponential backoff on network failure", async () => {

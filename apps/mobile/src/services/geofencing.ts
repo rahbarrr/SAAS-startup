@@ -235,9 +235,7 @@ export async function handleGeofenceTaskEvent({
           authToken: savedSession.accessToken,
           orgId: savedSession.activeOrgId,
         });
-        await EventQueueManager.syncPendingEvents((evt) =>
-          client.sendGeofenceEvent(evt)
-        );
+        await EventQueueManager.syncPendingEvents((evt) => client.sendGeofenceEvent(evt));
       }
     } catch {
       // Non-blocking: event remains persisted in SecureStore for subsequent sync

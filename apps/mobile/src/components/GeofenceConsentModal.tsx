@@ -72,7 +72,10 @@ export function GeofenceConsentModal({
       onConsentUpdated(updatedState);
       onClose();
     } catch (error) {
-      Alert.alert("Permission Error", error instanceof Error ? error.message : "Failed to update permissions");
+      Alert.alert(
+        "Permission Error",
+        error instanceof Error ? error.message : "Failed to update permissions"
+      );
     } finally {
       setIsRequesting(false);
     }
@@ -88,8 +91,9 @@ export function GeofenceConsentModal({
             <View style={styles.infoBox}>
               <Text style={styles.infoTitle}>Privacy & Transparency Policy</Text>
               <Text style={styles.infoText}>
-                FieldTrack uses native geofencing exclusively to detect arrival and departure
-                at the planned store stops of your authorized, active work trips.
+                FieldTrack uses native geofencing exclusively to detect arrival and
+                departure at the planned store stops of your authorized, active work
+                trips.
               </Text>
               <Text style={styles.bulletPoint}>
                 • Only active trip stops (max 20) are monitored within a 120m radius.
@@ -106,7 +110,9 @@ export function GeofenceConsentModal({
             </View>
 
             <View style={styles.consentRow}>
-              <Text style={styles.consentLabel}>I consent to automatic visit tracking</Text>
+              <Text style={styles.consentLabel}>
+                I consent to automatic visit tracking
+              </Text>
               <Switch
                 value={consentGiven}
                 onValueChange={handleToggleConsent}
@@ -132,7 +138,9 @@ export function GeofenceConsentModal({
                   disabled={isRequesting}
                 >
                   <Text style={styles.buttonText}>
-                    {isRequesting ? "Requesting Permissions…" : "Grant Location Permissions"}
+                    {isRequesting
+                      ? "Requesting Permissions…"
+                      : "Grant Location Permissions"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -257,4 +265,3 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 });
-

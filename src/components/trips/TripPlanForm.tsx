@@ -73,7 +73,9 @@ export function TripPlanForm({
   const activeStores = availableStores.filter((s) => s.active);
   const normalizedDestination = destinationCity.trim().toLocaleLowerCase();
   const destinationStores = normalizedDestination
-    ? activeStores.filter((store) => store.city.trim().toLocaleLowerCase() === normalizedDestination)
+    ? activeStores.filter(
+        (store) => store.city.trim().toLocaleLowerCase() === normalizedDestination
+      )
     : [];
   const actionGuard = createInFlightActionGuard();
 
@@ -149,7 +151,9 @@ export function TripPlanForm({
       return !store || store.city.trim().toLocaleLowerCase() !== normalizedDestination;
     });
     if (stopsOutsideDestination.length > 0) {
-      setError("One or more planned stores are outside the destination city. Remove those stops or update the destination before saving.");
+      setError(
+        "One or more planned stores are outside the destination city. Remove those stops or update the destination before saving."
+      );
       return;
     }
 
@@ -329,28 +333,120 @@ export function TripPlanForm({
           </div>
         </div>
 
-        <section aria-labelledby="journey-heading" style={{ padding: "1.25rem", borderRadius: "1rem", border: "1px solid var(--border-default, #dbe2ef)", background: "linear-gradient(135deg, rgba(27,53,128,.07), rgba(245,158,11,.07))" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: ".75rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+        <section
+          aria-labelledby="journey-heading"
+          style={{
+            padding: "1.25rem",
+            borderRadius: "1rem",
+            border: "1px solid var(--border-default, #dbe2ef)",
+            background:
+              "linear-gradient(135deg, rgba(27,53,128,.07), rgba(245,158,11,.07))",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: ".75rem",
+              flexWrap: "wrap",
+              marginBottom: "1rem",
+            }}
+          >
             <div>
-              <h2 id="journey-heading" style={{ margin: 0, fontSize: "1.125rem" }}>Journey details</h2>
-              <p className="card-meta" style={{ margin: ".25rem 0 0" }}>Define where the employee starts and which city they will cover.</p>
+              <h2 id="journey-heading" style={{ margin: 0, fontSize: "1.125rem" }}>
+                Journey details
+              </h2>
+              <p className="card-meta" style={{ margin: ".25rem 0 0" }}>
+                Define where the employee starts and which city they will cover.
+              </p>
             </div>
-            <span className="card-meta" style={{ border: "1px solid var(--border-default)", borderRadius: "999px", padding: ".3rem .65rem" }}>ROUTE PLAN</span>
+            <span
+              className="card-meta"
+              style={{
+                border: "1px solid var(--border-default)",
+                borderRadius: "999px",
+                padding: ".3rem .65rem",
+              }}
+            >
+              ROUTE PLAN
+            </span>
           </div>
           <div className="card-grid">
             <div>
-              <label htmlFor="start-location" style={{ display: "block", fontWeight: 600, marginBottom: ".35rem" }}>Starting point *</label>
-              <input id="start-location" type="text" required maxLength={200} value={startLocation} onChange={(e) => setStartLocation(e.target.value)} placeholder="e.g. Regional office, Patna / Home, Saharsa" style={{ width: "100%", padding: ".7rem .8rem", borderRadius: "var(--radius-md)", border: "1px solid var(--border-strong)" }} />
-              <p className="card-meta" style={{ margin: ".35rem 0 0" }}>Office, home, warehouse or another agreed starting point.</p>
+              <label
+                htmlFor="start-location"
+                style={{ display: "block", fontWeight: 600, marginBottom: ".35rem" }}
+              >
+                Starting point *
+              </label>
+              <input
+                id="start-location"
+                type="text"
+                required
+                maxLength={200}
+                value={startLocation}
+                onChange={(e) => setStartLocation(e.target.value)}
+                placeholder="e.g. Regional office, Patna / Home, Saharsa"
+                style={{
+                  width: "100%",
+                  padding: ".7rem .8rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-strong)",
+                }}
+              />
+              <p className="card-meta" style={{ margin: ".35rem 0 0" }}>
+                Office, home, warehouse or another agreed starting point.
+              </p>
             </div>
             <div>
-              <label htmlFor="destination-city" style={{ display: "block", fontWeight: 600, marginBottom: ".35rem" }}>Destination city / area *</label>
-              <input id="destination-city" type="text" required maxLength={120} value={destinationCity} onChange={(e) => setDestinationCity(e.target.value)} placeholder="e.g. Muzaffarpur, Bihar" style={{ width: "100%", padding: ".7rem .8rem", borderRadius: "var(--radius-md)", border: "1px solid var(--border-strong)" }} />
-              <p className="card-meta" style={{ margin: ".35rem 0 0" }}>Primary city or territory where planned store visits will happen.</p>
+              <label
+                htmlFor="destination-city"
+                style={{ display: "block", fontWeight: 600, marginBottom: ".35rem" }}
+              >
+                Destination city / area *
+              </label>
+              <input
+                id="destination-city"
+                type="text"
+                required
+                maxLength={120}
+                value={destinationCity}
+                onChange={(e) => setDestinationCity(e.target.value)}
+                placeholder="e.g. Muzaffarpur, Bihar"
+                style={{
+                  width: "100%",
+                  padding: ".7rem .8rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-strong)",
+                }}
+              />
+              <p className="card-meta" style={{ margin: ".35rem 0 0" }}>
+                Primary city or territory where planned store visits will happen.
+              </p>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap", marginTop: "1rem", padding: ".75rem 1rem", background: "var(--bg-surface, #fff)", borderRadius: ".75rem", border: "1px solid var(--border-default, #dbe2ef)" }}>
-            <span aria-hidden="true">📍</span><strong style={{ fontSize: ".9rem" }}>{startLocation.trim() || "Starting point"}</strong><span style={{ color: "var(--text-muted)" }}>→</span><strong style={{ fontSize: ".9rem" }}>{destinationCity.trim() || "Destination city"}</strong>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: ".5rem",
+              flexWrap: "wrap",
+              marginTop: "1rem",
+              padding: ".75rem 1rem",
+              background: "var(--bg-surface, #fff)",
+              borderRadius: ".75rem",
+              border: "1px solid var(--border-default, #dbe2ef)",
+            }}
+          >
+            <span aria-hidden="true">📍</span>
+            <strong style={{ fontSize: ".9rem" }}>
+              {startLocation.trim() || "Starting point"}
+            </strong>
+            <span style={{ color: "var(--text-muted)" }}>→</span>
+            <strong style={{ fontSize: ".9rem" }}>
+              {destinationCity.trim() || "Destination city"}
+            </strong>
           </div>
         </section>
 
@@ -408,7 +504,8 @@ export function TripPlanForm({
             Planned Store Visits ({stops.length})
           </h2>
           <p className="card-meta" style={{ margin: "0 0 0.75rem" }}>
-            Add the stores you will visit in this destination, then arrange them in travel order.
+            Add the stores you will visit in this destination, then arrange them in travel
+            order.
           </p>
 
           <div
