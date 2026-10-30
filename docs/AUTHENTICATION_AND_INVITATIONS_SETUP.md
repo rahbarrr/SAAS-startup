@@ -25,17 +25,29 @@ The production sign-in URL and the OAuth callback must stay on the public Produc
 
 If verification fails, the app returns to the login page with a safe error message and preserves the intended next path so the user can retry without losing an invitation.
 
-## Automatic invitation email delivery (Resend)
+## Automatic invitation email delivery
+
+For local development, configure Mailtrap Email Testing credentials in `.env.local`:
+
+```text
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+MAILTRAP_USER=<Mailtrap sandbox SMTP username>
+MAILTRAP_PASS=<Mailtrap sandbox SMTP password>
+```
+
+Get them from **Email Testing → Inboxes → your inbox → SMTP Settings**. Local invitations go to the Mailtrap sandbox and are captured there. The Mailtrap credentials are used only when `NODE_ENV=development`.
+
+For Preview and Production:
 
 1. Create a Resend account and verify a sending domain you control. Do not use a sender address or domain that Resend has not verified.
 2. Create an API key with permission to send email.
-3. In Vercel, open the `saas-startup1` project and add these Production environment variables:
+3. In Vercel, open the `saas-startup1` project and add these environment variables:
    - `NEXT_PUBLIC_APP_URL=https://saas-startup1.vercel.app`
    - `RESEND_API_KEY` = the Resend API key (server-only secret)
    - `RESEND_FROM_EMAIL` = a verified sender, for example `FieldTrack <invites@your-verified-domain.com>`
-4. Redeploy after setting the variables. For local development, use `NEXT_PUBLIC_APP_URL=http://localhost:3000` and a Resend sender that is verified for your testing account.
+4. Redeploy after setting the variables.
 
-When an admin invites a manager or field employee, FieldTrack creates a single-use invitation record and tries to send an email through Resend. The app marks email as accepted for delivery only when Resend returns a successful response. If Resend is unconfigured or rejects the request, the invitation remains available and the admin is shown a fallback signup link to copy. A provider success response is not a guarantee that the message reached the recipient's inbox.
+When an admin invites a manager or field employee, FieldTrack creates a single-use invitation record and sends through Mailtrap in local development or Resend in Preview and Production. If the selected provider is unconfigured or rejects the request, the invitation remains available and the admin is shown a fallback signup link to copy. A provider success response means it accepted the message; it does not guarantee inbox delivery.
 
 ## Company profile and database migration
 

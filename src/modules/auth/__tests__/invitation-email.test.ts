@@ -1,4 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { createTransportMock, sendMailMock } = vi.hoisted(() => ({
+  createTransportMock: vi.fn(),
+  sendMailMock: vi.fn(),
+}));
+
+vi.mock("nodemailer", () => ({
+  default: { createTransport: createTransportMock },
+}));
+
 import {
   resolveInvitationOrigin,
   sendOrganizationInvitationEmail,
@@ -14,6 +24,12 @@ const invitation = {
 };
 
 describe("Organization invitation email delivery", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    createTransportMock.mockReturnValue({ sendMail: sendMailMock });
+    sendMailMock.mockResolvedValue({ messageId: "mailtrap-message-123" });
+  });
+
   it("reports email as unconfigured instead of pretending an invitation was sent", async () => {
     let called = false;
     const fetchImpl: typeof fetch = async () => {
@@ -77,6 +93,62 @@ describe("Organization invitation email delivery", () => {
       messageId: "email_message_123",
       error: null,
     });
+  });
+
+  it("sends development invitations through Mailtrap with the single-use invite link", async () => {
+    const result = await sendOrganizationInvitationEmail(
+      invitation,
+      {
+        NODE_ENV: "development",
+        MAILTRAP_USER: "sandbox-user",
+        MAILTRAP_PASS: "sandbox-password",
+        NEXT_PUBLIC_APP_URL: "http://localhost:3000",
+      },
+      async () => {
+        throw new Error("Resend must not be used in local development");
+      }
+    );
+
+    expect(createTransportMock).toHaveBeenCalledWith({
+      host: "sandbox.smtp.mailtrap.io",
+      port: 2525,
+      auth: { user: "sandbox-user", pass: "sandbox-password" },
+    });
+    expect(sendMailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "employee@gmail.com",
+        subject: expect.stringContaining("Acme Retail"),
+        text: expect.stringContaining(
+          "http://localhost:3000/signup?invite_token=raw-invite-token"
+        ),
+        html: expect.stringContaining(
+          "http://localhost:3000/signup?invite_token=raw-invite-token"
+        ),
+      })
+    );
+    expect(result).toMatchObject({
+      provider: "smtp",
+      delivered: true,
+      messageId: "mailtrap-message-123",
+      error: null,
+    });
+  });
+
+  it("fails closed in development when Mailtrap credentials are missing", async () => {
+    const fetchImpl: typeof fetch = async () => {
+      throw new Error("Resend must not receive local invitations");
+    };
+
+    const result = await sendOrganizationInvitationEmail(
+      invitation,
+      { NODE_ENV: "development", RESEND_API_KEY: "re_test_key" },
+      fetchImpl
+    );
+
+    expect(result.provider).toBe("unconfigured");
+    expect(result.delivered).toBe(false);
+    expect(result.error).toContain("MAILTRAP_USER and MAILTRAP_PASS");
+    expect(createTransportMock).not.toHaveBeenCalled();
   });
 
   it("uses the validated Vercel deployment URL for Preview invitations", async () => {

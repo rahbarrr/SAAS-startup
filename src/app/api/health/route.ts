@@ -72,7 +72,10 @@ export async function GET(request?: Request): Promise<NextResponse<HealthCheckRe
   const isPushConfigured = Boolean(
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY
   );
-  const isEmailConfigured = Boolean(process.env.RESEND_API_KEY);
+  const isEmailConfigured =
+    process.env.NODE_ENV === "development"
+      ? Boolean(process.env.MAILTRAP_USER && process.env.MAILTRAP_PASS)
+      : Boolean(process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL);
   const isSchedulerAuthConfigured = Boolean(process.env.CRON_SECRET);
   const isAiReportsConfigured = Boolean(
     process.env.OPENAI_API_KEY && process.env.OPENAI_REPORT_MODEL

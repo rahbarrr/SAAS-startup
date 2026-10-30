@@ -1,7 +1,8 @@
 import "server-only";
+import nodemailer from "nodemailer";
 import { resolveTrustedAppOrigin } from "@/lib/auth/trusted-origin";
 
-export type InvitationEmailProvider = "unconfigured" | "resend";
+export type InvitationEmailProvider = "unconfigured" | "resend" | "smtp";
 
 export interface InvitationEmailResult {
   provider: InvitationEmailProvider;
@@ -42,7 +43,8 @@ function unconfiguredResult(error: string, attemptedAt: string): InvitationEmail
 }
 
 /**
- * Sends a one-time workspace invitation using Resend. Invitation records are persisted
+ * Sends a one-time workspace invitation using Mailtrap in local development and
+ * Resend elsewhere. Invitation records are persisted
  * before email delivery; a provider failure is returned honestly so the admin can copy
  * the fallback link without the database transaction being lost.
  */
@@ -52,12 +54,17 @@ export async function sendOrganizationInvitationEmail(
   fetchImpl: typeof fetch = fetch
 ): Promise<InvitationEmailResult> {
   const attemptedAt = new Date().toISOString();
+  const isDevelopment = envSource.NODE_ENV === "development";
+  const mailtrapUser = envSource.MAILTRAP_USER?.trim();
+  const mailtrapPass = envSource.MAILTRAP_PASS?.trim();
   const apiKey = envSource.RESEND_API_KEY?.trim();
   const from = envSource.RESEND_FROM_EMAIL?.trim();
 
-  if (!apiKey || !from) {
+  if (isDevelopment ? !mailtrapUser || !mailtrapPass : !apiKey || !from) {
     return unconfiguredResult(
-      "Automatic email is not configured. Set RESEND_API_KEY and RESEND_FROM_EMAIL, plus NEXT_PUBLIC_APP_URL or VERCEL_URL for Preview.",
+      isDevelopment
+        ? "Local email testing is not configured. Set MAILTRAP_USER and MAILTRAP_PASS."
+        : "Automatic email is not configured. Set RESEND_API_KEY and RESEND_FROM_EMAIL, plus NEXT_PUBLIC_APP_URL or VERCEL_URL for Preview.",
       attemptedAt
     );
   }
@@ -113,6 +120,30 @@ export async function sendOrganizationInvitationEmail(
 </html>`;
 
   try {
+    if (isDevelopment) {
+      const transporter = nodemailer.createTransport({
+        host: "sandbox.smtp.mailtrap.io",
+        port: 2525,
+        auth: { user: mailtrapUser, pass: mailtrapPass },
+      });
+      const result = await transporter.sendMail({
+        from: envSource.MAILTRAP_FROM_EMAIL?.trim() || "FieldTrack <invites@fieldtrack.local>",
+        to: input.recipientEmail,
+        subject,
+        text,
+        html,
+        messageId: `<fieldtrack-invitation-${input.invitationId}@fieldtrack.local>`,
+      });
+
+      return {
+        provider: "smtp",
+        delivered: true,
+        messageId: result.messageId ?? null,
+        error: null,
+        attemptedAt,
+      };
+    }
+
     const response = await fetchImpl("https://api.resend.com/emails", {
       method: "POST",
       headers: {
