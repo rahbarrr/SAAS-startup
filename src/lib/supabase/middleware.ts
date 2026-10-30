@@ -1,7 +1,7 @@
 import { type CookieOptions, createServerClient } from "@supabase/ssr";
 import { isSameOriginMutation } from "@/lib/http/envelope";
 import { REQUEST_ID_HEADER, resolveRequestId } from "@/lib/observability/logger";
-import { sanitizeRedirectPath } from "@/modules/auth/schemas";
+import { resolveAuthenticatedDestination } from "@/modules/auth/authenticated-destination";
 import { type NextRequest, NextResponse } from "next/server";
 
 const PROTECTED_PREFIXES = [
@@ -141,20 +141,27 @@ async function enforceSessionAndAuth(request: NextRequest): Promise<NextResponse
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && isAuthPublicRoute(pathname)) {
-    const homeUrl = request.nextUrl.clone();
-    const invitationToken =
-      pathname === "/signup" ? request.nextUrl.searchParams.get("invite_token") : null;
+  if (user && pathname === "/") {
+    // OAuth providers can fall back to the configured Site URL. Never show the
+    // marketing landing page after a valid session has been established.
+    const dashboardUrl = request.nextUrl.clone();
+    dashboardUrl.pathname = "/dashboard";
+    dashboardUrl.search = "";
+    dashboardUrl.hash = "";
+    return NextResponse.redirect(dashboardUrl);
+  }
 
-    if (invitationToken) {
-      homeUrl.pathname = "/onboarding";
-      homeUrl.search = "";
-      homeUrl.searchParams.set("token", invitationToken);
-    } else {
-      homeUrl.pathname = "/";
-      homeUrl.search = "";
-    }
-    return NextResponse.redirect(homeUrl);
+  if (user && isAuthPublicRoute(pathname)) {
+    const destination = resolveAuthenticatedDestination(
+      pathname,
+      request.nextUrl.searchParams
+    );
+    const destinationUrl = new URL(destination, request.nextUrl.origin);
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = destinationUrl.pathname;
+    redirectUrl.search = destinationUrl.search;
+    redirectUrl.hash = "";
+    return NextResponse.redirect(redirectUrl);
   }
 
   return supabaseResponse;
