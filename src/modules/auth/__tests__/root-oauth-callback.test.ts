@@ -47,11 +47,13 @@ describe("root OAuth callback fallback", () => {
   });
 
   it("ignores ordinary homepage requests without OAuth parameters", () => {
-    expect(buildRootOAuthCallbackRedirect({utm_source:"pilot"})).toBeNull();
+    expect(buildRootOAuthCallbackRedirect({ utm_source: "pilot" })).toBeNull();
   });
 
   it("rejects oversized or control-character authorization codes", () => {
-    expect(buildRootOAuthCallbackRedirect({code:"a".repeat(4097)})).toBeNull();
+    expect(
+      buildRootOAuthCallbackRedirect({ code: "a".repeat(4097) })
+    ).toBeNull();
     expect(buildRootOAuthCallbackRedirect({code:"invalid\ncode"})).toBeNull();
   });
 
