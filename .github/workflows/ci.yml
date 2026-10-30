@@ -52,9 +52,7 @@ jobs:
             echo "No Prettier-eligible files changed; skipping format check."
           else
             printf 'Checking formatting for %s changed file(s).\n' "${#changed_files[@]}"
-            npx prettier --write "${changed_files[@]}"
-            echo "----- PRETTIER OUTPUT: src/modules/auth/root-oauth-callback.ts -----"
-            cat src/modules/auth/root-oauth-callback.ts
+            npx prettier --check "${changed_files[@]}"
           fi
 
       - name: Lint
