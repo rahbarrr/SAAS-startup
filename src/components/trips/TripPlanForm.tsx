@@ -31,6 +31,8 @@ export interface TripPlanFormProps {
   mode: "create" | "edit";
   initialTitle?: string;
   initialPurpose?: string;
+  initialStartLocation?: string;
+  initialDestinationCity?: string;
   initialStartDate?: string;
   initialEndDate?: string;
   initialStatus?: TripStatus;
@@ -44,6 +46,8 @@ export function TripPlanForm({
   mode,
   initialTitle = "",
   initialPurpose = "",
+  initialStartLocation = "",
+  initialDestinationCity = "",
   initialStartDate = new Date().toISOString().slice(0, 10),
   initialEndDate = new Date(Date.now() + 86400000).toISOString().slice(0, 10),
   initialStatus = "draft",
@@ -52,6 +56,8 @@ export function TripPlanForm({
 }: TripPlanFormProps): ReactNode {
   const [title, setTitle] = useState(initialTitle);
   const [purpose, setPurpose] = useState(initialPurpose);
+  const [startLocation, setStartLocation] = useState(initialStartLocation);
+  const [destinationCity, setDestinationCity] = useState(initialDestinationCity);
   const [startDate, setStartDate] = useState(initialStartDate);
   const [endDate, setEndDate] = useState(initialEndDate);
   const [status] = useState<TripStatus>(initialStatus);
@@ -114,6 +120,16 @@ export function TripPlanForm({
       return;
     }
 
+    if (startLocation.trim().length < 2 || destinationCity.trim().length < 2) {
+      setError("Add a clear starting location and destination city.");
+      return;
+    }
+
+    if (purpose.trim().length < 3) {
+      setError("Please describe the operational purpose (at least 3 characters).");
+      return;
+    }
+
     if (endDate < startDate) {
       setError("End date must be on or after the start date.");
       return;
@@ -140,6 +156,8 @@ export function TripPlanForm({
         body: JSON.stringify({
           title: title.trim(),
           purpose: purpose.trim(),
+          startLocation: startLocation.trim(),
+          destinationCity: destinationCity.trim(),
           startDate,
           endDate,
           stops: stops.map((s, idx) => ({
@@ -198,7 +216,7 @@ export function TripPlanForm({
             {mode === "create" ? "Plan Field Trip" : "Edit Field Trip"}
           </h1>
           <p className="card-meta">
-            Define your trip dates, purpose, and ordered store stops.
+            Build a clear journey plan for manager review and field execution.
           </p>
         </div>
         <StatusBadge descriptor={getApprovalStatusDescriptor(status)} />
@@ -298,6 +316,31 @@ export function TripPlanForm({
           </div>
         </div>
 
+        <section aria-labelledby="journey-heading" style={{ padding: "1.25rem", borderRadius: "1rem", border: "1px solid var(--border-default, #dbe2ef)", background: "linear-gradient(135deg, rgba(27,53,128,.07), rgba(245,158,11,.07))" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: ".75rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+            <div>
+              <h2 id="journey-heading" style={{ margin: 0, fontSize: "1.125rem" }}>Journey details</h2>
+              <p className="card-meta" style={{ margin: ".25rem 0 0" }}>Define where the employee starts and which city they will cover.</p>
+            </div>
+            <span className="card-meta" style={{ border: "1px solid var(--border-default)", borderRadius: "999px", padding: ".3rem .65rem" }}>ROUTE PLAN</span>
+          </div>
+          <div className="card-grid">
+            <div>
+              <label htmlFor="start-location" style={{ display: "block", fontWeight: 600, marginBottom: ".35rem" }}>Starting point *</label>
+              <input id="start-location" type="text" required maxLength={200} value={startLocation} onChange={(e) => setStartLocation(e.target.value)} placeholder="e.g. Regional office, Patna / Home, Saharsa" style={{ width: "100%", padding: ".7rem .8rem", borderRadius: "var(--radius-md)", border: "1px solid var(--border-strong)" }} />
+              <p className="card-meta" style={{ margin: ".35rem 0 0" }}>Office, home, warehouse or another agreed starting point.</p>
+            </div>
+            <div>
+              <label htmlFor="destination-city" style={{ display: "block", fontWeight: 600, marginBottom: ".35rem" }}>Destination city / area *</label>
+              <input id="destination-city" type="text" required maxLength={120} value={destinationCity} onChange={(e) => setDestinationCity(e.target.value)} placeholder="e.g. Muzaffarpur, Bihar" style={{ width: "100%", padding: ".7rem .8rem", borderRadius: "var(--radius-md)", border: "1px solid var(--border-strong)" }} />
+              <p className="card-meta" style={{ margin: ".35rem 0 0" }}>Primary city or territory where planned store visits will happen.</p>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap", marginTop: "1rem", padding: ".75rem 1rem", background: "var(--bg-surface, #fff)", borderRadius: ".75rem", border: "1px solid var(--border-default, #dbe2ef)" }}>
+            <span aria-hidden="true">📍</span><strong style={{ fontSize: ".9rem" }}>{startLocation.trim() || "Starting point"}</strong><span style={{ color: "var(--text-muted)" }}>→</span><strong style={{ fontSize: ".9rem" }}>{destinationCity.trim() || "Destination city"}</strong>
+          </div>
+        </section>
+
         <div className="card-grid">
           <div>
             <label
@@ -349,10 +392,10 @@ export function TripPlanForm({
             id="stops-builder-heading"
             style={{ margin: "0 0 0.5rem", fontSize: "1.125rem" }}
           >
-            Planned Stops ({stops.length})
+            Planned Store Visits ({stops.length})
           </h2>
           <p className="card-meta" style={{ margin: "0 0 0.75rem" }}>
-            Add and sequence retail stores in the exact order you plan to visit them.
+            Add the stores you will visit in this destination, then arrange them in travel order.
           </p>
 
           <div
@@ -425,7 +468,7 @@ export function TripPlanForm({
                 color: "var(--text-muted)",
               }}
             >
-              No stores added yet. Select a store above to add it to your trip route.
+              No store visits added yet. Choose a store in your destination city to build the itinerary.
             </div>
           ) : (
             <ol
