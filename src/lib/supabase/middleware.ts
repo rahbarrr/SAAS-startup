@@ -2,6 +2,7 @@ import { type CookieOptions, createServerClient } from "@supabase/ssr";
 import { isSameOriginMutation } from "@/lib/http/envelope";
 import { REQUEST_ID_HEADER, resolveRequestId } from "@/lib/observability/logger";
 import { resolveAuthenticatedDestination } from "@/modules/auth/authenticated-destination";
+import { buildRootOAuthCallbackRedirect } from "@/modules/auth/root-oauth-callback";
 import { sanitizeRedirectPath } from "@/modules/auth/schemas";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -130,6 +131,24 @@ async function enforceSessionAndAuth(request: NextRequest): Promise<NextResponse
       },
       { status: 403 }
     );
+  }
+
+  if (pathname === "/") {
+    const callbackRedirect = buildRootOAuthCallbackRedirect(
+      Object.fromEntries(request.nextUrl.searchParams.entries())
+    );
+
+    if (callbackRedirect) {
+      // Keep the authorization code exchange on the same host that received
+      // the PKCE cookie, including when Supabase falls back to the Site URL.
+      const callbackResponse = NextResponse.redirect(
+        new URL(callbackRedirect, request.nextUrl.origin)
+      );
+      for (const cookie of supabaseResponse.cookies.getAll()) {
+        callbackResponse.cookies.set(cookie);
+      }
+      return callbackResponse;
+    }
   }
 
   if (!user && isProtectedPath(pathname)) {
