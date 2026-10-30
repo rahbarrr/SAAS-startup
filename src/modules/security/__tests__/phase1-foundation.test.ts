@@ -238,6 +238,22 @@ describe("Phase 1: proxy session and access enforcement", () => {
     }
   });
 
+  it("forwards a root OAuth code to the callback on the same host", async () => {
+    stubSupabaseEnv(true);
+    getUser.mockResolvedValue({ data: { user: null }, error: null });
+
+    const res = await updateSessionAndEnforceAuth(
+      req("/?code=google-oauth-code&next=%2Fdashboard")
+    );
+
+    expect(res.status).toBe(307);
+    const location = new URL(res.headers.get("location") ?? "");
+    expect(location.origin).toBe("https://app.example.com");
+    expect(location.pathname).toBe("/auth/callback");
+    expect(location.searchParams.get("code")).toBe("google-oauth-code");
+    expect(location.searchParams.get("next")).toBe("/dashboard");
+  });
+
   it("sends signed-in users to the correct workspace entry point", async () => {
     stubSupabaseEnv(true);
     getUser.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
