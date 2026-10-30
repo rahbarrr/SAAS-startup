@@ -1,0 +1,71 @@
+name: One-time legacy formatting cleanup
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/format-legacy.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Format previously flagged files
+        run: |
+          npx prettier --write \
+            "apps/mobile/src/components/CheckInModal.tsx" \
+            "apps/mobile/src/components/LiveTrackingBar.tsx" \
+            "apps/mobile/src/screens/ActiveTripScreen.tsx" \
+            "apps/mobile/src/services/api.ts" \
+            "apps/mobile/src/types/index.ts" \
+            "src/app/api/orgs/[orgId]/trips/[tripId]/route-intelligence/route.ts" \
+            "src/app/dashboard/live-tracking/page.tsx" \
+            "src/components/dashboard/LiveTrackingDashboardClient.tsx" \
+            "src/components/maps/LiveManagerMap.tsx" \
+            "src/modules/location/domain.ts" \
+            "src/modules/location/repository.ts" \
+            "src/modules/location/schemas.ts" \
+            "src/modules/location/service.ts" \
+            "src/modules/routing/__tests__/route-intelligence.test.ts" \
+            "src/modules/routing/intelligence.ts" \
+            "src/modules/visits/service.ts" \
+            "src/types/database.ts"
+      - name: Commit formatting changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --             "apps/mobile/src/components/CheckInModal.tsx" \
+            "apps/mobile/src/components/LiveTrackingBar.tsx" \
+            "apps/mobile/src/screens/ActiveTripScreen.tsx" \
+            "apps/mobile/src/services/api.ts" \
+            "apps/mobile/src/types/index.ts" \
+            "src/app/api/orgs/[orgId]/trips/[tripId]/route-intelligence/route.ts" \
+            "src/app/dashboard/live-tracking/page.tsx" \
+            "src/components/dashboard/LiveTrackingDashboardClient.tsx" \
+            "src/components/maps/LiveManagerMap.tsx" \
+            "src/modules/location/domain.ts" \
+            "src/modules/location/repository.ts" \
+            "src/modules/location/schemas.ts" \
+            "src/modules/location/service.ts" \
+            "src/modules/routing/__tests__/route-intelligence.test.ts" \
+            "src/modules/routing/intelligence.ts" \
+            "src/modules/visits/service.ts" \
+            "src/types/database.ts"
+          if git diff --cached --quiet; then
+            echo "No formatting changes were needed."
+          else
+            git commit -m "style: format legacy location tracking files"
+            git push
+          fi
