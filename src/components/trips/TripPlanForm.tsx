@@ -71,6 +71,10 @@ export function TripPlanForm({
   const [confirmation, setConfirmation] = useState<string | null>(null);
 
   const activeStores = availableStores.filter((s) => s.active);
+  const normalizedDestination = destinationCity.trim().toLocaleLowerCase();
+  const destinationStores = normalizedDestination
+    ? activeStores.filter((store) => store.city.trim().toLocaleLowerCase() === normalizedDestination)
+    : [];
   const actionGuard = createInFlightActionGuard();
 
   function handleAddStop() {
@@ -137,6 +141,15 @@ export function TripPlanForm({
 
     if (stops.length === 0) {
       setError("Please add at least one planned store stop to the trip.");
+      return;
+    }
+
+    const stopsOutsideDestination = stops.filter((stop) => {
+      const store = availableStores.find((item) => item.id === stop.storeId);
+      return !store || store.city.trim().toLocaleLowerCase() !== normalizedDestination;
+    });
+    if (stopsOutsideDestination.length > 0) {
+      setError("One or more planned stores are outside the destination city. Remove those stops or update the destination before saving.");
       return;
     }
 
@@ -409,6 +422,7 @@ export function TripPlanForm({
             <select
               aria-label="Select store to add"
               value={selectedStoreId}
+              disabled={!normalizedDestination || destinationStores.length === 0}
               onChange={(e) => setSelectedStoreId(e.target.value)}
               style={{
                 flex: "1 1 15rem",
@@ -418,10 +432,14 @@ export function TripPlanForm({
                 backgroundColor: "var(--bg-surface)",
               }}
             >
-              {activeStores.length === 0 ? (
-                <option value="">No active stores available in organization</option>
-              ) : null}
-              {activeStores.map((store) => (
+              {!normalizedDestination ? (
+                <option value="">Enter a destination city first</option>
+              ) : destinationStores.length === 0 ? (
+                <option value="">No active stores in {destinationCity.trim()}</option>
+              ) : (
+                <option value="">Choose a store in {destinationCity.trim()}</option>
+              )}
+              {destinationStores.map((store) => (
                 <option key={store.id} value={store.id}>
                   {store.name} ({store.city}, {store.region})
                 </option>
@@ -431,7 +449,7 @@ export function TripPlanForm({
             <button
               type="button"
               onClick={handleAddStop}
-              disabled={activeStores.length === 0}
+              disabled={!selectedStoreId || destinationStores.length === 0}
               className="btn btn-secondary"
             >
               + Add Store Stop
@@ -468,7 +486,11 @@ export function TripPlanForm({
                 color: "var(--text-muted)",
               }}
             >
-              No store visits added yet. Choose a store in your destination city to build the itinerary.
+              {normalizedDestination
+                ? destinationStores.length > 0
+                  ? `No store visits added yet. Choose a store in ${destinationCity.trim()} to build the itinerary.`
+                  : `No active stores found in ${destinationCity.trim()}. Add or update stores in Store Management, then return here.`
+                : "Enter a destination city above to see matching active stores."}
             </div>
           ) : (
             <ol
