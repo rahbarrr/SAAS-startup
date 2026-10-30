@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createAuthCallbackFailureUrl } from "@/modules/auth/callback-error";
-import { resolveAuthAppOrigin } from "@/lib/auth/trusted-origin";
+import {
+  resolveAuthAppOrigin,
+  resolveAuthCallbackResponseOrigin,
+} from "@/lib/auth/trusted-origin";
 import { logger } from "@/lib/observability/logger";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import { sanitizeRedirectPath } from "@/modules/auth/schemas";
@@ -20,6 +23,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
   const canonicalOrigin = originResolution.origin;
+  const responseOrigin = resolveAuthCallbackResponseOrigin(
+    request.nextUrl.origin,
+    canonicalOrigin
+  );
 
   if (code && !providerError) {
     try {
@@ -27,7 +34,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
         let destination = nextPath;
-        const nextUrl = new URL(nextPath, canonicalOrigin);
+        const nextUrl = new URL(nextPath, responseOrigin);
         const hasInvitationToken =
           nextUrl.pathname === "/onboarding" && nextUrl.searchParams.has("token");
 
@@ -40,7 +47,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               logger.warn("OAuth session exchange returned no authenticated user", {
                 errorCode: userError?.code ?? "MISSING_USER",
               });
-              return NextResponse.redirect(new URL("/login", canonicalOrigin));
+              return NextResponse.redirect(new URL("/login", responseOrigin));
             }
             const repository = new SupabaseTenancyRepository(supabase);
             const memberships = await repository.listUserOrganizations(userData.user.id);
@@ -69,7 +76,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           }
         }
 
-        return NextResponse.redirect(new URL(destination, canonicalOrigin));
+        return NextResponse.redirect(new URL(destination, responseOrigin));
       } else {
         logger.error("OAuth code exchange failed", {
           errorCode: error.code,
@@ -93,5 +100,5 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   // Keep an invitation or intended destination available if the user retries sign-in.
-  return NextResponse.redirect(createAuthCallbackFailureUrl(canonicalOrigin, nextPath));
+  return NextResponse.redirect(createAuthCallbackFailureUrl(responseOrigin, nextPath));
 }
