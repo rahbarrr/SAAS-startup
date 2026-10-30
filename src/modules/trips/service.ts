@@ -24,7 +24,7 @@ import {
 async function assertAllStopStoresActiveInOrg(params: {
   orgId: string;
   stops: readonly TripStopInput[];
-  destinationCity: string;
+  destinationCity?: string;
   storesRepository: StoresRepository;
 }): Promise<void> {
   if (params.stops.length === 0) {
@@ -55,7 +55,11 @@ async function assertAllStopStoresActiveInOrg(params: {
         400
       );
     }
-    if (store.city.trim().toLocaleLowerCase() !== params.destinationCity.trim().toLocaleLowerCase()) {
+    if (
+      params.destinationCity &&
+      params.destinationCity !== "Not specified" &&
+      store.city.trim().toLocaleLowerCase() !== params.destinationCity.trim().toLocaleLowerCase()
+    ) {
       throw new AppError(
         "VALIDATION_ERROR",
         `Store '${store.name}' is in ${store.city}, not the trip destination ${params.destinationCity}`,
@@ -327,7 +331,6 @@ export async function submitTripForApproval(params: {
       sequenceNumber: s.sequenceNumber,
       plannedAt: s.plannedAt,
     })),
-    destinationCity: verifiedTrip.destinationCity ?? "Not specified",
     storesRepository: params.storesRepository,
   });
 
