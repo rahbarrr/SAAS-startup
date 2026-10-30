@@ -113,7 +113,6 @@ export function resolveAuthAppOrigin(
   return resolveTrustedAppOrigin(envSource);
 }
 
-
 /**
  * Keeps the OAuth session cookie on the host that received the authorization
  * code. Production project aliases are accepted only when their hostname is
