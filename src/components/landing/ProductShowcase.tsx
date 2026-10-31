@@ -3,7 +3,8 @@
 import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 
-type ShowcaseTab = "planning" | "approvals" | "visits" | "location" | "reports";
+type ShowcaseTab =
+  "dashboard" | "planning" | "approvals" | "visits" | "location" | "reports";
 
 interface ShowcaseData {
   id: ShowcaseTab;
@@ -15,6 +16,20 @@ interface ShowcaseData {
 }
 
 const SHOWCASE_TABS: readonly ShowcaseData[] = [
+  {
+    id: "dashboard",
+    tabLabel: "Operations Dashboard",
+    badge: "CENTRAL COMMAND",
+    heading: "Real-time command center across all field territories.",
+    description:
+      "Managers and operations leaders gain immediate clarity on active field routes, pending trip authorizations, store visit adherence, and critical retail merchandising exceptions.",
+    bulletPoints: [
+      "Live operational KPI cards with real-time field telemetry",
+      "Immediate trip approval triage and priority queueing",
+      "Territory adherence breakdown and store visit completion",
+      "Drill down directly from high-level metrics into store records",
+    ],
+  },
   {
     id: "planning",
     tabLabel: "Trip Planning",
@@ -59,7 +74,7 @@ const SHOWCASE_TABS: readonly ShowcaseData[] = [
   },
   {
     id: "location",
-    tabLabel: "Location Visibility",
+    tabLabel: "Live Location View",
     badge: "CAPABILITY 04",
     heading: "Maintain clear ground visibility without intrusive tracking.",
     description:
@@ -73,7 +88,7 @@ const SHOWCASE_TABS: readonly ShowcaseData[] = [
   },
   {
     id: "reports",
-    tabLabel: "Operational Reporting",
+    tabLabel: "Reports & Analytics",
     badge: "CAPABILITY 05",
     heading: "Compare planned vs. actual performance across territories.",
     description:
@@ -88,7 +103,7 @@ const SHOWCASE_TABS: readonly ShowcaseData[] = [
 ];
 
 export function ProductShowcase(): ReactNode {
-  const [activeTab, setActiveTab] = useState<ShowcaseTab>("planning");
+  const [activeTab, setActiveTab] = useState<ShowcaseTab>("dashboard");
   const shouldReduceMotion = useReducedMotion();
 
   const currentTab: ShowcaseData =
@@ -96,44 +111,31 @@ export function ProductShowcase(): ReactNode {
 
   return (
     <section
-      id="product"
+      id="showcase"
       className="product-showcase-section"
       aria-labelledby="showcase-heading"
     >
       <div className="landing-section-container">
         {/* Section Header */}
-        <motion.div
-          className="section-header-centered"
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.05 }}
-          transition={{ duration: 0.5 }}
-        >
-          <span className="section-eyebrow">PRODUCT CAPABILITIES</span>
+        <div className="section-header-centered">
+          <span className="section-eyebrow">INTERACTIVE PRODUCT SHOWCASE</span>
           <h2 id="showcase-heading" className="section-title">
             Turn field activity into operational visibility.
           </h2>
           <p className="section-subtitle">
-            Explore how FieldTrack streamlines trip planning, approvals, store execution,
-            and operational oversight.
+            Explore how FieldTrack manages the entire lifecycle of field operations—from
+            initial route planning to final audit verification and territory analytics.
           </p>
-        </motion.div>
+        </div>
 
-        {/* Tab Switcher Controls */}
+        {/* Interactive Tab Selector Buttons */}
         <div
-          className="showcase-tab-bar"
           role="tablist"
-          aria-label="Product capabilities tour"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "0.5rem",
-            flexWrap: "wrap",
-            marginBottom: "2.5rem",
-          }}
+          aria-label="Product Showcase Capabilities"
+          className="showcase-tab-bar"
         >
           {SHOWCASE_TABS.map((tab) => {
-            const isActive = tab.id === activeTab;
+            const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
@@ -141,12 +143,12 @@ export function ProductShowcase(): ReactNode {
                 id={`tab-${tab.id}`}
                 aria-selected={isActive}
                 aria-controls={`panel-${tab.id}`}
-                className={`showcase-tab-btn ${isActive ? "is-active" : ""}`}
-                onClick={() => setActiveTab(tab.id)}
                 type="button"
+                className={`showcase-tab-btn ${isActive ? "active" : ""}`}
+                onClick={() => setActiveTab(tab.id)}
                 style={{
-                  transition: "all 0.2s ease",
-                  cursor: "pointer",
+                  position: "relative",
+                  transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
                 }}
               >
                 <span>{tab.tabLabel}</span>
@@ -188,6 +190,96 @@ export function ProductShowcase(): ReactNode {
 
             {/* Right Column: Dynamic Mockup Visualization */}
             <div className="showcase-visual-col" style={{ perspective: 1000 }}>
+              {/* Mockup 0: Operations Dashboard */}
+              {activeTab === "dashboard" && (
+                <div className="showcase-mockup-card">
+                  <div className="mockup-header-bar">
+                    <span className="mockup-dot-group" aria-hidden="true">
+                      <span className="dot dot-red" />
+                      <span className="dot dot-yellow" />
+                      <span className="dot dot-green" />
+                    </span>
+                    <span className="mockup-bar-title">
+                      Operations Command Center • Midwest FMCG
+                    </span>
+                    <span className="badge-success text-xs">Live Sync</span>
+                  </div>
+
+                  <div className="showcase-mockup-body">
+                    {/* KPI Cards Row */}
+                    <div className="dashboard-mockup-kpis">
+                      <div className="dash-kpi-tile">
+                        <small className="text-muted">ACTIVE TRIPS</small>
+                        <strong className="text-lg text-primary">18</strong>
+                        <span className="text-xs text-success">↑ 4 in progress</span>
+                      </div>
+                      <div className="dash-kpi-tile">
+                        <small className="text-muted">PENDING APPROVALS</small>
+                        <strong className="text-lg text-amber">3</strong>
+                        <span className="text-xs text-muted">Awaiting review</span>
+                      </div>
+                      <div className="dash-kpi-tile">
+                        <small className="text-muted">COMPLETED VISITS</small>
+                        <strong className="text-lg text-success">142</strong>
+                        <span className="text-xs text-success">96.4% on schedule</span>
+                      </div>
+                      <div className="dash-kpi-tile">
+                        <small className="text-muted">STORE EXCEPTIONS</small>
+                        <strong className="text-lg text-danger">2</strong>
+                        <span className="text-xs text-danger">Out-of-stock items</span>
+                      </div>
+                    </div>
+
+                    {/* Operational Feed */}
+                    <div className="dashboard-mockup-feed">
+                      <div className="feed-header">
+                        <strong>Recent Field Activity & Approvals</strong>
+                        <span className="text-xs text-muted">Updated 2m ago</span>
+                      </div>
+                      <div className="feed-items-list">
+                        <div className="feed-item">
+                          <span className="feed-dot dot-green" aria-hidden="true" />
+                          <div className="feed-details">
+                            <span className="feed-title">
+                              Check-in Verified: Target Superstore #18
+                            </span>
+                            <span className="feed-sub">
+                              Marcus Vance • GPS 38m • Checklist Complete
+                            </span>
+                          </div>
+                          <span className="feed-time">10:42 AM</span>
+                        </div>
+                        <div className="feed-item">
+                          <span className="feed-dot dot-blue" aria-hidden="true" />
+                          <div className="feed-details">
+                            <span className="feed-title">
+                              Trip Approved: North Metro Corridor
+                            </span>
+                            <span className="feed-sub">
+                              Approved by Area Lead • 5 stops scheduled
+                            </span>
+                          </div>
+                          <span className="feed-time">09:15 AM</span>
+                        </div>
+                        <div className="feed-item">
+                          <span className="feed-dot dot-amber" aria-hidden="true" />
+                          <div className="feed-details">
+                            <span className="feed-title">
+                              Exception Logged: Kroger Market #302
+                            </span>
+                            <span className="feed-sub">
+                              Promotional Cooler stockout flagged
+                            </span>
+                          </div>
+                          <span className="feed-time">08:50 AM</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Mockup 1: Trip Planning */}
               {activeTab === "planning" && (
                 <div className="showcase-mockup-card">
                   <div className="mockup-header-bar">
@@ -252,24 +344,40 @@ export function ProductShowcase(): ReactNode {
                       <div className="planning-stop-connector" />
 
                       <div className="planning-stop-node">
-                        <div className="node-marker">3</div>
+                        <div className="node-marker pending">3</div>
                         <div className="node-content">
                           <div className="node-header">
-                            <strong>Walgreens Pharmacy Door #9</strong>
+                            <strong>Whole Foods Market</strong>
                             <span className="text-xs text-muted">
-                              02:00 PM – 03:00 PM
+                              01:30 PM – 03:00 PM
                             </span>
                           </div>
                           <small className="text-muted">
-                            3405 S King Dr • Shelf Share Verification
+                            1550 N Kingsbury St • Facing Compliance & Inventory
                           </small>
                         </div>
+                      </div>
+                    </div>
+
+                    <div className="planning-route-summary">
+                      <div className="route-stat">
+                        <span className="route-stat-label">Estimated Transit:</span>
+                        <strong className="route-stat-val">1h 14m</strong>
+                      </div>
+                      <div className="route-stat">
+                        <span className="route-stat-label">Total Mileage:</span>
+                        <strong className="route-stat-val">38.4 miles</strong>
+                      </div>
+                      <div className="route-stat">
+                        <span className="route-stat-label">Estimated Allowance:</span>
+                        <strong className="route-stat-val">$24.96</strong>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
+              {/* Mockup 2: Manager Approvals */}
               {activeTab === "approvals" && (
                 <div className="showcase-mockup-card">
                   <div className="mockup-header-bar">
@@ -279,105 +387,100 @@ export function ProductShowcase(): ReactNode {
                       <span className="dot dot-green" />
                     </span>
                     <span className="mockup-bar-title">
-                      Approvals Inbox • Manager Review
+                      Approval Queue • Trip #TRP-8402
                     </span>
-                    <span className="badge-warning text-xs">Pending Decision</span>
+                    <span className="badge-warning text-xs">Review Required</span>
                   </div>
 
                   <div className="showcase-mockup-body">
-                    <div className="planning-approval-box" style={{ margin: 0 }}>
-                      <div className="approval-box-header">
-                        <strong>Trip Request #TRP-8402</strong>
-                        <span className="text-xs text-muted">
-                          Submitted by Marcus Vance
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr",
-                          gap: "0.75rem",
-                          margin: "0.75rem 0",
-                          padding: "0.75rem",
-                          background: "#f8f9fc",
-                          borderRadius: "0.375rem",
-                        }}
-                      >
-                        <div>
-                          <small className="text-muted" style={{ display: "block" }}>
-                            STOPS &amp; MILEAGE
-                          </small>
-                          <strong style={{ fontSize: "0.875rem" }}>
-                            4 retail stops • 38.4 mi
-                          </strong>
+                    <div className="approval-request-card">
+                      <div className="request-profile-row">
+                        <div className="rep-avatar">MV</div>
+                        <div className="rep-meta">
+                          <strong>Marcus Vance</strong>
+                          <span className="text-xs text-muted">
+                            Submitted today at 08:14 AM • West District
+                          </span>
                         </div>
-                        <div>
-                          <small className="text-muted" style={{ display: "block" }}>
-                            COMPLIANCE CHECK
-                          </small>
-                          <strong style={{ fontSize: "0.875rem", color: "#16a34a" }}>
-                            ✓ Within policy allowance
-                          </strong>
+                        <span className="badge-info text-xs">Tier 1 Approval</span>
+                      </div>
+
+                      <div className="request-route-preview">
+                        <div className="preview-label">PROPOSED ROUTE & PURPOSE</div>
+                        <div className="preview-text">
+                          Q4 Promotional Launch Audit across 4 primary grocery doors in
+                          West District. Includes 3 planogram checks and 1 inventory
+                          reconciliation.
                         </div>
                       </div>
-                      <p
-                        className="text-xs text-secondary"
-                        style={{ margin: "0.5rem 0 0.25rem" }}
-                      >
-                        Manager Decision Feedback (mandatory):
-                      </p>
-                      <div
-                        className="mockup-input-box"
-                        style={{
-                          background: "#ffffff",
-                          border: "1px solid #d1d5db",
-                          padding: "0.5rem 0.75rem",
-                          borderRadius: "0.375rem",
-                          fontSize: "0.8125rem",
-                        }}
-                      >
-                        Route sequence verified against territory priorities. Approved.
+
+                      <div className="approval-itinerary-table">
+                        <div className="table-row-head">
+                          <span>Stop</span>
+                          <span>Store</span>
+                          <span>Est. Window</span>
+                          <span>Status</span>
+                        </div>
+                        <div className="table-row">
+                          <span>1</span>
+                          <span>Kroger #302</span>
+                          <span>09:00 AM</span>
+                          <span className="text-success text-xs">Verified</span>
+                        </div>
+                        <div className="table-row">
+                          <span>2</span>
+                          <span>Target #18</span>
+                          <span>11:15 AM</span>
+                          <span className="text-success text-xs">Verified</span>
+                        </div>
+                        <div className="table-row">
+                          <span>3</span>
+                          <span>Whole Foods</span>
+                          <span>01:30 PM</span>
+                          <span className="text-success text-xs">Verified</span>
+                        </div>
                       </div>
-                      <div
-                        className="approval-actions-row"
-                        style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}
-                      >
-                        <button
-                          type="button"
-                          className="mini-btn btn-success"
-                          disabled
-                          style={{
-                            background: "#16a34a",
-                            color: "#ffffff",
-                            border: "none",
-                            padding: "0.375rem 0.875rem",
-                            borderRadius: "0.25rem",
-                            fontWeight: 600,
-                            fontSize: "0.8125rem",
-                          }}
-                        >
-                          ✓ Approve Trip
-                        </button>
-                        <button
-                          type="button"
-                          className="mini-btn btn-outline"
-                          disabled
-                          style={{
-                            background: "transparent",
-                            border: "1px solid #d1d5db",
-                            padding: "0.375rem 0.875rem",
-                            borderRadius: "0.25rem",
-                            fontSize: "0.8125rem",
-                          }}
-                        >
-                          Request Changes
-                        </button>
+
+                      <div className="approval-actions-box">
+                        <div className="anti-tamper-notice">
+                          <span className="shield-tiny" aria-hidden="true">
+                            🔒
+                          </span>
+                          <span>
+                            Logged in as Sarah Chen (Area Lead). Self-approval prevented
+                            by PostgreSQL RLS.
+                          </span>
+                        </div>
+                        <div className="action-buttons-row">
+                          <button
+                            type="button"
+                            className="btn btn-secondary text-xs"
+                            disabled
+                          >
+                            Request Edits
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-danger-soft text-xs"
+                            disabled
+                          >
+                            Reject
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-primary text-xs"
+                            disabled
+                          >
+                            ✓ Approve Route
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
+              {/* Mockup 3: Store Visit Execution */}
               {activeTab === "visits" && (
                 <div className="showcase-mockup-card">
                   <div className="mockup-header-bar">
@@ -387,93 +490,79 @@ export function ProductShowcase(): ReactNode {
                       <span className="dot dot-green" />
                     </span>
                     <span className="mockup-bar-title">
-                      Store Visit Execution • Door #18 Target
+                      Active Visit • Target Superstore #18
                     </span>
-                    <span className="badge-success text-xs">
-                      Checked In (GPS Verified)
-                    </span>
+                    <span className="badge-success text-xs">In Progress</span>
                   </div>
 
                   <div className="showcase-mockup-body">
-                    <div className="visit-gps-telemetry-banner">
-                      <div className="gps-telemetry-icon" aria-hidden="true">
-                        📍
+                    <div className="visit-active-banner">
+                      <div className="geofence-status verified">
+                        <span className="geo-icon" aria-hidden="true">
+                          📍
+                        </span>
+                        <div>
+                          <strong>GPS Check-in Verified</strong>
+                          <span className="text-xs">
+                            Accuracy: 4.2m • Entrance distance: 22m (within 150m boundary)
+                          </span>
+                        </div>
                       </div>
-                      <div className="gps-telemetry-text">
-                        <strong>Consent Check-in Timestamp: 11:15:24 AM UTC</strong>
-                        <small>
-                          Lat: 41.8679 • Long: -87.6308 • Accuracy: ±8m • Store Verified
-                        </small>
-                      </div>
-                    </div>
-
-                    <div className="visit-checklist-section">
-                      <h5 className="visit-subhead">
-                        Required In-Store Inspection Items
-                      </h5>
-                      <div className="visit-checklist-group">
-                        <div className="visit-check-row row-done">
-                          <span className="check-status-icon">✓</span>
-                          <div className="check-detail">
-                            <strong>Cooler Temperature Audit</strong>
-                            <small>
-                              Recorded: 3.8°C (Normal operational threshold &lt; 5°C)
-                            </small>
-                          </div>
-                          <span className="pill-status-done">Completed</span>
-                        </div>
-
-                        <div className="visit-check-row row-done">
-                          <span className="check-status-icon">✓</span>
-                          <div className="check-detail">
-                            <strong>Shelf Facing & Planogram Alignment</strong>
-                            <small>8 facings verified on Eye-Level Shelf B</small>
-                          </div>
-                          <span className="pill-status-done">Completed</span>
-                        </div>
-
-                        <div className="visit-check-row row-done">
-                          <span className="check-status-icon">✓</span>
-                          <div className="check-detail">
-                            <strong>Stockout / OOS Flagging</strong>
-                            <small>Zero stockouts detected across top 4 SKUs</small>
-                          </div>
-                          <span className="pill-status-done">Completed</span>
-                        </div>
+                      <div className="timer-badge">
+                        <small className="text-muted">DURATION</small>
+                        <strong>24m 12s</strong>
                       </div>
                     </div>
 
-                    <div className="visit-evidence-gallery">
-                      <h5 className="visit-subhead">
-                        Captured Photographic Proof (Signed Vault)
-                      </h5>
-                      <div className="evidence-thumbnails-row">
-                        <div className="evidence-thumb-card">
-                          <div className="thumb-placeholder-img">
-                            <span>📷 Endcap Display</span>
-                          </div>
-                          <small className="thumb-caption">
-                            Aisle 4 Endcap • 11:22 AM
-                          </small>
+                    <div className="visit-checklist-preview">
+                      <div className="checklist-title-row">
+                        <strong>Store Inspection Checklist (3 of 4 Complete)</strong>
+                        <span className="text-xs text-muted">Mandatory for Checkout</span>
+                      </div>
+
+                      <div className="checklist-items">
+                        <div className="check-item done">
+                          <span className="check-box" aria-hidden="true">
+                            ✓
+                          </span>
+                          <span>Front Entrance Promotional Display Verified</span>
                         </div>
-                        <div className="evidence-thumb-card">
-                          <div className="thumb-placeholder-img">
-                            <span>📷 Cooler Gauge</span>
-                          </div>
-                          <small className="thumb-caption">Temp Log • 11:28 AM</small>
+                        <div className="check-item done">
+                          <span className="check-box" aria-hidden="true">
+                            ✓
+                          </span>
+                          <span>Endcap Facing & Pricing Label Audit</span>
                         </div>
-                        <div className="evidence-thumb-card">
-                          <div className="thumb-placeholder-img">
-                            <span>📷 Shelf Share</span>
-                          </div>
-                          <small className="thumb-caption">Facing Row 2 • 11:34 AM</small>
+                        <div className="check-item done">
+                          <span className="check-box" aria-hidden="true">
+                            ✓
+                          </span>
+                          <span>2 Display Photos Captured & Encrypted</span>
                         </div>
+                        <div className="check-item pending">
+                          <span className="check-box" aria-hidden="true" />
+                          <span>Manager Signature & Stock Condition Notes</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="visit-evidence-preview">
+                      <div className="evidence-thumb">
+                        <div className="thumb-placeholder">📷 Display Photo #1</div>
+                        <span className="text-xs text-muted">Endcap View • 11:28 AM</span>
+                      </div>
+                      <div className="evidence-thumb">
+                        <div className="thumb-placeholder">📷 Display Photo #2</div>
+                        <span className="text-xs text-muted">
+                          Cooler Facing • 11:34 AM
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
+              {/* Mockup 4: Location Visibility */}
               {activeTab === "location" && (
                 <div className="showcase-mockup-card">
                   <div className="mockup-header-bar">
@@ -483,129 +572,79 @@ export function ProductShowcase(): ReactNode {
                       <span className="dot dot-green" />
                     </span>
                     <span className="mockup-bar-title">
-                      Location &amp; Geofence Verification
+                      Territory Ground Visibility • West Metro
                     </span>
-                    <span className="badge-info text-xs">Privacy-Safe Verification</span>
+                    <span className="badge-info text-xs">3 Active Reps</span>
                   </div>
 
                   <div className="showcase-mockup-body">
-                    <div
-                      style={{
-                        background: "#f8f9fc",
-                        borderRadius: "0.5rem",
-                        padding: "1rem",
-                        border: "1px solid #e5e7eb",
-                        marginBottom: "1rem",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "0.5rem",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "0.8125rem",
-                            fontWeight: 700,
-                            color: "#20243a",
-                          }}
+                    <div className="map-mockup-container">
+                      <div className="map-grid-bg">
+                        {/* Store Pin 1 */}
+                        <div
+                          className="map-pin pin-done"
+                          style={{ top: "25%", left: "20%" }}
                         >
-                          GEOFENCE CONFIRMATION
-                        </span>
-                        <span
-                          style={{
-                            fontSize: "0.75rem",
-                            background: "#dcfce7",
-                            color: "#166534",
-                            padding: "0.125rem 0.5rem",
-                            borderRadius: "9999px",
-                            fontWeight: 600,
-                          }}
+                          <div className="pin-bubble">Kroger #302 ✓</div>
+                          <div className="pin-point" />
+                        </div>
+
+                        {/* Store Pin 2 (Active) */}
+                        <div
+                          className="map-pin pin-active"
+                          style={{ top: "50%", left: "55%" }}
                         >
-                          Within 25m Radius
-                        </span>
-                      </div>
-                      <p style={{ fontSize: "0.8125rem", color: "#626b80", margin: 0 }}>
-                        Point-in-time check-in coordinates matched verified store address
-                        (Target #18, 1154 S Clark St) with 99.4% confidence.
-                      </p>
-                    </div>
+                          <div className="pin-pulse" />
+                          <div className="pin-bubble">Target #18 • Marcus V.</div>
+                          <div className="pin-point" />
+                        </div>
 
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: "0.75rem",
-                        marginBottom: "1rem",
-                      }}
-                    >
-                      <div
-                        style={{
-                          padding: "0.75rem",
-                          background: "#ffffff",
-                          border: "1px solid #e5e7eb",
-                          borderRadius: "0.375rem",
-                        }}
-                      >
-                        <small className="text-muted" style={{ display: "block" }}>
-                          POINT-IN-TIME CHECK-IN
-                        </small>
-                        <strong style={{ fontSize: "0.875rem" }}>
-                          11:15 AM (GPS Fixed)
-                        </strong>
-                      </div>
-                      <div
-                        style={{
-                          padding: "0.75rem",
-                          background: "#ffffff",
-                          border: "1px solid #e5e7eb",
-                          borderRadius: "0.375rem",
-                        }}
-                      >
-                        <small className="text-muted" style={{ display: "block" }}>
-                          POINT-IN-TIME CHECK-OUT
-                        </small>
-                        <strong style={{ fontSize: "0.875rem" }}>
-                          12:45 PM (GPS Fixed)
-                        </strong>
-                      </div>
-                    </div>
+                        {/* Store Pin 3 (Upcoming) */}
+                        <div
+                          className="map-pin pin-pending"
+                          style={{ top: "72%", left: "78%" }}
+                        >
+                          <div className="pin-bubble">Whole Foods</div>
+                          <div className="pin-point" />
+                        </div>
 
-                    <div
-                      style={{
-                        padding: "0.75rem",
-                        background: "rgba(41, 63, 145, 0.04)",
-                        borderRadius: "0.375rem",
-                        borderLeft: "3px solid #293f91",
-                      }}
-                    >
-                      <strong
-                        style={{
-                          fontSize: "0.8125rem",
-                          color: "#293f91",
-                          display: "block",
-                        }}
-                      >
-                        Privacy Safeguard Policy
-                      </strong>
-                      <p
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "#626b80",
-                          margin: "0.25rem 0 0",
-                        }}
-                      >
-                        Zero background location polling. Coordinates are recorded
-                        exclusively upon explicit rep action at check-in and checkout.
-                      </p>
+                        {/* Connection Line */}
+                        <svg
+                          className="map-route-svg"
+                          viewBox="0 0 100 100"
+                          preserveAspectRatio="none"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M 20 25 Q 40 35 55 50 T 78 72"
+                            fill="none"
+                            stroke="rgba(136, 117, 247, 0.45)"
+                            strokeWidth="2"
+                            strokeDasharray="4 4"
+                          />
+                        </svg>
+                      </div>
+
+                      <div className="map-privacy-overlay">
+                        <div className="privacy-badge">
+                          <span className="privacy-icon" aria-hidden="true">
+                            🛡️
+                          </span>
+                          <div>
+                            <strong>Point-in-Time GPS Verification Only</strong>
+                            <p className="text-xs text-muted" style={{ margin: 0 }}>
+                              Coordinates recorded strictly at check-in & checkout. Zero
+                              continuous tracking.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
 
+              {/* Mockup 5: Reports & Analytics */}
               {activeTab === "reports" && (
                 <div className="showcase-mockup-card">
                   <div className="mockup-header-bar">
@@ -615,7 +654,7 @@ export function ProductShowcase(): ReactNode {
                       <span className="dot dot-green" />
                     </span>
                     <span className="mockup-bar-title">
-                      Territory Analytics &amp; Compliance
+                      Territory Compliance Report • Q4 2026
                     </span>
                     <span className="badge-info text-xs">Live Feed</span>
                   </div>

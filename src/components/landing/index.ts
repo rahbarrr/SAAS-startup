@@ -1,17 +1,19 @@
 export { LandingHeader } from "./LandingHeader";
 export { LandingHero } from "./LandingHero";
 export { ProductDashboardPreview } from "./ProductDashboardPreview";
-export { ProductShowcase } from "./ProductShowcase";
+export { ProductOverviewSection } from "./ProductOverviewSection";
 export { FeatureGrid } from "./FeatureGrid";
+export { ProductShowcase } from "./ProductShowcase";
 export { WorkflowSection } from "./WorkflowSection";
+export { RoleBasedSection } from "./RoleBasedSection";
+export { PricingSection } from "./PricingSection";
+export { SecuritySection } from "./SecuritySection";
+export { CredibilitySection } from "./CredibilitySection";
 export { FAQSection } from "./FAQSection";
 export { FinalCTA } from "./FinalCTA";
 export { LandingFooter } from "./LandingFooter";
-// Retain previous section exports for backward-compatibility if referenced elsewhere
+
+// Backward-compatibility exports
 export { LandingAnnouncement } from "./LandingAnnouncement";
-export { CredibilitySection } from "./CredibilitySection";
 export { ProblemSection } from "./ProblemSection";
-export { RoleBasedSection } from "./RoleBasedSection";
-export { SecuritySection } from "./SecuritySection";
 export { AIReportingSection } from "./AIReportingSection";
-export { PricingSection } from "./PricingSection";

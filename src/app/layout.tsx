@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/shell/AppShell";
 import type { OrgSwitcherOption } from "@/components/shell/OrgSwitcher";
+import { ThemeProvider, THEME_INITIALIZER_SCRIPT } from "@/components/theme";
 import { getActiveOrgCookie } from "@/lib/auth/active-org-cookie";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { logger } from "@/lib/observability/logger";
@@ -78,18 +79,27 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   }
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: THEME_INITIALIZER_SCRIPT,
+          }}
+        />
+      </head>
       <body>
-        <AppShell
-          activeOrgId={activeOrgId}
-          activeOrgName={activeOrgName}
-          activeRole={activeRole}
-          organizations={organizations}
-          userEmail={userEmail}
-          userName={userName}
-        >
-          {children}
-        </AppShell>
+        <ThemeProvider>
+          <AppShell
+            activeOrgId={activeOrgId}
+            activeOrgName={activeOrgName}
+            activeRole={activeRole}
+            organizations={organizations}
+            userEmail={userEmail}
+            userName={userName}
+          >
+            {children}
+          </AppShell>
+        </ThemeProvider>
       </body>
     </html>
   );

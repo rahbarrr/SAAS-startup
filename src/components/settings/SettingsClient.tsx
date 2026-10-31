@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useCurrentRole } from "@/components/ui/RoleContext";
 import { useToast } from "@/components/ui/Toast";
+import { ThemeSettingsCards } from "@/components/theme";
 import type { OrganizationBillingSummary, PlanTier } from "@/modules/billing/domain";
 import type { OrgRole } from "@/modules/tenancy/domain";
 
@@ -368,6 +369,23 @@ export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClien
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* Interface Theme Preference */}
+              <div className="form-group">
+                <label className="form-label" style={{ marginBottom: "0.5rem" }}>
+                  Interface Theme
+                </label>
+                <p
+                  style={{
+                    fontSize: "0.8125rem",
+                    color: "var(--text-secondary)",
+                    margin: "0 0 0.75rem",
+                  }}
+                >
+                  Choose between Light, Dark, or automatic System theme synchronization.
+                </p>
+                <ThemeSettingsCards />
               </div>
 
               <div className="form-group">

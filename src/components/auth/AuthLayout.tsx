@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ThemeToggle } from "@/components/theme";
 
 export interface AuthLayoutProps {
   children: ReactNode;
@@ -71,6 +72,9 @@ export function AuthLayout({ children }: AuthLayoutProps): ReactNode {
 
       {/* Auth Form Panel */}
       <main className="auth-form-panel">
+        <div className="auth-top-actions">
+          <ThemeToggle />
+        </div>
         <div className="auth-form-inner">
           {/* Mobile Brand Link */}
           <div className="auth-mobile-brand">

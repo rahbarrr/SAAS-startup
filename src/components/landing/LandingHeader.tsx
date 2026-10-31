@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { useCurrentRole } from "@/components/ui/RoleContext";
+import { ThemeToggle } from "@/components/theme";
 
 interface NavLinkItem {
   href: string;
@@ -12,7 +13,9 @@ interface NavLinkItem {
 const NAV_LINKS: readonly NavLinkItem[] = [
   { href: "#product", label: "Product" },
   { href: "#features", label: "Features" },
+  { href: "#solutions", label: "Solutions" },
   { href: "#how-it-works", label: "How It Works" },
+  { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
 ];
 
@@ -84,8 +87,13 @@ export function LandingHeader(): ReactNode {
           </ul>
         </nav>
 
-        {/* Desktop Auth Actions */}
+        {/* Desktop Actions & Theme Toggle */}
         <div className="landing-actions">
+          <ThemeToggle
+            className="landing-theme-toggle"
+            ariaLabel="Switch site color theme"
+          />
+
           {isAuthenticated ? (
             <Link
               href="/dashboard"
@@ -109,47 +117,50 @@ export function LandingHeader(): ReactNode {
         </div>
 
         {/* Mobile Hamburger Toggle */}
-        <button
-          type="button"
-          className="landing-mobile-toggle"
-          onClick={() => setMobileMenuOpen((prev) => !prev)}
-          aria-expanded={mobileMenuOpen}
-          aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-          aria-controls="mobile-navigation-drawer"
-        >
-          {mobileMenuOpen ? (
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          ) : (
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <line x1="4" y1="7" x2="20" y2="7" />
-              <line x1="4" y1="12" x2="20" y2="12" />
-              <line x1="4" y1="17" x2="20" y2="17" />
-            </svg>
-          )}
-        </button>
+        <div className="landing-mobile-controls">
+          <ThemeToggle className="landing-mobile-theme-btn" ariaLabel="Toggle theme" />
+          <button
+            type="button"
+            className="landing-mobile-toggle"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-expanded={mobileMenuOpen}
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-controls="mobile-navigation-drawer"
+          >
+            {mobileMenuOpen ? (
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            ) : (
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <line x1="4" y1="7" x2="20" y2="7" />
+                <line x1="4" y1="12" x2="20" y2="12" />
+                <line x1="4" y1="17" x2="20" y2="17" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Backdrop & Drawer */}

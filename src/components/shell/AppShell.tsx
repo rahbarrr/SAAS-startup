@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useTransition, type ReactNode } from "reac
 import { PwaOfflineSyncIndicator } from "@/components/pwa/PwaOfflineSyncIndicator";
 import { RoleProvider, useCurrentRole } from "@/components/ui/RoleContext";
 import { ToastProvider } from "@/components/ui/Toast";
+import { ThemeToggle } from "@/components/theme";
 import { signOutAction } from "@/modules/auth/actions";
 import type { OrgRole } from "@/modules/tenancy/domain";
 import { SidebarNav } from "./NavLinks";
@@ -552,6 +553,9 @@ function InnerShell({
             <div className="top-header-right">
               {/* Verified Role Badge */}
               <VerifiedRoleBadge />
+
+              {/* Theme Toggle (Light / Dark / System) */}
+              <ThemeToggle className="header-theme-toggle" />
 
               {/* In-app notification bell */}
               <Link

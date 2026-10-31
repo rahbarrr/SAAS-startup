@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ThemeToggle } from "@/components/theme";
+import { ShieldCheck } from "lucide-react";
 
 export function LandingFooter(): ReactNode {
   const currentYear = new Date().getFullYear();
@@ -18,13 +22,15 @@ export function LandingFooter(): ReactNode {
             </Link>
             <p className="footer-brand-mission">
               Enterprise B2B field operations and travel tracking platform for distributed
-              retail, FMCG, and merchandising organizations.
+              retail, FMCG sales, and store merchandising organizations.
             </p>
             <div className="footer-security-badge">
-              <span className="security-shield-icon" aria-hidden="true">
-                🔒
-              </span>
+              <ShieldCheck size={16} className="text-success" aria-hidden="true" />
               <span>PostgreSQL Row-Level Security Enforced</span>
+            </div>
+            <div className="footer-theme-toggle-wrap">
+              <span className="footer-toggle-label">Appearance:</span>
+              <ThemeToggle ariaLabel="Switch site color theme" />
             </div>
           </div>
 
@@ -33,21 +39,27 @@ export function LandingFooter(): ReactNode {
             <h4 className="footer-col-title">Platform</h4>
             <ul className="footer-nav-list">
               <li>
-                <a href="#product">Product Capabilities</a>
+                <a href="#product">Product Overview</a>
               </li>
               <li>
                 <a href="#features">Core Features</a>
               </li>
               <li>
+                <a href="#showcase">Interactive Showcase</a>
+              </li>
+              <li>
                 <a href="#how-it-works">How It Works</a>
               </li>
               <li>
-                <a href="#faq">Frequently Asked Questions</a>
+                <a href="#solutions">Solutions by Role</a>
+              </li>
+              <li>
+                <a href="#pricing">Subscription Pricing</a>
               </li>
             </ul>
           </div>
 
-          {/* Operations Links */}
+          {/* Operations & App Links */}
           <div className="footer-links-col">
             <h4 className="footer-col-title">Operations</h4>
             <ul className="footer-nav-list">
@@ -58,35 +70,35 @@ export function LandingFooter(): ReactNode {
                 <Link href="/trips">Trip Planning</Link>
               </li>
               <li>
-                <Link href="/approvals">Approval Queue</Link>
+                <Link href="/approvals">Approval Inboxes</Link>
               </li>
               <li>
                 <Link href="/visits">Store Visits</Link>
               </li>
               <li>
-                <Link href="/stores">Stores &amp; Territories</Link>
+                <Link href="/stores">Store Directory</Link>
               </li>
               <li>
-                <Link href="/reports">Territory Analytics</Link>
+                <Link href="/reports">Territory Reports</Link>
               </li>
             </ul>
           </div>
 
-          {/* Access & Account */}
+          {/* Account & Resources Links */}
           <div className="footer-links-col">
-            <h4 className="footer-col-title">Account &amp; Access</h4>
+            <h4 className="footer-col-title">Account &amp; Support</h4>
             <ul className="footer-nav-list">
               <li>
                 <Link href="/login">Sign In</Link>
               </li>
               <li>
-                <Link href="/signup">Get Started / Register</Link>
+                <Link href="/signup">Start Free Pilot</Link>
               </li>
               <li>
-                <Link href="/onboarding">Join via Invitation</Link>
+                <a href="#faq">Frequently Asked Questions</a>
               </li>
               <li>
-                <Link href="/forgot-password">Reset Password</Link>
+                <a href="#security">Security &amp; Privacy</a>
               </li>
               <li>
                 <Link href="/settings">Workspace Settings</Link>
@@ -98,27 +110,25 @@ export function LandingFooter(): ReactNode {
         {/* Footer Bottom Bar */}
         <div className="footer-bottom-bar">
           <p className="footer-copyright">
-            © {currentYear} FieldTrack Inc. Multi-tenant architecture with row-level
-            security, consent-driven point-in-time GPS check-ins, and tamper-evident audit
-            trails.
+            &copy; {currentYear} FieldTrack Inc. All rights reserved. Enterprise field
+            operations platform.
           </p>
-
-          <div className="footer-bottom-links">
-            <a href="#product" className="footer-bottom-link">
-              Platform Overview
+          <div className="footer-legal-links">
+            <a href="#security" className="footer-legal-link">
+              Privacy &amp; Location Ethics
             </a>
-            <span className="bottom-divider" aria-hidden="true">
+            <span className="footer-legal-sep" aria-hidden="true">
               •
             </span>
-            <a href="#faq" className="footer-bottom-link">
-              Privacy &amp; Security FAQ
+            <a href="#security" className="footer-legal-link">
+              Terms &amp; Multi-Tenant SLA
             </a>
-            <span className="bottom-divider" aria-hidden="true">
+            <span className="footer-legal-sep" aria-hidden="true">
               •
             </span>
-            <Link href="/login" className="footer-bottom-link">
-              Member Login
-            </Link>
+            <a href="#pricing" className="footer-legal-link">
+              Commercial Entitlements
+            </a>
           </div>
         </div>
       </div>

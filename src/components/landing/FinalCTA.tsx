@@ -96,11 +96,12 @@ export function FinalCTA(): ReactNode {
               style={{
                 fontSize: "1.125rem",
                 lineHeight: 1.6,
-                color: "rgba(255, 255, 255, 0.85)",
+                color: "rgba(255, 255, 255, 0.88)",
                 marginBottom: "2rem",
               }}
             >
-              Plan better, execute efficiently and stay informed with FieldTrack.
+              Coordinate trips, streamline field execution and gain better visibility into
+              your operations with FieldTrack.
             </p>
 
             <div
@@ -135,38 +136,41 @@ export function FinalCTA(): ReactNode {
                 </Link>
               </ScaleOnHover>
               <ScaleOnHover scale={1.02}>
-                <Link
-                  href="/login"
+                <a
+                  href="#pricing"
                   className="btn btn-secondary cta-btn-outline"
                   style={{
-                    background: "rgba(255, 255, 255, 0.1)",
+                    background: "rgba(255, 255, 255, 0.12)",
                     color: "#ffffff",
-                    border: "1px solid rgba(255, 255, 255, 0.3)",
-                    padding: "0.875rem 1.75rem",
+                    borderColor: "rgba(255, 255, 255, 0.35)",
+                    fontWeight: 600,
+                    padding: "0.875rem 2rem",
                     borderRadius: "0.5rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
                   }}
                 >
-                  Sign In to Workspace
-                </Link>
+                  <span>Explore Pricing</span>
+                </a>
               </ScaleOnHover>
             </div>
 
             <div
-              className="final-cta-meta"
+              className="final-cta-trust"
               style={{
                 display: "flex",
                 justifyContent: "center",
-                gap: "1rem",
+                alignItems: "center",
+                gap: "1.5rem",
+                flexWrap: "wrap",
                 fontSize: "0.8125rem",
                 color: "rgba(255, 255, 255, 0.75)",
-                flexWrap: "wrap",
               }}
             >
-              <span>✓ Instant multi-tenant setup</span>
-              <span>•</span>
+              <span>✓ 14-day evaluation pilot</span>
+              <span>✓ Instant setup</span>
               <span>✓ No credit card required</span>
-              <span>•</span>
-              <span>✓ Role-based permissions</span>
             </div>
           </div>
         </motion.div>
