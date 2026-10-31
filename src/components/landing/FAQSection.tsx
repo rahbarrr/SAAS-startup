@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 
 interface FAQItem {
   id: string;
@@ -10,136 +11,152 @@ interface FAQItem {
 
 const FAQ_ITEMS: readonly FAQItem[] = [
   {
-    id: "faq-1",
-    question: "What is field operations management software?",
+    id: "faq-what",
+    question: "What is FieldTrack?",
     answer:
-      "Field operations management software provides a structured, digital system for coordinating mobile sales reps, merchandisers, and field auditors. It replaces ad-hoc spreadsheets, WhatsApp chats, and paper forms with structured trip scheduling, managerial travel approvals, GPS-verified store check-ins, standardized inspection checklists, and centralized reporting.",
+      "FieldTrack is a centralized field operations management platform designed to plan field trips, manage approvals, record verified store visits, and monitor operational performance from a single workspace.",
   },
   {
-    id: "faq-2",
-    question: "Which industries can use FieldTrack?",
+    id: "faq-who",
+    question: "Who can use FieldTrack?",
     answer:
-      "FieldTrack is specifically optimized for Fast-Moving Consumer Goods (FMCG), consumer packaged goods (CPG), retail distribution networks, pharmacy chains, beverage distributors, and franchise operations where sales reps and trade merchandisers regularly visit retail stores, dealerships, or distributor locations.",
+      "FieldTrack is built for retail operations, FMCG sales teams, merchandisers, and field supervisors with dedicated roles for Administrators, Area Managers, and Field Representatives.",
   },
   {
-    id: "faq-3",
+    id: "faq-approvals",
     question: "How does trip approval work?",
     answer:
-      "When a field employee creates an itinerary with travel dates and planned store stops, the trip moves to a 'submitted' status. The designated manager receives an alert in their approval queue, where they review the sequence, distance, and objectives. The manager can approve the trip, reject it, or request changes with required explanatory notes. Crucially, the system strictly enforces database rules that prevent employees from approving their own trips.",
+      "Field reps build multi-stop itineraries and submit them for review. Managers inspect the route in their approval inbox and approve, reject, or request changes with documented feedback. Self-approvals are strictly blocked.",
   },
   {
-    id: "faq-4",
-    question: "How are store visits recorded?",
+    id: "faq-visits",
+    question: "Can employees record store visits?",
     answer:
-      "Upon arriving at an authorized store location, the representative taps 'Check In'. The app records point-in-time GPS coordinates, timestamps, and an idempotent token to verify proximity to the retail door. Representatives must complete all required checklist items before the 'Check Out' action unlocks, ensuring audit completeness.",
+      "Yes. Field representatives check in at scheduled retail doors, complete custom inspection checklists, record stock conditions, and upload photo evidence directly from their mobile browser.",
   },
   {
-    id: "faq-5",
-    question: "Can employees attach photographs and visit evidence?",
+    id: "faq-location",
+    question: "Does FieldTrack support location tracking?",
     answer:
-      "Yes. Representatives can capture endcap displays, planogram shelves, promotional cooler gauges, and condition photos directly through their mobile browser. All uploaded files are stored in private, tenant-isolated storage buckets and accessed via short-lived signed URLs (15-minute expiration) restricted to authorized workspace members.",
+      "FieldTrack uses consent-driven, point-in-time GPS check-ins at store locations to verify attendance and geofence proximity. It does not monitor continuous background movement or track employees off duty.",
   },
   {
-    id: "faq-6",
-    question:
-      "Does the platform support managers and employees with different permissions?",
+    id: "faq-started",
+    question: "How do I get started?",
     answer:
-      "Yes. FieldTrack implements strict role-based access control (RBAC) with three distinct roles: Administrator (workspace governance, store master data, billing, and audit logs), Manager (trip approval queue, territory execution monitoring, and performance reporting), and Field Employee (itinerary access, authorized check-in/out, checklists, and evidence submission). PostgreSQL Row-Level Security policies enforce these boundaries across all operations.",
-  },
-  {
-    id: "faq-7",
-    question:
-      "How does the platform handle GPS check-ins? Does it track employees continuously?",
-    answer:
-      "FieldTrack does not track employee location in the background or monitor continuous movements. Location coordinates are queried strictly with explicit user consent at the single moment an employee triggers a store 'Check In' or 'Check Out'. This guarantees operational verification while respecting field employee privacy.",
-  },
-  {
-    id: "faq-8",
-    question: "Does the platform support AI-assisted reporting?",
-    answer:
-      "Yes. FieldTrack includes an AI synthesis engine that turns unstructured rep notes and checklist responses into drafted visit summaries, highlighting key observations (like planogram compliance or cooler temperature variances) and suggesting follow-up items. Crucially, all AI output is saved with status 'pending_review'—a human employee or manager must explicitly review and accept the draft before it becomes permanent.",
-  },
-  {
-    id: "faq-9",
-    question: "Is there a mobile experience?",
-    answer:
-      "FieldTrack is built as a responsive progressive web application (PWA) with offline resilience. Field representatives can use any standard smartphone browser to access daily itineraries, perform check-ins, fill out checklists, and upload photos directly from retail aisles without needing to install an unverified third-party app.",
-  },
-  {
-    id: "faq-10",
-    question: "How can a company get started?",
-    answer:
-      "You can sign up directly for our 14-day Pilot Trial. Setup takes less than two minutes: create your organization, invite up to 5 team members, add your first 15 retail stores, and begin planning trips immediately—no credit card required.",
+      "Sign up for a workspace in seconds with no credit card required. You can immediately create a territory, invite team members, and begin scheduling store visits.",
   },
 ];
 
 export function FAQSection(): ReactNode {
-  const [openId, setOpenId] = useState<string | null>("faq-1");
+  const [openId, setOpenId] = useState<string | null>("faq-what");
+  const shouldReduceMotion = useReducedMotion();
 
-  function toggleItem(id: string) {
+  function toggle(id: string) {
     setOpenId((prev) => (prev === id ? null : id));
   }
 
   return (
-    <section className="faq-section" aria-labelledby="faq-heading">
+    <section id="faq" className="faq-section" aria-labelledby="faq-heading">
       <div className="landing-section-container">
         {/* Section Header */}
-        <div className="section-header-centered">
-          <span className="section-eyebrow">CLEAR ANSWERS</span>
+        <motion.div
+          className="section-header-centered"
+          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.05 }}
+          transition={{ duration: 0.5 }}
+        >
+          <span className="section-eyebrow">FREQUENTLY ASKED QUESTIONS</span>
           <h2 id="faq-heading" className="section-title">
-            Frequently Asked Questions
+            Answers to common questions.
           </h2>
           <p className="section-subtitle">
-            Everything you need to know about FieldTrack, operational workflows, location
-            practices, and evaluation pilots.
+            Everything you need to know about FieldTrack&apos;s features, privacy, and
+            workflows.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Accordion Container */}
-        <div className="faq-accordion-container" role="region" aria-label="FAQ Accordion">
+        {/* FAQ Accordion List */}
+        <div
+          className="faq-accordion-container"
+          style={{ maxWidth: "48rem", margin: "0 auto" }}
+        >
           {FAQ_ITEMS.map((item) => {
             const isOpen = openId === item.id;
             return (
-              <div key={item.id} className={`faq-item ${isOpen ? "is-expanded" : ""}`}>
-                <h3>
-                  <button
-                    type="button"
-                    className="faq-question-btn"
-                    onClick={() => toggleItem(item.id)}
-                    aria-expanded={isOpen}
-                    aria-controls={`faq-answer-${item.id}`}
-                    id={`faq-question-${item.id}`}
-                  >
-                    <span className="faq-question-text">{item.question}</span>
-                    <span className="faq-chevron" aria-hidden="true">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className={`chevron-icon ${isOpen ? "rotated" : ""}`}
-                      >
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    </span>
-                  </button>
-                </h3>
-
-                <div
-                  id={`faq-answer-${item.id}`}
-                  role="region"
-                  aria-labelledby={`faq-question-${item.id}`}
-                  className={`faq-answer-panel ${isOpen ? "is-visible" : ""}`}
-                  hidden={!isOpen}
+              <div
+                key={item.id}
+                className={`faq-accordion-item ${isOpen ? "is-expanded" : ""}`}
+                style={{
+                  borderBottom: "1px solid rgba(41, 63, 145, 0.1)",
+                  padding: "1rem 0",
+                }}
+              >
+                <button
+                  type="button"
+                  id={`header-${item.id}`}
+                  className="faq-accordion-trigger"
+                  onClick={() => toggle(item.id)}
+                  aria-expanded={isOpen}
+                  aria-controls={`content-${item.id}`}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%",
+                    textAlign: "left",
+                    background: "none",
+                    border: "none",
+                    padding: "0.5rem 0",
+                    cursor: "pointer",
+                    fontSize: "1.0625rem",
+                    fontWeight: 600,
+                    color: "#20243a",
+                  }}
                 >
-                  <div className="faq-answer-inner">
-                    <p>{item.answer}</p>
-                  </div>
-                </div>
+                  <span>{item.question}</span>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.25s ease",
+                      fontSize: "1.25rem",
+                      color: "#293f91",
+                      marginLeft: "1rem",
+                      flexShrink: 0,
+                    }}
+                  >
+                    ↓
+                  </span>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      id={`content-${item.id}`}
+                      role="region"
+                      aria-labelledby={`header-${item.id}`}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ overflow: "hidden" }}
+                    >
+                      <p
+                        className="faq-answer-text"
+                        style={{
+                          margin: "0.5rem 0 1rem",
+                          fontSize: "0.9375rem",
+                          lineHeight: 1.6,
+                          color: "#626b80",
+                        }}
+                      >
+                        {item.answer}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             );
           })}

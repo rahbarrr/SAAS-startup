@@ -30,22 +30,19 @@ export function LandingFooter(): ReactNode {
 
           {/* Product Links */}
           <div className="footer-links-col">
-            <h4 className="footer-col-title">Product</h4>
+            <h4 className="footer-col-title">Platform</h4>
             <ul className="footer-nav-list">
               <li>
-                <a href="#product-capabilities">Features &amp; Capabilities</a>
+                <a href="#product">Product Capabilities</a>
+              </li>
+              <li>
+                <a href="#features">Core Features</a>
               </li>
               <li>
                 <a href="#how-it-works">How It Works</a>
               </li>
               <li>
-                <a href="#roles">Role-Based Workflows</a>
-              </li>
-              <li>
-                <a href="#pricing">Pricing Plans</a>
-              </li>
-              <li>
-                <a href="#security">Security &amp; Location</a>
+                <a href="#faq">Frequently Asked Questions</a>
               </li>
             </ul>
           </div>
@@ -107,14 +104,14 @@ export function LandingFooter(): ReactNode {
           </p>
 
           <div className="footer-bottom-links">
-            <a href="#security" className="footer-bottom-link">
-              Security Commitments
+            <a href="#product" className="footer-bottom-link">
+              Platform Overview
             </a>
             <span className="bottom-divider" aria-hidden="true">
               •
             </span>
-            <a href="#product-capabilities" className="footer-bottom-link">
-              Platform Architecture
+            <a href="#faq" className="footer-bottom-link">
+              Privacy &amp; Security FAQ
             </a>
             <span className="bottom-divider" aria-hidden="true">
               •

@@ -10,11 +10,10 @@ interface NavLinkItem {
 }
 
 const NAV_LINKS: readonly NavLinkItem[] = [
-  { href: "#product-capabilities", label: "Product" },
-  { href: "#roles", label: "Solutions" },
+  { href: "#product", label: "Product" },
+  { href: "#features", label: "Features" },
   { href: "#how-it-works", label: "How It Works" },
-  { href: "#security", label: "Security" },
-  { href: "#pricing", label: "Pricing" },
+  { href: "#faq", label: "FAQ" },
 ];
 
 export function LandingHeader(): ReactNode {

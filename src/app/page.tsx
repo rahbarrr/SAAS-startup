@@ -1,99 +1,75 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import {
-  LandingAnnouncement,
   LandingHeader,
   LandingHero,
-  CredibilitySection,
-  ProblemSection,
+  ProductShowcase,
   FeatureGrid,
   WorkflowSection,
-  RoleBasedSection,
-  ProductShowcase,
-  SecuritySection,
-  AIReportingSection,
-  PricingSection,
   FAQSection,
   FinalCTA,
   LandingFooter,
 } from "@/components/landing";
 
 export const metadata: Metadata = {
-  title: "FieldTrack — Field Operations & Travel Tracking SaaS for Retail & FMCG",
+  title: "FieldTrack | Field Operations and Trip Management",
   description:
-    "Plan store visits, approve field trips, capture on-site evidence, and review execution from one place. Purpose-built field operations and travel tracking platform for distributed retail, FMCG, and sales teams.",
+    "Plan field trips, manage approvals, execute store visits and monitor field team operations with FieldTrack.",
   keywords: [
     "field operations software",
-    "retail store visits",
-    "FMCG field sales tracking",
-    "merchandising audit",
-    "trip planning and approval",
-    "GPS store check-in",
-    "field team management",
+    "trip management",
     "store visit verification",
+    "retail field operations",
+    "FMCG territory tracking",
+    "field trip approvals",
+    "GPS store check-in",
+    "field execution management",
   ],
   openGraph: {
-    title: "FieldTrack — See Your Field Operations Getting Done",
+    title: "FieldTrack | Field Operations and Trip Management",
     description:
-      "Plan store visits, approve travel, record authorized GPS check-ins, and review field performance from one structured dashboard.",
+      "Plan field trips, manage approvals, execute store visits and monitor field team operations with FieldTrack.",
     type: "website",
     siteName: "FieldTrack",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FieldTrack | Field Operations and Trip Management",
+    description:
+      "Plan field trips, manage approvals, execute store visits and monitor field team operations with FieldTrack.",
   },
 };
 
 export default function RootLandingPage(): ReactNode {
   return (
     <div className="landing-page-root" aria-labelledby="hero-heading">
-      <h1 className="sr-only">
-        FieldTrack — Field Operations &amp; Travel Tracking SaaS
-      </h1>
+      <h1 className="sr-only">FieldTrack | Field Operations and Trip Management</h1>
 
-      {/* Section A: Announcement Bar */}
-      <LandingAnnouncement />
-
-      {/* Section B: Navigation Bar */}
+      {/* Section 1: Premium Navigation */}
       <LandingHeader />
 
       {/* Main Content Landmark */}
       <main id="main-content" tabIndex={-1}>
-        {/* Section C: Hero Section with Live Product Composition */}
+        {/* Section 2: Hero Section */}
         <LandingHero />
 
-        {/* Section D: Operational Trust and Credibility */}
-        <CredibilitySection />
-
-        {/* Section E: The Problem (Scattered Tools vs Centralized Workflow) */}
-        <ProblemSection />
-
-        {/* Section F: 6 Integrated Product Capabilities */}
-        <FeatureGrid />
-
-        {/* Section G: 4-Step Operational Workflow (Plan -> Approve -> Execute -> Review) */}
-        <WorkflowSection />
-
-        {/* Section H: Role-Based Value (Admin, Manager, Field Representative) */}
-        <RoleBasedSection />
-
-        {/* Section I: Interactive Product Showcase (Planning, Visits, Reports) */}
+        {/* Section 3: Product Showcase */}
         <ProductShowcase />
 
-        {/* Section J: Responsible Location & Data Security Architecture */}
-        <SecuritySection />
+        {/* Section 4: Core Features */}
+        <FeatureGrid />
 
-        {/* Section K: AI-Assisted Reporting & Human-in-the-Loop Synthesis */}
-        <AIReportingSection />
+        {/* Section 5: How FieldTrack Works */}
+        <WorkflowSection />
 
-        {/* Section L: Real Subscription Pricing & Evaluation Pilot */}
-        <PricingSection />
-
-        {/* Section M: Accessible Frequently Asked Questions Accordion */}
+        {/* Section 6: FAQ */}
         <FAQSection />
 
-        {/* Section N: Final High-Impact Conversion CTA */}
+        {/* Section 7: Final CTA */}
         <FinalCTA />
       </main>
 
-      {/* Section O: Enterprise Responsive Footer */}
+      {/* Footer */}
       <LandingFooter />
     </div>
   );

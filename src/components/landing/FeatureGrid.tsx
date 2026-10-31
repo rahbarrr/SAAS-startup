@@ -1,209 +1,195 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { type ReactNode } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import { AnimatedCard } from "@/components/animation";
+import { MapPin, ShieldCheck, CheckSquare, BarChart3 } from "lucide-react";
+
+interface FeatureItem {
+  id: string;
+  title: string;
+  description: string;
+  icon: typeof MapPin;
+  colorClass: string;
+  tag: string;
+}
+
+const CORE_FEATURES: readonly FeatureItem[] = [
+  {
+    id: "trip-management",
+    title: "Trip Management",
+    description: "Plan trips, organize destinations and manage field schedules.",
+    icon: MapPin,
+    colorClass: "var(--brand-primary, #293f91)",
+    tag: "Planning",
+  },
+  {
+    id: "approval-workflows",
+    title: "Approval Workflows",
+    description: "Review and manage employee trip requests.",
+    icon: ShieldCheck,
+    colorClass: "var(--brand-violet, #8875f7)",
+    tag: "Governance",
+  },
+  {
+    id: "visit-execution",
+    title: "Store Visit Execution",
+    description: "Record visits, complete checklists and capture evidence.",
+    icon: CheckSquare,
+    colorClass: "var(--brand-cyan, #38d9d6)",
+    tag: "Field Action",
+  },
+  {
+    id: "operational-visibility",
+    title: "Operational Visibility",
+    description: "Monitor team activity and review operational performance.",
+    icon: BarChart3,
+    colorClass: "var(--brand-navy, #20243a)",
+    tag: "Analytics",
+  },
+];
 
 export function FeatureGrid(): ReactNode {
+  const shouldReduceMotion = useReducedMotion();
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: shouldReduceMotion ? 0 : 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
+    },
+  };
+
   return (
     <section
-      id="product-capabilities"
+      id="features"
       className="feature-grid-section"
       aria-labelledby="features-heading"
     >
       <div className="landing-section-container">
         {/* Section Header */}
-        <div className="section-header-centered">
-          <span className="section-eyebrow">INTEGRATED FIELD SUITE</span>
+        <motion.div
+          className="section-header-centered"
+          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.05 }}
+          transition={{ duration: 0.5 }}
+        >
+          <span className="section-eyebrow">CORE FEATURES</span>
           <h2 id="features-heading" className="section-title">
-            Everything your field operations workflow needs, in one place.
+            Essential tools for field operations.
           </h2>
           <p className="section-subtitle">
-            Six cohesive capabilities designed to eliminate guesswork, enforce standard
-            operating procedures, and provide reliable visibility into ground-level
-            execution.
+            Four cohesive capabilities designed to eliminate guesswork, enforce standard
+            operating procedures, and provide reliable visibility.
           </p>
-        </div>
+        </motion.div>
 
-        {/* 6 Premium Feature Cards */}
-        <div className="feature-cards-grid">
-          {/* Card 1: Trip Planning */}
-          <div className="feature-card">
-            <div className="feature-card-top">
-              <div className="feature-icon-box icon-navy" aria-hidden="true">
-                🗺️
-              </div>
-              <span className="feature-status-tag tag-live">Active Capability</span>
-            </div>
+        {/* 4 Feature Cards Grid */}
+        <motion.div
+          className="feature-cards-grid feature-cards-grid-4"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.05 }}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: "1.5rem",
+          }}
+        >
+          {CORE_FEATURES.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <motion.div
+                key={feature.id}
+                variants={itemVariants}
+                style={{ height: "100%" }}
+              >
+                <AnimatedCard
+                  className="feature-card"
+                  style={{
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    padding: "2rem 1.75rem",
+                    borderRadius: "1rem",
+                    background: "#ffffff",
+                    border: "1px solid rgba(41, 63, 145, 0.08)",
+                  }}
+                >
+                  <div>
+                    <div
+                      className="feature-card-top"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: "1.25rem",
+                      }}
+                    >
+                      <div
+                        className="feature-icon-box"
+                        style={{
+                          width: "3rem",
+                          height: "3rem",
+                          borderRadius: "0.75rem",
+                          background: "rgba(41, 63, 145, 0.06)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color:
+                            feature.colorClass === "var(--brand-cyan, #38d9d6)"
+                              ? "#0284c7"
+                              : feature.colorClass,
+                        }}
+                        aria-hidden="true"
+                      >
+                        <Icon size={24} strokeWidth={2} />
+                      </div>
+                      <span className="feature-status-tag tag-live">{feature.tag}</span>
+                    </div>
 
-            <h3 className="feature-title">Multi-Stop Trip Planning</h3>
-            <p className="feature-desc">
-              Plan employee trips, organize store visits, sequence multi-stop itineraries,
-              and set territory schedules directly linked to your master store directory.
-            </p>
-
-            {/* Visual Micro Preview */}
-            <div className="feature-micro-preview preview-trip">
-              <div className="preview-trip-item">
-                <span className="preview-dot dot-done">1</span>
-                <div>
-                  <strong>Stop 1: Downtown Mart</strong>
-                  <small>09:00 AM • Planogram Audit</small>
-                </div>
-              </div>
-              <div className="preview-trip-connector" />
-              <div className="preview-trip-item">
-                <span className="preview-dot dot-active">2</span>
-                <div>
-                  <strong>Stop 2: HyperCity Express</strong>
-                  <small>11:30 AM • Cooler Restock</small>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2: Trip Approval */}
-          <div className="feature-card">
-            <div className="feature-card-top">
-              <div className="feature-icon-box icon-amber" aria-hidden="true">
-                ⚖️
-              </div>
-              <span className="feature-status-tag tag-live">Active Capability</span>
-            </div>
-
-            <h3 className="feature-title">Multi-Tier Trip Approvals</h3>
-            <p className="feature-desc">
-              Give managers a dedicated workflow to inspect itineraries, review travel
-              dates, approve trips, or request revisions with mandatory feedback notes.
-              Self-approval is strictly prevented.
-            </p>
-
-            {/* Visual Micro Preview */}
-            <div className="feature-micro-preview preview-approval">
-              <div className="preview-approval-header">
-                <span className="text-sm font-semibold">Trip #TRP-8402 Review</span>
-                <span className="badge-warning text-xs">Submitted</span>
-              </div>
-              <div className="preview-action-row">
-                <span className="mini-btn btn-success-light">✓ Approve Itinerary</span>
-                <span className="mini-btn btn-danger-light">✎ Request Changes</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Store Visit Verification */}
-          <div className="feature-card">
-            <div className="feature-card-top">
-              <div className="feature-icon-box icon-green" aria-hidden="true">
-                📍
-              </div>
-              <span className="feature-status-tag tag-live">Active Capability</span>
-            </div>
-
-            <h3 className="feature-title">Store Visit Verification</h3>
-            <p className="feature-desc">
-              Record authorized GPS check-ins and check-outs with cryptographic timestamps
-              and idempotent visit tokens. Location is strictly captured with employee
-              consent at check-in.
-            </p>
-
-            {/* Visual Micro Preview */}
-            <div className="feature-micro-preview preview-checkin">
-              <div className="checkin-gps-pill">
-                <span className="gps-live-dot" aria-hidden="true" />
-                <span>GPS Check-in: 41.881832, -87.623177</span>
-              </div>
-              <div className="checkin-meta-row">
-                <span>Distance to Door: 28 meters</span>
-                <span className="text-success font-semibold">Authorized ✓</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 4: Checklists and Evidence */}
-          <div className="feature-card">
-            <div className="feature-card-top">
-              <div className="feature-icon-box icon-purple" aria-hidden="true">
-                📋
-              </div>
-              <span className="feature-status-tag tag-live">Active Capability</span>
-            </div>
-
-            <h3 className="feature-title">Checklists & Evidence Vault</h3>
-            <p className="feature-desc">
-              Standardize store visit inspections with mandatory checklist items, capture
-              aisle observations, and upload photographic evidence directly into private
-              storage buckets.
-            </p>
-
-            {/* Visual Micro Preview */}
-            <div className="feature-micro-preview preview-checklist">
-              <div className="mini-check-row">
-                <span className="check-box-done">✓</span>
-                <span>Planogram Compliance Verified</span>
-              </div>
-              <div className="mini-check-row">
-                <span className="check-box-done">✓</span>
-                <span>Endcap Photo Captured (2.4 MB)</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 5: Manager Dashboard and Reports */}
-          <div className="feature-card">
-            <div className="feature-card-top">
-              <div className="feature-icon-box icon-blue" aria-hidden="true">
-                📊
-              </div>
-              <span className="feature-status-tag tag-live">Active Capability</span>
-            </div>
-
-            <h3 className="feature-title">Manager Dashboard & CSV Reports</h3>
-            <p className="feature-desc">
-              Review live field execution, trip progress, exceptions, and planned vs.
-              actual stop metrics. Export clean, formula-injection-safe CSV files for
-              executive reporting.
-            </p>
-
-            {/* Visual Micro Preview */}
-            <div className="feature-micro-preview preview-reports">
-              <div className="mini-stat-bar">
-                <span>
-                  Planned vs Actual: <strong>94.2%</strong>
-                </span>
-                <span className="tag-green text-xs">Target Met</span>
-              </div>
-              <div className="mini-bar-track">
-                <div className="mini-bar-fill" style={{ width: "94%" }} />
-              </div>
-            </div>
-          </div>
-
-          {/* Card 6: AI-Assisted Visit Summaries */}
-          <div className="feature-card">
-            <div className="feature-card-top">
-              <div className="feature-icon-box icon-amber-dark" aria-hidden="true">
-                ✨
-              </div>
-              <span className="feature-status-tag tag-live">Human-in-the-Loop</span>
-            </div>
-
-            <h3 className="feature-title">AI-Assisted Visit Summaries</h3>
-            <p className="feature-desc">
-              Transform unstructured rep notes and checklist responses into clear, concise
-              draft briefings. Every draft requires human review and explicit acceptance
-              before saving.
-            </p>
-
-            {/* Visual Micro Preview */}
-            <div className="feature-micro-preview preview-ai">
-              <div className="ai-badge-row">
-                <span className="badge-ai-sparkle">AI Draft</span>
-                <span className="text-xs text-muted">Pending Manager Acceptance</span>
-              </div>
-              <p className="ai-snippet-text">
-                &ldquo;Competitor launched temporary 20% discount on shelf B. Cooler #2
-                temp flagged at 12°C.&rdquo;
-              </p>
-            </div>
-          </div>
-        </div>
+                    <h3
+                      className="feature-title"
+                      style={{
+                        fontSize: "1.25rem",
+                        fontWeight: 700,
+                        marginBottom: "0.5rem",
+                        color: "#20243a",
+                      }}
+                    >
+                      {feature.title}
+                    </h3>
+                    <p
+                      className="feature-desc"
+                      style={{
+                        fontSize: "0.9375rem",
+                        lineHeight: 1.6,
+                        color: "#626b80",
+                        margin: 0,
+                      }}
+                    >
+                      {feature.description}
+                    </p>
+                  </div>
+                </AnimatedCard>
+              </motion.div>
+            );
+          })}
+        </motion.div>
       </div>
     </section>
   );

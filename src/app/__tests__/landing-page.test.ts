@@ -3,116 +3,98 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import RootLandingPage, { metadata } from "@/app/page";
 import LandingPage from "@/app/landing/page";
-import { PLAN_CATALOG } from "@/modules/billing/domain";
 import { isAuthPublicRoute, isProtectedPath } from "@/lib/supabase/middleware";
 
 describe("FieldTrack Enterprise Landing Page (Root Route '/')", () => {
-  it("exports valid, SEO-optimized metadata with the established product name", () => {
-    expect(metadata.title).toContain("FieldTrack");
-    expect(metadata.description).toBeTruthy();
-    expect(metadata.openGraph?.title).toContain("FieldTrack");
+  it("exports valid, SEO-optimized metadata matching the updated concise specification", () => {
+    expect(metadata.title).toBe("FieldTrack | Field Operations and Trip Management");
+    expect(metadata.description).toBe(
+      "Plan field trips, manage approvals, execute store visits and monitor field team operations with FieldTrack."
+    );
+    expect(metadata.openGraph?.title).toBe(
+      "FieldTrack | Field Operations and Trip Management"
+    );
     expect(metadata.openGraph?.siteName).toBe("FieldTrack");
   });
 
-  it("renders all core sections from Section A through Section O directly at '/' without authentication", () => {
+  it("renders the 7 conversion-optimized sections directly at '/' without authentication", () => {
     const html = renderToStaticMarkup(React.createElement(RootLandingPage));
 
-    // Section A: Announcement Bar
-    expect(html).toContain("Evaluation Pilot");
-    expect(html).toContain("Now accepting FMCG &amp; retail operations teams");
-
-    // Section B: Navigation Header
+    // Section 1: Navigation Header
     expect(html).toContain("FieldTrack");
-    expect(html).toContain('href="#product-capabilities"');
-    expect(html).toContain('href="#roles"');
+    expect(html).toContain('href="#product"');
+    expect(html).toContain('href="#features"');
     expect(html).toContain('href="#how-it-works"');
-    expect(html).toContain('href="#security"');
-    expect(html).toContain('href="#pricing"');
+    expect(html).toContain('href="#faq"');
     expect(html).toContain('href="/login"');
     expect(html).toContain('href="/signup"');
 
-    // Section C: Hero Section
-    expect(html).toContain("Bring Every Field Trip, Store Visit");
-    expect(html).toContain("and Team Activity Into One Place.");
-    expect(html).toContain("Structured trip planning and approvals");
-    expect(html).toContain("Verified store visits and evidence");
-    expect(html).toContain("Clear field activity and reporting");
-
-    // Section D: Trust & Credibility
-    expect(html).toContain("Eliminate Fragmented Tools");
-    expect(html).toContain("Standardize Store Reporting");
-    expect(html).toContain("Centralize Field Evidence");
-    expect(html).toContain("Territory-Wide Visibility");
-
-    // Section E: The Problem
+    // Section 2: Hero Section
+    expect(html).toContain("FIELD OPERATIONS MANAGEMENT PLATFORM");
+    expect(html).toContain("Every Field Visit. Every Trip.");
+    expect(html).toContain("One Platform.");
     expect(html).toContain(
-      "Managing field operations shouldn&#x27;t mean chasing updates all day."
+      "Plan field trips, manage approvals, track store visits and monitor team execution from one centralized workspace."
     );
-    expect(html).toContain("Scattered Information");
-    expect(html).toContain("Limited Visibility");
-    expect(html).toContain("Inconsistent Reporting");
-    expect(html).toContain("The FieldTrack Platform");
+    expect(html).toContain("Get Started");
+    expect(html).toContain("Explore Platform");
+    expect(html).toContain(
+      "Built for teams that need visibility, accountability and efficient field operations."
+    );
 
-    // Section F: 6 Integrated Product Capabilities
-    expect(html).toContain("Multi-Stop Trip Planning");
-    expect(html).toContain("Multi-Tier Trip Approvals");
-    expect(html).toContain("Store Visit Verification");
-    expect(html).toContain("Checklists &amp; Evidence Vault");
-    expect(html).toContain("Manager Dashboard &amp; CSV Reports");
-    expect(html).toContain("AI-Assisted Visit Summaries");
-
-    // Section G: How It Works
-    expect(html).toContain("Plan the Route");
-    expect(html).toContain("Manager Approves");
-    expect(html).toContain("Execute &amp; Verify");
-    expect(html).toContain("Review &amp; Insights");
-
-    // Section H: Role-Based Value
-    expect(html).toContain("Administrator");
-    expect(html).toContain("Area &amp; Regional Manager");
-    expect(html).toContain("Field Representative");
-
-    // Section I: Product Showcase
+    // Section 3: Product Showcase
     expect(html).toContain("Turn field activity into operational visibility.");
-    expect(html).toContain("Trip Planning &amp; Approvals");
-    expect(html).toContain("Store Visits &amp; Evidence");
-    expect(html).toContain("Reports &amp; Performance");
+    expect(html).toContain("Trip Planning");
+    expect(html).toContain("Manager Approvals");
+    expect(html).toContain("Store Visit Execution");
+    expect(html).toContain("Location Visibility");
+    expect(html).toContain("Operational Reporting");
 
-    // Section J: Responsible Location & Security
-    expect(html).toContain("Visibility for managers. Transparency for field teams.");
-    expect(html).toContain("Multi-Tenant Row-Level Security");
-    expect(html).toContain("Consent-Driven, Point-in-Time GPS");
-    expect(html).toContain("Private Evidence Vault");
-    expect(html).toContain("Immutable Audit Trails");
-
-    // Section K: AI Reporting
-    expect(html).toContain("Less time writing reports. More time acting on insights.");
-    expect(html).toContain("Human-in-the-Loop Safeguard");
-    expect(html).toContain("Detected Key Observations");
-
-    // Section L: Pricing
-    expect(html).toContain(PLAN_CATALOG.pilot.name);
-    expect(html).toContain(PLAN_CATALOG.pro.name);
-    expect(html).toContain(PLAN_CATALOG.enterprise.name);
-    expect(html).toContain(String(PLAN_CATALOG.pro.monthlyBasePriceUsd));
-    expect(html).toContain(String(PLAN_CATALOG.enterprise.monthlyBasePriceUsd));
-
-    // Section M: FAQ
-    expect(html).toContain("Frequently Asked Questions");
-    expect(html).toContain("What is field operations management software?");
-    expect(html).toContain("Which industries can use FieldTrack?");
-    expect(html).toContain("Does the platform support AI-assisted reporting?");
-
-    // Section N: Final CTA
-    expect(html).toContain("Bring clarity to every field visit.");
+    // Section 4: Core Features (4 compact cards)
+    expect(html).toContain("Trip Management");
     expect(html).toContain(
-      "Bring trip planning, store visit execution, and field reporting into one structured workflow."
+      "Plan trips, organize destinations and manage field schedules."
+    );
+    expect(html).toContain("Approval Workflows");
+    expect(html).toContain("Review and manage employee trip requests.");
+    expect(html).toContain("Store Visit Execution");
+    expect(html).toContain("Record visits, complete checklists and capture evidence.");
+    expect(html).toContain("Operational Visibility");
+    expect(html).toContain("Monitor team activity and review operational performance.");
+
+    // Section 5: How It Works (3 clear steps)
+    expect(html).toContain("Step 1");
+    expect(html).toContain("Plan");
+    expect(html).toContain("Create trips and organize store visits.");
+    expect(html).toContain("Step 2");
+    expect(html).toContain("Execute");
+    expect(html).toContain("Complete field visits, checklists and evidence capture.");
+    expect(html).toContain("Step 3");
+    expect(html).toContain("Monitor");
+    expect(html).toContain(
+      "Review approvals, team activity and operational performance."
     );
 
-    // Section O: Footer
+    // Section 6: FAQ (6 compact questions)
+    expect(html).toContain("What is FieldTrack?");
+    expect(html).toContain("Who can use FieldTrack?");
+    expect(html).toContain("How does trip approval work?");
+    expect(html).toContain("Can employees record store visits?");
+    expect(html).toContain("Does FieldTrack support location tracking?");
+    expect(html).toContain("How do I get started?");
+
+    // Section 7: Final CTA
+    expect(html).toContain("Bring Your Field Operations Together.");
+    expect(html).toContain(
+      "Plan better, execute efficiently and stay informed with FieldTrack."
+    );
+
+    // Footer
     expect(html).toContain("FieldTrack Inc.");
     expect(html).toContain(String(new Date().getFullYear()));
     expect(html).toContain('href="/dashboard"');
+    expect(html).toContain('href="/login"');
+    expect(html).toContain('href="/signup"');
   });
 
   it("also renders the identical landing experience at '/landing'", () => {
