@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ShieldCheck } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
@@ -150,7 +151,11 @@ export function AuditLogViewerClient({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <span style={{ fontSize: "1.25rem" }}>🛡️</span>
+          <ShieldCheck
+            size={20}
+            aria-hidden="true"
+            style={{ color: "var(--brand-primary)" }}
+          />
           <div>
             <div
               style={{

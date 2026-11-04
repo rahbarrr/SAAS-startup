@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, type ReactNode, useState } from "react";
+import { MapPin } from "lucide-react";
 import { TripPlannerMap } from "@/components/maps";
 import { ErrorState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
@@ -337,10 +338,9 @@ export function TripPlanForm({
           aria-labelledby="journey-heading"
           style={{
             padding: "1.25rem",
-            borderRadius: "1rem",
-            border: "1px solid var(--border-default, #dbe2ef)",
-            background:
-              "linear-gradient(135deg, rgba(27,53,128,.07), rgba(245,158,11,.07))",
+            borderRadius: "var(--radius-lg, 12px)",
+            border: "1px solid var(--border-default)",
+            background: "var(--bg-subtle, #f8fafc)",
           }}
         >
           <div
@@ -354,7 +354,10 @@ export function TripPlanForm({
             }}
           >
             <div>
-              <h2 id="journey-heading" style={{ margin: 0, fontSize: "1.125rem" }}>
+              <h2
+                id="journey-heading"
+                style={{ margin: 0, fontSize: "1.0625rem", fontWeight: 600 }}
+              >
                 Journey details
               </h2>
               <p className="card-meta" style={{ margin: ".25rem 0 0" }}>
@@ -365,11 +368,14 @@ export function TripPlanForm({
               className="card-meta"
               style={{
                 border: "1px solid var(--border-default)",
-                borderRadius: "999px",
-                padding: ".3rem .65rem",
+                borderRadius: "var(--radius-sm, 6px)",
+                padding: ".25rem .5rem",
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                color: "var(--text-secondary)",
               }}
             >
-              ROUTE PLAN
+              Route details
             </span>
           </div>
           <div className="card-grid">
@@ -390,7 +396,7 @@ export function TripPlanForm({
                 placeholder="e.g. Regional office, Patna / Home, Saharsa"
                 style={{
                   width: "100%",
-                  padding: ".7rem .8rem",
+                  padding: ".625rem .75rem",
                   borderRadius: "var(--radius-md)",
                   border: "1px solid var(--border-strong)",
                 }}
@@ -416,7 +422,7 @@ export function TripPlanForm({
                 placeholder="e.g. Muzaffarpur, Bihar"
                 style={{
                   width: "100%",
-                  padding: ".7rem .8rem",
+                  padding: ".625rem .75rem",
                   borderRadius: "var(--radius-md)",
                   border: "1px solid var(--border-strong)",
                 }}
@@ -435,16 +441,20 @@ export function TripPlanForm({
               marginTop: "1rem",
               padding: ".75rem 1rem",
               background: "var(--bg-surface, #fff)",
-              borderRadius: ".75rem",
-              border: "1px solid var(--border-default, #dbe2ef)",
+              borderRadius: "var(--radius-md, 8px)",
+              border: "1px solid var(--border-default)",
             }}
           >
-            <span aria-hidden="true">📍</span>
-            <strong style={{ fontSize: ".9rem" }}>
+            <MapPin
+              size={16}
+              aria-hidden="true"
+              style={{ color: "var(--brand-primary)" }}
+            />
+            <strong style={{ fontSize: ".875rem" }}>
               {startLocation.trim() || "Starting point"}
             </strong>
             <span style={{ color: "var(--text-muted)" }}>→</span>
-            <strong style={{ fontSize: ".9rem" }}>
+            <strong style={{ fontSize: ".875rem" }}>
               {destinationCity.trim() || "Destination city"}
             </strong>
           </div>

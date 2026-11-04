@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
 import type { ManagerDailyBriefing } from "@/modules/ai-intelligence/domain";
@@ -162,15 +163,16 @@ export function AiInsightsClient({
                   alignItems: "center",
                   gap: "0.35rem",
                   padding: "0.2rem 0.5rem",
-                  borderRadius: "var(--radius-sm)",
-                  background: "rgba(27, 53, 128, 0.1)",
+                  borderRadius: "var(--radius-sm, 6px)",
+                  background: "var(--bg-subtle)",
                   color: "var(--brand-primary)",
                   fontSize: "0.75rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.025em",
+                  fontWeight: 600,
+                  border: "1px solid var(--border-default)",
                 }}
               >
-                ✨ AI OPERATIONS SYNTHESIS
+                <Sparkles size={13} aria-hidden="true" />
+                <span>Operations synthesis</span>
               </span>
               <span
                 className="status-badge"

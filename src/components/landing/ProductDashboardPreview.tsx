@@ -1,4 +1,14 @@
 import type { ReactNode } from "react";
+import {
+  LayoutGrid,
+  MapPin,
+  CheckSquare,
+  ClipboardCheck,
+  Building2,
+  BarChart3,
+  Camera,
+  AlertTriangle,
+} from "lucide-react";
 
 export function ProductDashboardPreview(): ReactNode {
   return (
@@ -11,19 +21,14 @@ export function ProductDashboardPreview(): ReactNode {
         {/* Window Chrome / Title Bar */}
         <div className="mockup-window-bar">
           <div className="mockup-window-controls" aria-hidden="true">
-            <span className="dot dot-red" />
-            <span className="dot dot-yellow" />
-            <span className="dot dot-green" />
+            <span className="window-app-icon">F</span>
           </div>
           <div className="mockup-window-title">
-            <span className="window-app-icon" aria-hidden="true">
-              F
-            </span>
             <span>FieldTrack Operations Control • Midwest Territory (Chicago Hub)</span>
           </div>
           <div className="mockup-window-status">
             <span className="status-indicator-live" aria-hidden="true" />
-            <span>Interactive Interface Preview (Sample Data)</span>
+            <span>Live Telemetry Feed (Sample Data)</span>
           </div>
         </div>
 
@@ -41,29 +46,41 @@ export function ProductDashboardPreview(): ReactNode {
 
             <nav className="mockup-sidebar-nav">
               <div className="mockup-nav-item active">
-                <span className="mockup-nav-icon">📊</span>
+                <span className="mockup-nav-icon">
+                  <LayoutGrid size={15} />
+                </span>
                 <span>Overview</span>
               </div>
               <div className="mockup-nav-item">
-                <span className="mockup-nav-icon">🗺️</span>
+                <span className="mockup-nav-icon">
+                  <MapPin size={15} />
+                </span>
                 <span>Field Trips</span>
                 <span className="mockup-nav-badge">5</span>
               </div>
               <div className="mockup-nav-item">
-                <span className="mockup-nav-icon">⚖️</span>
+                <span className="mockup-nav-icon">
+                  <CheckSquare size={15} />
+                </span>
                 <span>Approvals</span>
                 <span className="mockup-nav-badge badge-warning">3</span>
               </div>
               <div className="mockup-nav-item">
-                <span className="mockup-nav-icon">📍</span>
+                <span className="mockup-nav-icon">
+                  <ClipboardCheck size={15} />
+                </span>
                 <span>Store Visits</span>
               </div>
               <div className="mockup-nav-item">
-                <span className="mockup-nav-icon">🏢</span>
+                <span className="mockup-nav-icon">
+                  <Building2 size={15} />
+                </span>
                 <span>Stores & Doors</span>
               </div>
               <div className="mockup-nav-item">
-                <span className="mockup-nav-icon">📈</span>
+                <span className="mockup-nav-icon">
+                  <BarChart3 size={15} />
+                </span>
                 <span>Territory Reports</span>
               </div>
             </nav>
@@ -83,10 +100,9 @@ export function ProductDashboardPreview(): ReactNode {
             <div className="mockup-kpi-grid">
               <div className="mockup-kpi-card">
                 <div className="kpi-header">
-                  <span className="kpi-label">ACTIVE FIELD TRIPS</span>
-                  <span className="kpi-tag tag-blue">Live</span>
+                  <span className="kpi-label">Active field trips</span>
                 </div>
-                <div className="kpi-number">4</div>
+                <div className="kpi-number tabular-nums">4</div>
                 <div className="kpi-trend text-success">
                   <span aria-hidden="true">↑</span> 12% vs last cycle
                 </div>
@@ -94,28 +110,25 @@ export function ProductDashboardPreview(): ReactNode {
 
               <div className="mockup-kpi-card">
                 <div className="kpi-header">
-                  <span className="kpi-label">AWAITING APPROVAL</span>
-                  <span className="kpi-tag tag-amber">Action req.</span>
+                  <span className="kpi-label">Pending approvals</span>
                 </div>
-                <div className="kpi-number text-amber">3</div>
+                <div className="kpi-number text-amber tabular-nums">3</div>
                 <div className="kpi-trend text-muted">Requires manager review</div>
               </div>
 
               <div className="mockup-kpi-card">
                 <div className="kpi-header">
-                  <span className="kpi-label">COMPLETED VISITS</span>
-                  <span className="kpi-tag tag-green">On schedule</span>
+                  <span className="kpi-label">Completed visits</span>
                 </div>
-                <div className="kpi-number text-navy">38</div>
+                <div className="kpi-number text-navy tabular-nums">38</div>
                 <div className="kpi-trend text-success">94.2% on-time execution</div>
               </div>
 
               <div className="mockup-kpi-card">
                 <div className="kpi-header">
-                  <span className="kpi-label">FLAGGED EXCEPTIONS</span>
-                  <span className="kpi-tag tag-red">Attention</span>
+                  <span className="kpi-label">Flagged exceptions</span>
                 </div>
-                <div className="kpi-number text-danger">2</div>
+                <div className="kpi-number text-danger tabular-nums">2</div>
                 <div className="kpi-trend text-danger">1 cooler alert • 1 stockout</div>
               </div>
             </div>
@@ -147,7 +160,7 @@ export function ProductDashboardPreview(): ReactNode {
                       <th scope="col">Scheduled Retail Door</th>
                       <th scope="col">Visit Type</th>
                       <th scope="col">Execution Status</th>
-                      <th scope="col">Evidence & Checklist</th>
+                      <th scope="col">Evidence &amp; Checklist</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -168,18 +181,21 @@ export function ProductDashboardPreview(): ReactNode {
                         </div>
                       </td>
                       <td>
-                        <span className="pill-type">Merchandising & Planogram</span>
+                        <span className="pill-type">Merchandising &amp; Planogram</span>
                       </td>
                       <td>
                         <span className="badge-status status-in-progress">
-                          <span className="badge-dot dot-pulse" />
+                          <span className="badge-dot" />
                           Checked In (10:14 AM)
                         </span>
                       </td>
                       <td>
                         <div className="mockup-evidence-summary">
-                          <span className="checklist-pill">4/4 Checked ✓</span>
-                          <span className="evidence-count">📷 3 Photos</span>
+                          <span className="checklist-pill">4/4 Checked</span>
+                          <span className="evidence-count">
+                            <Camera size={12} aria-hidden="true" />
+                            <span>3 Photos</span>
+                          </span>
                         </div>
                       </td>
                     </tr>
@@ -211,8 +227,11 @@ export function ProductDashboardPreview(): ReactNode {
                       </td>
                       <td>
                         <div className="mockup-evidence-summary">
-                          <span className="checklist-pill">3/3 Checked ✓</span>
-                          <span className="evidence-count">📷 2 Photos</span>
+                          <span className="checklist-pill">3/3 Checked</span>
+                          <span className="evidence-count">
+                            <Camera size={12} aria-hidden="true" />
+                            <span>2 Photos</span>
+                          </span>
                         </div>
                       </td>
                     </tr>
@@ -234,7 +253,7 @@ export function ProductDashboardPreview(): ReactNode {
                         </div>
                       </td>
                       <td>
-                        <span className="pill-type">Cooler Audit & Restock</span>
+                        <span className="pill-type">Cooler Audit &amp; Restock</span>
                       </td>
                       <td>
                         <span className="badge-status status-exception">
@@ -245,9 +264,13 @@ export function ProductDashboardPreview(): ReactNode {
                       <td>
                         <div className="mockup-evidence-summary">
                           <span className="checklist-pill pill-warning">
-                            Cooler at 12°C ⚠️
+                            <AlertTriangle size={12} aria-hidden="true" />
+                            <span>Cooler at 12°C</span>
                           </span>
-                          <span className="evidence-count">📷 4 Photos</span>
+                          <span className="evidence-count">
+                            <Camera size={12} aria-hidden="true" />
+                            <span>4 Photos</span>
+                          </span>
                         </div>
                       </td>
                     </tr>
@@ -303,13 +326,13 @@ export function ProductDashboardPreview(): ReactNode {
 
             {/* Mobile Active Stop Card */}
             <div className="mobile-stop-card">
-              <div className="stop-card-badge">CURRENT ACTIVE STOP</div>
+              <div className="stop-card-badge">Active Stop</div>
               <h5 className="stop-name">HyperCity Supercenter #104</h5>
-              <p className="stop-address">1440 Michigan Ave, Aisles 4 & 7</p>
+              <p className="stop-address">1440 Michigan Ave, Aisles 4 &amp; 7</p>
 
               <div className="gps-verified-banner">
                 <div className="gps-icon-circle" aria-hidden="true">
-                  📍
+                  <MapPin size={14} />
                 </div>
                 <div>
                   <strong>GPS Check-in Verified</strong>
@@ -329,7 +352,7 @@ export function ProductDashboardPreview(): ReactNode {
                     <span className="check-box-icon" aria-hidden="true">
                       ✓
                     </span>
-                    <span>Facing & Planogram compliance verified</span>
+                    <span>Facing &amp; Planogram compliance verified</span>
                   </li>
                   <li className="check-item-done">
                     <span className="check-box-icon" aria-hidden="true">
@@ -341,7 +364,7 @@ export function ProductDashboardPreview(): ReactNode {
                     <span className="check-box-icon" aria-hidden="true">
                       ✓
                     </span>
-                    <span>Endcap promo photo captured & signed</span>
+                    <span>Endcap promo photo captured &amp; signed</span>
                   </li>
                 </ul>
               </div>
@@ -351,16 +374,16 @@ export function ProductDashboardPreview(): ReactNode {
                 type="button"
                 className="btn btn-primary mobile-checkout-btn"
                 disabled
-                aria-label="Complete Visit & Check Out (Illustrative preview)"
+                aria-label="Complete Visit &amp; Check Out (Illustrative preview)"
               >
-                <span>Complete Visit & Check Out</span>
+                <span>Complete Visit &amp; Check Out</span>
                 <span aria-hidden="true">→</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Floating Context Callout */}
+        {/* Context Callout */}
         <div className="mobile-callout-pill" aria-hidden="true">
           <span className="callout-indicator" />
           <span>Real-time sync to Manager Dashboard</span>

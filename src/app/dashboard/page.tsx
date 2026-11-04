@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { PlusCircle, Map, ClipboardList, Info } from "lucide-react";
 import { ManagerDashboardClient } from "@/components/dashboard/ManagerDashboardClient";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
@@ -311,7 +312,7 @@ export default async function DashboardPage(
 
       {accessNote ? (
         <div role="note" className="alert alert--info">
-          <span aria-hidden="true">ℹ️</span>
+          <Info size={16} aria-hidden="true" />
           <div>
             <strong>Role Scope Notice:</strong> {accessNote}
           </div>
@@ -411,21 +412,27 @@ export default async function DashboardPage(
           {/* Quick Actions */}
           <div className="quick-actions">
             <Link href="/trips/new" className="quick-action">
-              <div className="quick-action-icon">➕</div>
+              <div className="quick-action-icon">
+                <PlusCircle size={20} aria-hidden="true" />
+              </div>
               <div className="quick-action-text">
                 <span>Plan Field Trip</span>
                 <span className="quick-action-desc">Create multi-stop route</span>
               </div>
             </Link>
             <Link href="/trips" className="quick-action">
-              <div className="quick-action-icon">🗺️</div>
+              <div className="quick-action-icon">
+                <Map size={20} aria-hidden="true" />
+              </div>
               <div className="quick-action-text">
                 <span>My Field Itineraries</span>
                 <span className="quick-action-desc">Check status and stops</span>
               </div>
             </Link>
             <Link href="/visits" className="quick-action">
-              <div className="quick-action-icon">📋</div>
+              <div className="quick-action-icon">
+                <ClipboardList size={20} aria-hidden="true" />
+              </div>
               <div className="quick-action-text">
                 <span>Store Visit Checklists</span>
                 <span className="quick-action-desc">Execute on-site evidence</span>

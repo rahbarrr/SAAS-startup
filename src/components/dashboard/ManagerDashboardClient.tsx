@@ -41,7 +41,7 @@ export function ManagerDashboardClient({
         </div>
         <div className="dashboard-section-badge">
           <span className="dashboard-live-dot" aria-hidden="true" />
-          <span>Telemetry Active • RLS Protected</span>
+          <span>Live telemetry</span>
         </div>
       </div>
 
@@ -66,12 +66,11 @@ export function ManagerDashboardClient({
                   pendingApprovals.length > 0
                     ? "var(--status-warning-text)"
                     : "var(--status-success-text)",
-                padding: "0.1875rem 0.625rem",
-                borderRadius: "var(--radius-full)",
+                padding: "0.2rem 0.5rem",
+                borderRadius: "var(--radius-sm, 6px)",
                 fontSize: "0.75rem",
-                fontWeight: 700,
+                fontWeight: 600,
                 border: "1px solid var(--border-default)",
-                boxShadow: "var(--shadow-neu-raised-sm)",
               }}
             >
               {pendingApprovals.length} Awaiting
@@ -82,7 +81,7 @@ export function ManagerDashboardClient({
             <div
               style={{ padding: "2rem", textAlign: "center", color: "var(--text-muted)" }}
             >
-              ✓ All submitted trips have been reviewed! No pending approvals.
+              No pending approvals. All submitted itineraries have been reviewed.
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -90,16 +89,13 @@ export function ManagerDashboardClient({
                 <div
                   key={trip.id}
                   style={{
-                    background: "#ffffff",
-                    border: "1px solid rgba(255, 255, 255, 0.9)",
-                    boxShadow: "var(--shadow-neu-raised-sm)",
+                    background: "var(--bg-surface)",
+                    border: "1px solid var(--border-default)",
                     borderRadius: "var(--radius-md)",
                     padding: "1rem",
                     display: "flex",
                     flexDirection: "column",
                     gap: "0.625rem",
-                    transition:
-                      "transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard)",
                   }}
                 >
                   <div
@@ -360,18 +356,17 @@ export function ManagerDashboardClient({
                   >
                     <div
                       style={{
-                        width: "0.75rem",
-                        height: "0.75rem",
+                        width: "0.5rem",
+                        height: "0.5rem",
                         borderRadius: "50%",
-                        background: "var(--brand-cyan)",
-                        boxShadow: "0 0 8px rgba(56, 217, 214, 0.7)",
-                        marginTop: "0.25rem",
+                        background: "var(--brand-primary)",
+                        marginTop: "0.35rem",
                       }}
                     />
                     {index < Math.min(timelineEvents.length, 5) - 1 ? (
                       <div
                         style={{
-                          width: "2px",
+                          width: "1px",
                           height: "2.5rem",
                           background: "var(--border-default)",
                           marginTop: "0.25rem",

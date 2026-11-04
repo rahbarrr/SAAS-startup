@@ -8,6 +8,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { Camera, UploadCloud } from "lucide-react";
 import { ErrorState } from "@/components/ui/States";
 import {
   loadLocalVisitDraft,
@@ -805,18 +806,19 @@ export function VisitExecutionClient({
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: "0.35rem",
+                    gap: "0.5rem",
                     padding: "0.5rem 0.875rem",
-                    backgroundColor: "#f1f5f9",
+                    backgroundColor: "var(--bg-subtle, #f1f5f9)",
                     border: "1px solid var(--border-default)",
-                    borderRadius: "var(--radius-sm)",
+                    borderRadius: "var(--radius-sm, 6px)",
                     cursor: "pointer",
                     fontSize: "0.875rem",
                     minHeight: "44px",
                     fontWeight: 500,
                   }}
                 >
-                  📸 Take Photo
+                  <Camera size={16} aria-hidden="true" />
+                  <span>Take Photo</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -833,18 +835,19 @@ export function VisitExecutionClient({
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: "0.35rem",
+                    gap: "0.5rem",
                     padding: "0.5rem 0.875rem",
-                    backgroundColor: "#f8fafc",
+                    backgroundColor: "var(--bg-surface, #ffffff)",
                     border: "1px solid var(--border-default)",
-                    borderRadius: "var(--radius-sm)",
+                    borderRadius: "var(--radius-sm, 6px)",
                     cursor: "pointer",
                     fontSize: "0.875rem",
                     minHeight: "44px",
                     fontWeight: 500,
                   }}
                 >
-                  📁 Choose File
+                  <UploadCloud size={16} aria-hidden="true" />
+                  <span>Choose File</span>
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp,application/pdf"

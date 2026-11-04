@@ -1,8 +1,9 @@
 /**
  * FieldTrack Enterprise Design Tokens
  *
- * Strict palette tokens reflecting the FieldTrack four-color identity:
- * Royal Blue (#293F91), Violet (#8875F7), Electric Cyan (#38D9D6), Soft White (#F5F6FA)
+ * Grounded craft palette:
+ * Slate neutral ramp, Deep Cobalt accent (#1E40AF), purposeful semantic status,
+ * quiet elevation hairlines, and strict 4px grid nested radii.
  */
 
 export const COLORS = {
@@ -64,37 +65,32 @@ export const COLORS = {
 } as const;
 
 export const GRADIENTS = {
-  brand: "linear-gradient(135deg, #293F91 0%, #5B47D6 55%, #8875F7 100%)",
-  accent: "linear-gradient(135deg, #8875F7 0%, #38D9D6 100%)",
-  brandSubtle: "linear-gradient(135deg, #F2F0FF 0%, #EEF1FA 100%)",
-  cyanSubtle:
-    "linear-gradient(135deg, rgba(136, 117, 247, 0.08) 0%, rgba(56, 217, 214, 0.12) 100%)",
-  sidebar: "linear-gradient(180deg, #293F91 0%, #1E2F75 100%)",
+  brand: "linear-gradient(135deg, #293F91 0%, #152255 100%)",
+  accent: "linear-gradient(135deg, #1E40AF 0%, #38D9D6 100%)",
+  brandSubtle: "linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)",
+  cyanSubtle: "linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)",
+  sidebar: "linear-gradient(180deg, #1C2B66 0%, #152255 100%)",
   glass:
-    "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(245, 246, 250, 0.8) 100%)",
+    "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%)",
 } as const;
 
 export const SHADOWS = {
-  neuRaised:
-    "6px 6px 16px rgba(41, 63, 145, 0.07), -6px -6px 16px rgba(255, 255, 255, 0.95)",
-  neuRaisedSm:
-    "3px 3px 8px rgba(41, 63, 145, 0.06), -3px -3px 8px rgba(255, 255, 255, 0.9)",
-  neuRaisedHover:
-    "8px 8px 22px rgba(41, 63, 145, 0.1), -8px -8px 22px rgba(255, 255, 255, 1)",
-  neuInset:
-    "inset 2px 2px 5px rgba(41, 63, 145, 0.08), inset -2px -2px 5px rgba(255, 255, 255, 0.95)",
-  glowCyan: "0 0 16px rgba(56, 217, 214, 0.45)",
-  glowViolet: "0 0 16px rgba(136, 117, 247, 0.4)",
+  neuRaised: "0 1px 3px rgba(41, 63, 145, 0.07), 0 1px 2px rgba(15, 23, 42, 0.04)",
+  neuRaisedSm: "0 1px 2px rgba(15, 23, 42, 0.04)",
+  neuRaisedHover: "0 4px 12px rgba(41, 63, 145, 0.1), 0 2px 4px rgba(15, 23, 42, 0.04)",
+  neuInset: "inset 0 1px 2px rgba(15, 23, 42, 0.05)",
+  glowCyan: "0 1px 2px rgba(15, 23, 42, 0.05)",
+  glowViolet: "0 1px 2px rgba(15, 23, 42, 0.05)",
   card: "0 1px 3px rgba(32, 36, 58, 0.07), 0 1px 2px -1px rgba(32, 36, 58, 0.04)",
   cardHover: "0 4px 12px rgba(41, 63, 145, 0.1), 0 2px 4px -1px rgba(41, 63, 145, 0.06)",
 } as const;
 
 export const RADII = {
-  xs: "0.25rem",
-  sm: "0.375rem",
-  md: "0.5rem",
-  lg: "0.875rem",
-  xl: "1.125rem",
+  xs: "0.25rem", // 4px
+  sm: "0.375rem", // 6px
+  md: "0.5rem", // 8px
+  lg: "0.75rem", // 12px
+  xl: "1rem", // 16px
   full: "9999px",
 } as const;
 
@@ -108,7 +104,7 @@ export const ANIMATION = {
   ease: {
     standard: [0.2, 0, 0, 1] as const,
     smooth: [0.25, 0.1, 0.25, 1] as const,
-    bounce: [0.34, 1.56, 0.64, 1] as const,
+    bounce: [0.2, 0, 0, 1] as const,
   },
 } as const;
 

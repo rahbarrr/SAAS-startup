@@ -3,9 +3,7 @@
 import Link from "next/link";
 import { type ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { DynamicThreeDHeroScene } from "@/components/3d";
 import { ProductDashboardPreview } from "./ProductDashboardPreview";
-import { ScaleOnHover } from "@/components/animation";
 import { ShieldCheck, MapPin, CheckCircle2 } from "lucide-react";
 
 export function LandingHero(): ReactNode {
@@ -16,18 +14,18 @@ export function LandingHero(): ReactNode {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: shouldReduceMotion ? 0 : 0.1,
-        delayChildren: 0.08,
+        staggerChildren: shouldReduceMotion ? 0 : 0.08,
+        delayChildren: 0.04,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 16 },
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 12 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
+      transition: { duration: 0.35, ease: [0.2, 0, 0, 1] as const },
     },
   };
 
@@ -37,27 +35,6 @@ export function LandingHero(): ReactNode {
       aria-labelledby="hero-heading"
       style={{ position: "relative", overflow: "hidden" }}
     >
-      {/* Background 3D Ambient Visual Layer */}
-      <div
-        className="hero-3d-backdrop"
-        style={{
-          position: "absolute",
-          top: "-5%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "100%",
-          maxWidth: "100vw",
-          height: "480px",
-          pointerEvents: "none",
-          opacity: 0.5,
-          zIndex: 0,
-          overflow: "hidden",
-        }}
-        aria-hidden="true"
-      >
-        <DynamicThreeDHeroScene />
-      </div>
-
       <div className="landing-hero-container" style={{ position: "relative", zIndex: 1 }}>
         <motion.div
           className="hero-content-stack"
@@ -91,17 +68,13 @@ export function LandingHero(): ReactNode {
 
           {/* Primary and Secondary CTA Buttons */}
           <motion.div variants={itemVariants} className="hero-cta-group">
-            <ScaleOnHover scale={1.03}>
-              <Link href="/signup" className="btn btn-primary hero-primary-btn">
-                <span>Get Started</span>
-                <span aria-hidden="true">→</span>
-              </Link>
-            </ScaleOnHover>
-            <ScaleOnHover scale={1.02}>
-              <a href="#showcase" className="btn btn-secondary hero-secondary-btn">
-                <span>Explore Platform</span>
-              </a>
-            </ScaleOnHover>
+            <Link href="/signup" className="btn btn-primary hero-primary-btn">
+              <span>Get Started</span>
+              <span aria-hidden="true">→</span>
+            </Link>
+            <a href="#showcase" className="btn btn-secondary hero-secondary-btn">
+              <span>Explore Platform</span>
+            </a>
           </motion.div>
 
           {/* Enterprise trust & capability tags */}
@@ -121,32 +94,14 @@ export function LandingHero(): ReactNode {
           </motion.div>
         </motion.div>
 
-        {/* Product Dashboard Preview with Interactive Floating Operational UI */}
+        {/* Product Dashboard Preview with Authentic Grounded Interface */}
         <motion.div
           className="hero-visual-container hero-preview-container"
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 28 }}
+          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.25, ease: [0.16, 1, 0.3, 1] as const }}
+          transition={{ duration: 0.45, delay: 0.15, ease: [0.2, 0, 0, 1] as const }}
           style={{ position: "relative" }}
         >
-          {/* Floating Operational Pill 1 (Top-Left) */}
-          <div className="hero-floating-pill pill-top-left" aria-hidden="true">
-            <div className="pill-dot pill-dot-green" />
-            <div>
-              <div className="pill-label">Trip Approved • 4 Stops</div>
-              <div className="pill-sub">Midwest FMCG Territory • Ready</div>
-            </div>
-          </div>
-
-          {/* Floating Operational Pill 2 (Bottom-Right) */}
-          <div className="hero-floating-pill pill-bottom-right" aria-hidden="true">
-            <div className="pill-dot pill-dot-cyan" />
-            <div>
-              <div className="pill-label">Store Visit Verified</div>
-              <div className="pill-sub">Target #1042 • GPS Check-in 42m</div>
-            </div>
-          </div>
-
           <ProductDashboardPreview />
         </motion.div>
       </div>

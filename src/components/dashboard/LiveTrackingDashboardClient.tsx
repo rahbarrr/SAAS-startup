@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import {
   LiveManagerMap,
   type LiveEmployeeMarkerData,
@@ -157,9 +158,22 @@ export function LiveTrackingDashboardClient({
             onClick={refreshLocations}
             disabled={isRefreshing}
             className="btn btn-sm btn-secondary"
-            style={{ fontSize: "0.75rem", cursor: "pointer" }}
+            style={{
+              fontSize: "0.75rem",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+            }}
           >
-            {isRefreshing ? "Refreshing..." : "🔄 Refresh Now"}
+            <RefreshCw
+              size={12}
+              aria-hidden="true"
+              style={{
+                animation: isRefreshing ? "spin 1s linear infinite" : "none",
+              }}
+            />
+            <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
           </button>
         </div>
       </div>
@@ -174,7 +188,7 @@ export function LiveTrackingDashboardClient({
             stores={stores}
             selectedEmployeeId={selectedEmployeeId}
             onSelectEmployee={(emp) => setSelectedEmployeeId(emp ? emp.employeeId : null)}
-            height="580px"
+            height="clamp(380px, 55vh, 560px)"
           />
         </div>
 
