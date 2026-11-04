@@ -110,7 +110,13 @@ export function LiveTrackingDashboardClient({
         }}
       >
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-          <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#475569" }}>
+          <span
+            style={{
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              color: "var(--text-secondary, #475569)",
+            }}
+          >
             Filter Status:
           </span>
           {(["all", "active", "delayed", "stale", "offline"] as FilterStatus[]).map(
@@ -123,8 +129,10 @@ export function LiveTrackingDashboardClient({
                   fontSize: "0.75rem",
                   textTransform: "capitalize",
                   backgroundColor:
-                    filter === st ? "var(--brand-primary, #2563eb)" : "#f1f5f9",
-                  color: filter === st ? "#ffffff" : "#334155",
+                    filter === st
+                      ? "var(--brand-primary, #1558c9)"
+                      : "var(--bg-subtle, #f1f5f9)",
+                  color: filter === st ? "#ffffff" : "var(--text-secondary, #334155)",
                   border: "none",
                   borderRadius: "6px",
                   padding: "0.35rem 0.75rem",
@@ -286,32 +294,32 @@ export function LiveTrackingDashboardClient({
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#64748b" }}>Active Trip:</span>
-                <span style={{ fontWeight: 600, color: "#0f172a" }}>
+                <span style={{ color: "var(--text-muted, #64748b)" }}>Active Trip:</span>
+                <span style={{ fontWeight: 600, color: "var(--text-primary, #030407)" }}>
                   {selectedEmployee.tripTitle ?? "In Progress"}
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#64748b" }}>Last Update:</span>
-                <span style={{ color: "#0f172a" }}>
+                <span style={{ color: "var(--text-muted, #64748b)" }}>Last Update:</span>
+                <span style={{ color: "var(--text-primary, #030407)" }}>
                   {new Date(selectedEmployee.recordedAt).toLocaleTimeString()}
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#64748b" }}>Accuracy:</span>
-                <span style={{ color: "#0f172a" }}>
+                <span style={{ color: "var(--text-muted, #64748b)" }}>Accuracy:</span>
+                <span style={{ color: "var(--text-primary, #030407)" }}>
                   {selectedEmployee.accuracyM
                     ? `±${Math.round(selectedEmployee.accuracyM)}m`
                     : "Unavailable"}
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#64748b" }}>Coordinates:</span>
+                <span style={{ color: "var(--text-muted, #64748b)" }}>Coordinates:</span>
                 <span
                   style={{
                     fontFamily: "monospace",
                     fontSize: "0.75rem",
-                    color: "#334155",
+                    color: "var(--text-secondary, #334155)",
                   }}
                 >
                   {selectedEmployee.latitude.toFixed(4)},{" "}

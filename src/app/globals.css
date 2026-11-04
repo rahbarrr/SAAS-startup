@@ -5,30 +5,44 @@
    All component styles consume these tokens. Avoid hardcoding hex values.
    ========================================================================== */
 :root {
-  /* Brand Palette (Four-Color System: Royal Blue, Violet, Electric Cyan, Soft White) */
+  /* Brand Palette (Preserved base tokens for test suite compatibility) */
   --brand-royal: #293f91;
   --brand-violet: #8875f7;
   --brand-cyan: #38d9d6;
   --brand-cyan-soft: rgba(56, 217, 214, 0.12);
   --brand-cyan-border: rgba(56, 217, 214, 0.35);
   --brand-cyan-strong: #0e9f9c;
-  --brand-primary: #293f91;
-  --brand-primary-hover: #223579;
-  --brand-dark: #1c2b66;
-  --brand-darker: #152255;
+
+  /* Tactical Theme Palette (Midnight Black #030407, Electric Cobalt Blue #1558C9, Acid Lime #D4FF24) */
+  --tactical-black: #030407;
+  --tactical-cobalt: #1558c9;
+  --tactical-cobalt-hover: #1146a2;
+  --tactical-cobalt-soft: rgba(21, 88, 201, 0.08);
+  --tactical-cobalt-border: rgba(21, 88, 201, 0.25);
+  --tactical-lime: #d4ff24;
+  --tactical-lime-hover: #beec12;
+  --tactical-lime-soft: rgba(212, 255, 36, 0.16);
+  --tactical-lime-border: rgba(212, 255, 36, 0.45);
+  --tactical-lime-text: #030407;
+
+  /* Primary Action & Brand Identity */
+  --brand-primary: #1558c9;
+  --brand-primary-hover: #1146a2;
+  --brand-dark: #0a0e17;
+  --brand-darker: #030407;
   --brand-on-primary: #ffffff;
 
   /* Accent scale */
-  --brand-violet-hover: #7663f0;
-  --brand-violet-strong: #5b47d6;
-  --brand-violet-soft: #f2f0ff;
-  --brand-violet-border: #dcd5fe;
-  --brand-royal-soft: #eef1fa;
-  --brand-royal-border: #cfd6ee;
+  --brand-violet-hover: #1146a2;
+  --brand-violet-strong: #1558c9;
+  --brand-violet-soft: rgba(21, 88, 201, 0.08);
+  --brand-violet-border: rgba(21, 88, 201, 0.25);
+  --brand-royal-soft: rgba(21, 88, 201, 0.08);
+  --brand-royal-border: rgba(21, 88, 201, 0.25);
 
-  /* Legacy accent tokens */
-  --brand-accent: #8875f7;
-  --brand-accent-hover: #7663f0;
+  /* Tactical accent tokens */
+  --brand-accent: #1558c9;
+  --brand-accent-hover: #1146a2;
 
   /* Premium Gradients */
   --gradient-brand: linear-gradient(135deg, #293f91 0%, #152255 100%);
@@ -59,8 +73,8 @@
   --shadow-glow-cyan: 0 1px 2px rgba(15, 23, 42, 0.04);
   --shadow-glow-violet: 0 1px 2px rgba(15, 23, 42, 0.04);
 
-  /* Typography Colors */
-  --text-primary: #0f172a;
+  /* Typography Colors (Primary text grounded in Midnight Black #030407) */
+  --text-primary: #030407;
   --text-secondary: #475569;
   --text-muted: #64748b;
   --text-light: #94a3b8;
@@ -71,8 +85,8 @@
   --border-default: #e2e8f0;
   --border-strong: #cbd5e1;
   --border-subtle: #f1f5f9;
-  --focus-ring: #2563eb;
-  --focus-ring-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  --focus-ring: #1558c9;
+  --focus-ring-shadow: 0 0 0 3px rgba(21, 88, 201, 0.25);
 
   /* Semantic Status Colors (kept distinct from brand colors) */
   --status-success: #15803d;
@@ -177,83 +191,83 @@
 }
 
 /* ==========================================================================
-   Dark Theme Surfaces & Design Tokens (Phase 2 & Phase 4)
-   Main background: #0B1020
-   Primary card: #151D35
-   Secondary surface: #1C2742
-   Elevated surface: #222E4B
-   Borders: #2C3958
-   Primary text: #F5F7FF
-   Secondary text: #A9B4CB
-   Muted text: #7E8BA7
-   Primary accent: #8875F7
-   Secondary accent: #38D9D6
+   Dark Theme Surfaces & Design Tokens (Tactical Mode)
+   Main background: Midnight Black #030407
+   Primary card: #0A0E17
+   Secondary surface: #111724
+   Elevated surface: #151D2D
+   Borders: #1C2436
+   Primary text: #F8FAFC
+   Secondary text: #94A3B8
+   Muted text: #64748B
+   Primary action: Electric Cobalt Blue #1558C9
+   Telemetry accent: Acid Lime #D4FF24
    ========================================================================== */
 html[data-theme="dark"],
 html.dark {
-  /* Surfaces & Backgrounds */
-  --bg-canvas: #0b1020;
-  --bg-surface: #151d35;
-  --bg-subtle: #1c2742;
-  --bg-hover: #222e4b;
-  --bg-muted: #18223d;
-  --bg-card: #151d35;
-  --surface: #151d35;
-  --surface-elevated: #222e4b;
-  --surface-hover: #273656;
+  /* Surfaces & Backgrounds grounded in Midnight Black #030407 */
+  --bg-canvas: #030407;
+  --bg-surface: #0a0e17;
+  --bg-subtle: #111724;
+  --bg-hover: #182030;
+  --bg-muted: #0d121c;
+  --bg-card: #0a0e17;
+  --surface: #0a0e17;
+  --surface-elevated: #151d2d;
+  --surface-hover: #1c263b;
 
   /* Typography Colors */
-  --text-primary: #f5f7ff;
-  --text-secondary: #a9b4cb;
-  --text-muted: #7e8ba7;
-  --text-light: #5f6c88;
-  --text-main: #f5f7ff;
-  --foreground: #f5f7ff;
-  --background: #0b1020;
-  --muted-foreground: #a9b4cb;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-light: #475569;
+  --text-main: #f8fafc;
+  --foreground: #f8fafc;
+  --background: #030407;
+  --muted-foreground: #94a3b8;
 
-  /* Brand Accents */
-  --brand-royal: #3b52b2;
-  --brand-primary: #8875f7;
-  --brand-primary-hover: #7663f0;
-  --brand-dark: #f5f7ff;
+  /* Brand Accents — Electric Cobalt & Acid Lime */
+  --brand-royal: #1558c9;
+  --brand-primary: #1558c9;
+  --brand-primary-hover: #2267dc;
+  --brand-dark: #f8fafc;
   --brand-darker: #ffffff;
   --brand-on-primary: #ffffff;
-  --brand-royal-soft: rgba(59, 82, 178, 0.25);
-  --brand-royal-border: #2c3958;
-  --brand-violet-soft: rgba(136, 117, 247, 0.15);
-  --brand-violet-border: rgba(136, 117, 247, 0.35);
-  --brand-cyan-soft: rgba(56, 217, 214, 0.15);
-  --brand-cyan-border: rgba(56, 217, 214, 0.35);
+  --brand-royal-soft: rgba(21, 88, 201, 0.22);
+  --brand-royal-border: #1a2947;
+  --brand-violet-soft: rgba(21, 88, 201, 0.18);
+  --brand-violet-border: rgba(21, 88, 201, 0.35);
+  --brand-cyan-soft: rgba(212, 255, 36, 0.15);
+  --brand-cyan-border: rgba(212, 255, 36, 0.35);
 
   /* Borders & Dividers */
-  --border-default: #2c3958;
-  --border-strong: #3b4c73;
-  --border-subtle: #1f2a45;
-  --border: #2c3958;
-  --border-color: #2c3958;
+  --border-default: #1c2436;
+  --border-strong: #2a3650;
+  --border-subtle: #121824;
+  --border: #1c2436;
+  --border-color: #1c2436;
 
   /* Focus & Accents */
-  --focus-ring: #8875f7;
-  --focus-ring-shadow: 0 0 0 3px rgba(136, 117, 247, 0.35);
-  --accent: #8875f7;
-  --accent-hover: #7663f0;
+  --focus-ring: #d4ff24;
+  --focus-ring-shadow: 0 0 0 3px rgba(212, 255, 36, 0.35);
+  --accent: #d4ff24;
+  --accent-hover: #beec12;
 
   /* Gradients */
-  --gradient-brand: linear-gradient(135deg, #1c2742 0%, #222e4b 55%, #151d35 100%);
-  --gradient-brand-subtle: linear-gradient(135deg, #1c2742 0%, #151d35 100%);
+  --gradient-brand: linear-gradient(135deg, #1558c9 0%, #0a0e17 100%);
+  --gradient-brand-subtle: linear-gradient(135deg, #0a0e17 0%, #030407 100%);
   --gradient-glass: linear-gradient(
     135deg,
-    rgba(21, 29, 53, 0.88) 0%,
-    rgba(28, 39, 66, 0.82) 100%
+    rgba(10, 14, 23, 0.94) 0%,
+    rgba(17, 23, 36, 0.9) 100%
   );
 
-  /* Shadows (tinted toward deep navy) */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 12px 28px -6px rgba(0, 0, 0, 0.7), 0 4px 8px -4px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 24px 50px -12px rgba(0, 0, 0, 0.8), 0 8px 16px -8px rgba(0, 0, 0, 0.6);
+  /* Shadows (tinted toward deep Midnight Black) */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.7), 0 1px 2px -1px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.8), 0 2px 4px -2px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 12px 28px -6px rgba(0, 0, 0, 0.85), 0 4px 8px -4px rgba(0, 0, 0, 0.7);
+  --shadow-xl: 0 24px 50px -12px rgba(0, 0, 0, 0.95), 0 8px 16px -8px rgba(0, 0, 0, 0.8);
 
   /* Status Tokens Adjusted for Dark Contrast */
   --status-success-bg: rgba(22, 101, 52, 0.25);
@@ -4250,7 +4264,8 @@ input[type="radio"] {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: var(--brand-primary);
+  background: var(--tactical-lime, #d4ff24);
+  box-shadow: 0 0 6px rgba(212, 255, 36, 0.65);
 }
 
 .eyebrow-separator {
@@ -4272,7 +4287,7 @@ input[type="radio"] {
 }
 
 .headline-accent {
-  color: var(--brand-primary);
+  color: var(--tactical-cobalt, #1558c9);
   background: none;
   -webkit-text-fill-color: initial;
 }
@@ -4454,8 +4469,9 @@ input[type="radio"] {
   gap: 0.375rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--status-success);
-  background: var(--status-success-bg);
+  color: var(--text-primary);
+  background: var(--tactical-lime-soft, rgba(212, 255, 36, 0.16));
+  border: 1px solid var(--tactical-lime-border, rgba(212, 255, 36, 0.45));
   padding: 0.25rem 0.625rem;
   border-radius: var(--radius-full);
 }
@@ -4464,7 +4480,8 @@ input[type="radio"] {
   width: 0.4375rem;
   height: 0.4375rem;
   border-radius: 50%;
-  background: var(--status-success);
+  background: var(--tactical-lime, #d4ff24);
+  box-shadow: 0 0 6px rgba(212, 255, 36, 0.75);
   animation: pulse-live 2s infinite;
 }
 
@@ -4854,8 +4871,13 @@ input[type="radio"] {
   border-radius: var(--radius-full);
 }
 .status-in-progress {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--tactical-lime-soft, rgba(212, 255, 36, 0.16));
+  color: var(--tactical-cobalt, #1558c9);
+  border: 1px solid var(--tactical-lime-border, rgba(212, 255, 36, 0.45));
+}
+.status-in-progress .badge-dot {
+  background: var(--tactical-lime, #d4ff24);
+  box-shadow: 0 0 4px rgba(212, 255, 36, 0.7);
 }
 .status-visited {
   background: #ecfdf5;
@@ -6771,19 +6793,15 @@ input[type="radio"] {
 }
 
 .pricing-card.pricing-card-featured {
-  background: #ffffff;
-  border: 2px solid var(--brand-violet-strong);
-  box-shadow:
-    10px 10px 30px rgba(41, 63, 145, 0.16),
-    -10px -10px 30px rgba(255, 255, 255, 0.95);
+  background: var(--bg-surface, #ffffff);
+  border: 2px solid var(--tactical-cobalt, #1558c9);
+  box-shadow: 0 8px 30px rgba(21, 88, 201, 0.12);
   transform: scale(1.02);
 }
 
 .pricing-card.pricing-card-featured:hover {
   transform: scale(1.02) translateY(-3px);
-  box-shadow:
-    14px 14px 36px rgba(41, 63, 145, 0.22),
-    -14px -14px 36px rgba(255, 255, 255, 1);
+  box-shadow: 0 12px 36px rgba(21, 88, 201, 0.18);
 }
 
 .featured-banner-tag {
@@ -6791,14 +6809,14 @@ input[type="radio"] {
   top: -0.875rem;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--gradient-brand);
+  background: var(--tactical-cobalt, #1558c9);
   color: #ffffff;
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   padding: 0.3125rem 0.875rem;
   border-radius: var(--radius-full);
-  box-shadow: 0 4px 12px rgba(41, 63, 145, 0.35);
+  box-shadow: 0 4px 12px rgba(21, 88, 201, 0.35);
   white-space: nowrap;
 }
 
@@ -9107,8 +9125,8 @@ html[data-theme="dark"] .pricing-card {
 }
 
 html[data-theme="dark"] .pricing-card-featured {
-  background: #192340;
-  border-color: var(--brand-violet);
+  background: #0f1628;
+  border-color: var(--tactical-cobalt, #1558c9);
 }
 
 html[data-theme="dark"] .showcase-mockup-card {
@@ -9308,9 +9326,9 @@ html[data-theme="dark"] .landing-hero {
     linear-gradient(180deg, #0b1020 0%, #0f1630 100%);
 }
 html[data-theme="dark"] .pricing-card.pricing-card-featured {
-  background: #1c2742;
-  border-color: var(--brand-violet);
-  box-shadow: 0 16px 40px -12px rgba(136, 117, 247, 0.35);
+  background: #0f1628;
+  border-color: var(--tactical-cobalt, #1558c9);
+  box-shadow: 0 16px 40px -12px rgba(21, 88, 201, 0.35);
 }
 
 /* Dark mode refinements: contrast-safe status colors, neumorphic shadows, gradient text */

@@ -20,7 +20,7 @@ export function FinalCTA(): ReactNode {
           viewport={{ once: true, amount: 0.05 }}
           transition={{ duration: 0.45, ease: [0.2, 0, 0, 1] }}
           style={{
-            background: "#0f172a",
+            background: "#030407",
             borderRadius: "0.75rem",
             padding: "3.5rem 2rem",
             color: "#ffffff",
@@ -28,7 +28,7 @@ export function FinalCTA(): ReactNode {
             position: "relative",
             overflow: "hidden",
             border: "1px solid rgba(255, 255, 255, 0.12)",
-            boxShadow: "0 4px 20px rgba(15, 23, 42, 0.15)",
+            boxShadow: "0 4px 20px rgba(3, 4, 7, 0.4)",
           }}
         >
           <div
@@ -99,14 +99,14 @@ export function FinalCTA(): ReactNode {
                 className="btn btn-primary cta-btn-white"
                 style={{
                   background: "#ffffff",
-                  color: "#0f172a",
+                  color: "#030407",
                   fontWeight: 600,
                   padding: "0.875rem 2rem",
                   borderRadius: "0.5rem",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.5rem",
-                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.2)",
                 }}
               >
                 <span>Get Started</span>

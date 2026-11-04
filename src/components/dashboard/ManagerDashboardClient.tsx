@@ -163,7 +163,7 @@ export function ManagerDashboardClient({
                 <div
                   key={trip.id}
                   style={{
-                    background: "#FAFCFE",
+                    background: "var(--bg-subtle, #f8fafc)",
                     border: "1px solid var(--border-default)",
                     borderRadius: "var(--radius-md)",
                     padding: "1rem",
@@ -245,7 +245,7 @@ export function ManagerDashboardClient({
                     padding: "0.875rem",
                     borderRadius: "var(--radius-md)",
                     border: "1px solid var(--border-default)",
-                    background: "#FFFFFF",
+                    background: "var(--bg-surface, #FFFFFF)",
                     display: "flex",
                     flexDirection: "column",
                     gap: "0.375rem",
@@ -359,7 +359,12 @@ export function ManagerDashboardClient({
                         width: "0.5rem",
                         height: "0.5rem",
                         borderRadius: "50%",
-                        background: "var(--brand-primary)",
+                        background:
+                          index === 0
+                            ? "var(--tactical-lime, #d4ff24)"
+                            : "var(--tactical-cobalt, #1558c9)",
+                        boxShadow:
+                          index === 0 ? "0 0 6px rgba(212, 255, 36, 0.7)" : "none",
                         marginTop: "0.35rem",
                       }}
                     />

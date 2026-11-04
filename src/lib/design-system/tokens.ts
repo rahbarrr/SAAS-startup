@@ -24,6 +24,16 @@ export const COLORS = {
     cyanSoft: "rgba(56, 217, 214, 0.12)",
     cyanBorder: "rgba(56, 217, 214, 0.35)",
   },
+  tactical: {
+    midnightBlack: "#030407",
+    electricCobalt: "#1558C9",
+    electricCobaltHover: "#1146A2",
+    electricCobaltSoft: "rgba(21, 88, 201, 0.12)",
+    acidLime: "#D4FF24",
+    acidLimeHover: "#BEEC12",
+    acidLimeSoft: "rgba(212, 255, 36, 0.16)",
+    acidLimeText: "#030407",
+  },
   surface: {
     canvas: "#F5F6FA",
     surface: "#FFFFFF",
