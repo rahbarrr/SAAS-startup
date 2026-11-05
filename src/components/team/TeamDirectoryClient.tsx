@@ -173,7 +173,10 @@ export function TeamDirectoryClient({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
+    <div
+      className="mobile-page-stack"
+      style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}
+    >
       {/* Header section */}
       <section className="page-header" aria-labelledby="team-heading">
         <div className="page-header-text">

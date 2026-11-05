@@ -207,7 +207,10 @@ export function StoresDirectoryClient({
   const availableRegions = Array.from(new Set(stores.map((s) => s.region))).sort();
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+    <div
+      className="mobile-page-stack"
+      style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+    >
       <section className="page-header" aria-labelledby="stores-heading">
         <div className="page-header-text">
           <p className="page-eyebrow">Retail Network</p>

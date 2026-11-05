@@ -151,7 +151,10 @@ export function InAppNotificationsList({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+    <div
+      className="mobile-page-stack"
+      style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+    >
       <div
         role="note"
         aria-label="Notification delivery channel disclosure"

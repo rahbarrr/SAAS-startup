@@ -177,7 +177,10 @@ export function ApprovalsInboxClient({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+    <div
+      className="mobile-page-stack"
+      style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+    >
       {/* Page Header */}
       <section className="page-header" aria-labelledby="inbox-heading">
         <div className="page-header-text">

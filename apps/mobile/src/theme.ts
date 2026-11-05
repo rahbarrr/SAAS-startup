@@ -36,10 +36,10 @@ export const MOBILE_THEME = {
     borderStrong: "#D5D9E4",
   },
   radii: {
-    card: 22,
-    hero: 24,
+    card: 16,
+    hero: 18,
     pill: 999,
-    input: 14,
+    input: 12,
   },
 } as const;
 

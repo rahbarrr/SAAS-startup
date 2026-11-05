@@ -74,7 +74,10 @@ export function VisitsListClient({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+    <div
+      className="mobile-page-stack"
+      style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+    >
       {/* Page Header */}
       <section className="page-header" aria-labelledby="visits-heading">
         <div className="page-header-text">
@@ -200,50 +203,60 @@ export function VisitsListClient({
           />
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <label
-            htmlFor="visit-status-filter"
-            className="form-label"
-            style={{ margin: 0 }}
-          >
-            Status:
-          </label>
-          <select
-            id="visit-status-filter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="form-select"
-            style={{ minWidth: "10rem" }}
-          >
-            <option value="all">All Statuses ({initialVisits.length})</option>
-            <option value="not_started">Not Started</option>
-            <option value="in_progress">In Progress</option>
-            <option value="submitted">Submitted (Completed)</option>
-            <option value="reviewed">Reviewed</option>
-          </select>
-        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            flexWrap: "wrap",
+            width: "100%",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", flex: "1 1 8.5rem", minWidth: 0 }}>
+            <label
+              htmlFor="visit-status-filter"
+              className="form-label"
+              style={{ margin: 0, fontSize: "0.78125rem" }}
+            >
+              Status:
+            </label>
+            <select
+              id="visit-status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="form-select"
+              style={{ flex: 1, minWidth: 0 }}
+            >
+              <option value="all">All Statuses ({initialVisits.length})</option>
+              <option value="not_started">Not Started</option>
+              <option value="in_progress">In Progress</option>
+              <option value="submitted">Submitted (Completed)</option>
+              <option value="reviewed">Reviewed</option>
+            </select>
+          </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <label
-            htmlFor="visit-source-filter"
-            className="form-label"
-            style={{ margin: 0 }}
-          >
-            Source:
-          </label>
-          <select
-            id="visit-source-filter"
-            value={sourceFilter}
-            onChange={(e) => setSourceFilter(e.target.value)}
-            className="form-select"
-            style={{ minWidth: "11rem" }}
-          >
-            <option value="all">All Sources ({initialVisits.length})</option>
-            <option value="automatic_geofence">
-              Auto Geofence ({counts.autoGeofence})
-            </option>
-            <option value="manual">Manual Only</option>
-          </select>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", flex: "1 1 8.5rem", minWidth: 0 }}>
+            <label
+              htmlFor="visit-source-filter"
+              className="form-label"
+              style={{ margin: 0, fontSize: "0.78125rem" }}
+            >
+              Source:
+            </label>
+            <select
+              id="visit-source-filter"
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              className="form-select"
+              style={{ flex: 1, minWidth: 0 }}
+            >
+              <option value="all">All Sources ({initialVisits.length})</option>
+              <option value="automatic_geofence">
+                Auto Geofence ({counts.autoGeofence})
+              </option>
+              <option value="manual">Manual Only</option>
+            </select>
+          </div>
         </div>
       </section>
 

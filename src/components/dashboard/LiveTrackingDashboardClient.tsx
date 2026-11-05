@@ -99,7 +99,10 @@ export function LiveTrackingDashboardClient({
     locations.length > 0 ? Math.round((freshCount / locations.length) * 100) : 100;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+    <div
+      className="mobile-page-stack"
+      style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+    >
       {/* Reference-Inspired Dark Obsidian Telemetry Strip + Live Feed Summary */}
       <div className="dashboard-bento-hero-row">
         <article className="hero-obsidian-card" style={{ minHeight: "13.5rem" }}>

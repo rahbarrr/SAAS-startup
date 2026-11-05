@@ -290,12 +290,39 @@ export function TripSelectorScreen({
         </View>
       ) : null}
 
-      {/* Reference Dark Obsidian Field Summary Card */}
+      {/* Compact 2-Column Mobile KPI Grid (Section 2) */}
+      <View style={styles.kpiGridRow}>
+        <View style={styles.kpiCompactCard}>
+          <View style={styles.kpiCompactHeader}>
+            <View style={[styles.kpiDot, { backgroundColor: MOBILE_THEME.colors.electricBlue }]} />
+            <Text style={styles.kpiCompactLabel}>Active Routes</Text>
+          </View>
+          <Text style={styles.kpiCompactValue}>{executableTrips.length}</Text>
+          <Text style={styles.kpiCompactSub}>Authorized &amp; ready</Text>
+        </View>
+        <View style={styles.kpiCompactCard}>
+          <View style={styles.kpiCompactHeader}>
+            <View style={[styles.kpiDot, { backgroundColor: MOBILE_THEME.colors.emeraldLive }]} />
+            <Text style={styles.kpiCompactLabel}>Store Geofence</Text>
+          </View>
+          <Text style={styles.kpiCompactValue}>150m</Text>
+          <Text style={styles.kpiCompactSub}>60s GPS cadence</Text>
+        </View>
+      </View>
+
+      {/* Reference Dark Obsidian Field Summary Card (Section 3) */}
       <View style={styles.heroObsidianCard}>
-        <Text style={styles.heroEyebrow}>Field Operations Summary</Text>
-        <Text style={styles.heroValue}>{executableTrips.length} Active Routes</Text>
+        <View style={styles.heroHeaderRow}>
+          <View>
+            <Text style={styles.heroEyebrow}>Field Operations Summary</Text>
+            <Text style={styles.heroValue}>{executableTrips.length} Active Routes</Text>
+          </View>
+          <View style={styles.heroLivePill}>
+            <Text style={styles.heroLivePillText}>● 60s GPS</Text>
+          </View>
+        </View>
         <Text style={styles.heroSubtitle}>
-          150m store geofencing • 60s background GPS telemetry
+          150m store geofencing • {pendingOrDraftCount} pending/draft itineraries
         </Text>
         <View style={styles.heroBarTrack}>
           <View
@@ -485,27 +512,82 @@ const styles = StyleSheet.create({
   heroObsidianCard: {
     backgroundColor: MOBILE_THEME.colors.obsidianHero,
     borderRadius: MOBILE_THEME.radii.hero,
-    padding: 18,
-    marginBottom: 14,
+    padding: 15,
+    marginBottom: 12,
+  },
+  heroHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  heroLivePill: {
+    backgroundColor: "rgba(16, 185, 129, 0.16)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  heroLivePillText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: MOBILE_THEME.colors.emeraldLive,
+  },
+  kpiGridRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 10,
+  },
+  kpiCompactCard: {
+    flex: 1,
+    backgroundColor: MOBILE_THEME.colors.surfaceCard,
+    borderRadius: MOBILE_THEME.radii.card,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: MOBILE_THEME.colors.borderSubtle,
+  },
+  kpiCompactHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  kpiDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  kpiCompactLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: MOBILE_THEME.colors.textSecondary,
+  },
+  kpiCompactValue: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: MOBILE_THEME.colors.textPrimary,
+  },
+  kpiCompactSub: {
+    fontSize: 11,
+    color: MOBILE_THEME.colors.textMuted,
+    marginTop: 1,
   },
   heroEyebrow: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "700",
     color: MOBILE_THEME.colors.periwinkle,
     textTransform: "uppercase",
     letterSpacing: 0.6,
   },
   heroValue: {
-    fontSize: 26,
+    fontSize: 21,
     fontWeight: "800",
     color: "#FFFFFF",
-    marginTop: 4,
+    marginTop: 2,
   },
   heroSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: "rgba(255,255,255,0.68)",
     marginTop: 2,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   heroBarTrack: {
     flexDirection: "row",
@@ -664,8 +746,8 @@ const styles = StyleSheet.create({
   tripCard: {
     backgroundColor: MOBILE_THEME.colors.surfaceCard,
     borderRadius: MOBILE_THEME.radii.card,
-    padding: 18,
-    marginBottom: 12,
+    padding: 15,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: MOBILE_THEME.colors.borderSubtle,
   },
@@ -673,11 +755,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 6,
+    marginBottom: 4,
   },
   tripTitle: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "800",
     color: MOBILE_THEME.colors.textPrimary,
     marginRight: 8,

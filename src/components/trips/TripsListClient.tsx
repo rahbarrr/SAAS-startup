@@ -23,6 +23,7 @@ export function TripsListClient({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const filteredTrips = initialTrips.filter((trip) => {
     if (statusFilter !== "all" && trip.status !== statusFilter) {
@@ -47,7 +48,10 @@ export function TripsListClient({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+    <div
+      className="mobile-page-stack"
+      style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+    >
       {/* Header */}
       <section className="page-header" aria-labelledby="trips-heading">
         <div className="page-header-text">
@@ -129,61 +133,90 @@ export function TripsListClient({
         className="filter-bar"
         aria-label="Filter trips by workflow status and keyword"
       >
-        <div className="search-input-wrapper">
-          <span className="search-icon">🔍</span>
-          <input
-            id="trip-search"
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title, purpose, owner…"
-            className="form-input"
-            aria-label="Search field trips"
-          />
-        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            flex: "1 1 18rem",
+            minWidth: 0,
+          }}
+        >
+          <div className="search-input-wrapper" style={{ flex: 1, minWidth: 0 }}>
+            <span className="search-icon">🔍</span>
+            <input
+              id="trip-search"
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by title, purpose, owner…"
+              className="form-input"
+              aria-label="Search field trips"
+            />
+          </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <label
-            htmlFor="trip-status-filter"
-            className="form-label"
-            style={{ margin: 0 }}
-          >
-            Status:
-          </label>
-          <select
-            id="trip-status-filter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="form-select"
-            style={{ minWidth: "11rem" }}
-          >
-            <option value="all">All Statuses ({initialTrips.length})</option>
-            <option value="draft">Drafts</option>
-            <option value="submitted">Submitted (Awaiting Approval)</option>
-            <option value="approved">Approved</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="changes_requested">Changes Requested</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-
-        {/* List vs Calendar Toggle */}
-        <div className="tabs-container" style={{ marginLeft: "auto" }}>
           <button
             type="button"
-            className={`tab-btn ${viewMode === "list" ? "active" : ""}`}
-            onClick={() => setViewMode("list")}
+            className="btn btn-sm btn-secondary mobile-filter-toggle-btn"
+            onClick={() => setShowMobileFilters((prev) => !prev)}
+            aria-expanded={showMobileFilters}
           >
-            ☰ List View
+            {showMobileFilters ? "Hide Filters" : `Filters${statusFilter !== "all" ? " • 1" : ""}`}
           </button>
-          <button
-            type="button"
-            className={`tab-btn ${viewMode === "calendar" ? "active" : ""}`}
-            onClick={() => setViewMode("calendar")}
-          >
-            📅 Schedule View
-          </button>
+        </div>
+
+        <div
+          className={`filter-bar-secondary-controls ${showMobileFilters ? "is-open" : ""}`}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flex: "1 1 auto" }}>
+            <label
+              htmlFor="trip-status-filter"
+              className="form-label"
+              style={{ margin: 0, fontSize: "0.8125rem" }}
+            >
+              Status:
+            </label>
+            <select
+              id="trip-status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="form-select"
+              style={{ minWidth: "10.5rem", flex: 1 }}
+            >
+              <option value="all">All Statuses ({initialTrips.length})</option>
+              <option value="draft">Drafts</option>
+              <option value="submitted">Submitted (Awaiting Approval)</option>
+              <option value="approved">Approved</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="changes_requested">Changes Requested</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+
+          {/* List vs Calendar Toggle */}
+          <div className="tabs-container" style={{ marginLeft: "auto" }}>
+            <button
+              type="button"
+              className={`tab-btn ${viewMode === "list" ? "active" : ""}`}
+              onClick={() => setViewMode("list")}
+            >
+              ☰ List View
+            </button>
+            <button
+              type="button"
+              className={`tab-btn ${viewMode === "calendar" ? "active" : ""}`}
+              onClick={() => setViewMode("calendar")}
+            >
+              📅 Schedule View
+            </button>
+          </div>
         </div>
       </section>
 
@@ -200,7 +233,7 @@ export function TripsListClient({
           actionHref="/trips/new"
         />
       ) : viewMode === "list" ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {filteredTrips.map((trip) => {
             const isManagerOrAdmin = currentRole === "admin" || currentRole === "manager";
             const canEdit =
@@ -209,23 +242,27 @@ export function TripsListClient({
             return (
               <article
                 key={trip.id}
-                className="card"
+                className="card mobile-trip-card"
                 style={{
                   transition: "all 0.15s ease",
                 }}
               >
-                <div className="card-header">
+                <div className="card-header" style={{ gap: "0.5rem" }}>
                   <div
-                    style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
+                    style={{ display: "flex", flexDirection: "column", gap: "0.2rem", minWidth: 0, flex: 1 }}
                   >
-                    <div className="flex-row-center">
+                    <div
+                      className="flex-row-center"
+                      style={{ justifyContent: "space-between", flexWrap: "wrap", gap: "0.375rem" }}
+                    >
                       <Link
                         href={`/trips/${trip.id}`}
+                        className="mobile-trip-card-title"
                         style={{
                           textDecoration: "none",
                           color: "var(--text-primary)",
                           fontWeight: 700,
-                          fontSize: "1.125rem",
+                          fontSize: "1.0625rem",
                           letterSpacing: "-0.01em",
                         }}
                       >
@@ -236,13 +273,39 @@ export function TripsListClient({
                       />
                     </div>
                     <p className="card-meta" style={{ margin: 0 }}>
-                      Dates: <strong>{trip.startDate}</strong> to{" "}
-                      <strong>{trip.endDate}</strong> • Representative:{" "}
-                      <code>{trip.ownerUserId}</code>
+                      📅 <strong>{trip.startDate}</strong> →{" "}
+                      <strong>{trip.endDate}</strong> • Rep:{" "}
+                      <code>{trip.ownerUserId.slice(0, 8)}</code>
                     </p>
                   </div>
+                </div>
 
-                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: "0.5rem",
+                    paddingTop: "0.625rem",
+                    marginTop: "0.5rem",
+                    borderTop: "1px solid var(--border-subtle)",
+                    fontSize: "0.8125rem",
+                  }}
+                >
+                  <span
+                    style={{
+                      color: "var(--text-secondary)",
+                      flex: "1 1 12rem",
+                      minWidth: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <strong>Purpose:</strong> {trip.purpose}
+                  </span>
+                  <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" }}>
                     <Link href={`/trips/${trip.id}`} className="btn btn-sm btn-secondary">
                       View Details →
                     </Link>
@@ -260,26 +323,6 @@ export function TripsListClient({
                       </Link>
                     ) : null}
                   </div>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    gap: "0.75rem",
-                    paddingTop: "0.75rem",
-                    borderTop: "1px solid var(--border-subtle)",
-                    fontSize: "0.8125rem",
-                  }}
-                >
-                  <span style={{ color: "var(--text-secondary)" }}>
-                    <strong>Purpose:</strong> {trip.purpose}
-                  </span>
-                  <span style={{ color: "var(--text-muted)" }}>
-                    Created: {new Date(trip.createdAt).toLocaleDateString()}
-                  </span>
                 </div>
               </article>
             );

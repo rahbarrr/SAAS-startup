@@ -135,7 +135,10 @@ export function AuditLogViewerClient({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+    <div
+      className="mobile-page-stack"
+      style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+    >
       {/* Governance & Immutability Notice */}
       <div
         className="card"

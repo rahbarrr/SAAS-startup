@@ -128,7 +128,10 @@ export function AiInsightsClient({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
+    <div
+      className="mobile-page-stack"
+      style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}
+    >
       {/* Briefing Header Banner */}
       <div
         className="card"

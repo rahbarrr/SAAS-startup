@@ -251,7 +251,10 @@ export default async function DashboardPage(
   const heroSecondaryPct = Math.max(0, 100 - heroPrimaryPct);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+    <div
+      className="dashboard-page-stack"
+      style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+    >
       {/* Workspace Context & Canvas Header Row (Reference Top Canvas Header) */}
       <section className="dashboard-hero" aria-labelledby="overview-heading">
         <div className="dashboard-hero-content">
@@ -494,7 +497,10 @@ export default async function DashboardPage(
 
       {/* Field Employee View */}
       {role === "field_employee" ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        <div
+          className="dashboard-employee-stack"
+          style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+        >
           <div className="kpi-grid kpi-grid--three">
             <GoalRingCard
               title="My Field Trips"

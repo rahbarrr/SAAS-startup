@@ -541,26 +541,26 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: MOBILE_THEME.colors.obsidianHero,
     borderRadius: MOBILE_THEME.radii.hero,
-    padding: 18,
-    marginBottom: 10,
+    padding: 15,
+    marginBottom: 8,
   },
   headerEyebrow: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "700",
     color: MOBILE_THEME.colors.periwinkle,
     textTransform: "uppercase",
     letterSpacing: 0.6,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   tripTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
     color: "#FFFFFF",
   },
   tripMeta: {
     fontSize: 12,
     color: "rgba(255,255,255,0.7)",
-    marginTop: 4,
+    marginTop: 3,
   },
   tripStatus: {
     fontWeight: "700",
@@ -606,8 +606,8 @@ const styles = StyleSheet.create({
   stopCard: {
     backgroundColor: MOBILE_THEME.colors.surfaceCard,
     borderRadius: MOBILE_THEME.radii.card,
-    padding: 16,
-    marginBottom: 10,
+    padding: 14,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: MOBILE_THEME.colors.borderSubtle,
   },
@@ -616,9 +616,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   stopSequence: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: MOBILE_THEME.colors.electricBlue,
     justifyContent: "center",
     alignItems: "center",
@@ -627,20 +627,20 @@ const styles = StyleSheet.create({
   sequenceText: {
     color: "#ffffff",
     fontWeight: "800",
-    fontSize: 13,
+    fontSize: 12,
   },
   stopInfo: {
     flex: 1,
   },
   storeName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "700",
     color: MOBILE_THEME.colors.textPrimary,
   },
   storeAddress: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: MOBILE_THEME.colors.textSecondary,
-    marginTop: 2,
+    marginTop: 1,
   },
   stopStatusBadge: {
     fontSize: 10,

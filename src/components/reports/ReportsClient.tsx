@@ -118,61 +118,70 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
+    <div
+      className="mobile-page-stack"
+      style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}
+    >
       {/* Top Controls Bar */}
       <div
-        className="card"
+        className="card reports-top-controls-bar"
         style={{
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: "1rem",
-          padding: "1rem 1.25rem",
+          gap: "0.75rem",
+          padding: "0.875rem 1.125rem",
         }}
       >
         <div
+          className="reports-date-range-row"
           style={{
             display: "flex",
             flexWrap: "wrap",
             alignItems: "center",
-            gap: "0.75rem",
+            gap: "0.625rem",
+            minWidth: 0,
+            maxWidth: "100%",
           }}
         >
           <span
+            className="reports-date-range-label"
             style={{
-              fontSize: "0.875rem",
+              fontSize: "0.8125rem",
               fontWeight: 600,
               color: "var(--brand-dark)",
             }}
           >
-            Time Window:
+            Window:
           </span>
           <div
+            className="tabs-container reports-date-tabs"
             style={{
               display: "flex",
               gap: "0.25rem",
               background: "var(--border-subtle)",
-              padding: "0.25rem",
+              padding: "0.2rem",
               borderRadius: "var(--radius-md)",
             }}
           >
             {[
-              { id: "7d" as const, label: "Last 7 Days" },
-              { id: "30d" as const, label: "Trailing 30 Days" },
+              { id: "7d" as const, label: "7 Days" },
+              { id: "30d" as const, label: "30 Days" },
               { id: "quarter" as const, label: "Quarter" },
-              { id: "ytd" as const, label: "Year to Date" },
+              { id: "ytd" as const, label: "YTD" },
             ].map((tab) => (
               <button
                 key={tab.id}
                 type="button"
+                className={`tab-btn ${selectedRange === tab.id ? "active" : ""}`}
                 onClick={() => {
                   setSelectedRange(tab.id);
                   showToast(`Displaying metrics for ${tab.label}`, "info");
                 }}
                 style={{
-                  padding: "0.375rem 0.75rem",
-                  fontSize: "0.8125rem",
+                  padding: "0.35rem 0.6875rem",
+                  fontSize: "0.78125rem",
                   fontWeight: selectedRange === tab.id ? 600 : 500,
                   color:
                     selectedRange === tab.id
@@ -192,22 +201,25 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
           {isLoading ? (
             <span
               style={{
-                fontSize: "0.8125rem",
+                fontSize: "0.75rem",
                 color: "var(--brand-primary)",
                 fontWeight: 600,
               }}
             >
-              Updating report…
+              Updating…
             </span>
           ) : null}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <div
+          className="reports-filter-actions-row"
+          style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}
+        >
           <select
             value={selectedTerritory}
             onChange={(e) => setSelectedTerritory(e.target.value)}
             className="input-field"
-            style={{ width: "auto", minWidth: "180px", height: "38px" }}
+            style={{ width: "auto", minWidth: "150px", flex: "1 1 auto", height: "38px" }}
             aria-label="Filter performance by territory"
           >
             <option value="all">All Territories</option>
@@ -223,11 +235,11 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
             onClick={handleExportCsv}
             disabled={isExporting || report.rows.length === 0}
             className="btn btn-secondary"
-            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+            style={{ display: "flex", alignItems: "center", gap: "0.375rem", flex: "0 0 auto" }}
           >
             <svg
-              width="16"
-              height="16"
+              width="15"
+              height="15"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -239,7 +251,7 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
               />
             </svg>
-            {isExporting ? "Generating CSV..." : "Export Clean CSV"}
+            {isExporting ? "Generating..." : "Export CSV"}
           </button>
         </div>
       </div>
