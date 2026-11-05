@@ -30,7 +30,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Format check (changed files; respect existing baseline)
+      # Markdown product/design docs are prose artifacts, not source files. Keep
+      # Prettier enforcement on changed code and configuration files.
+      - name: Format check (changed source files; respect existing baseline)
         shell: bash
         run: |
           set -euo pipefail
@@ -54,10 +56,10 @@ jobs:
 
           mapfile -d '' changed_files < <(
             if [[ "$diff_range" == "HEAD" ]]; then
-              git ls-files -z -- '*.ts' '*.tsx' '*.css' '*.json' '*.mjs' '*.md'
+              git ls-files -z -- '*.ts' '*.tsx' '*.css' '*.json' '*.mjs'
             else
               git diff --name-only -z --diff-filter=ACMRT "$diff_range" -- \
-                '*.ts' '*.tsx' '*.css' '*.json' '*.mjs' '*.md'
+                '*.ts' '*.tsx' '*.css' '*.json' '*.mjs'
             fi
           )
 
