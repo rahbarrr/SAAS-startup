@@ -69,11 +69,14 @@ jobs:
           checked=()
           for file in "${changed_files[@]}"; do
             if [[ -n "$base_ref" ]] && git cat-file -e "$base_ref:$file" 2>/dev/null; then
-              if git show "$base_ref:$file" | npx prettier --check --stdin-filepath "$file" >/dev/null 2>&1; then
+              baseline_tmp="$(mktemp --suffix=".\${file##*.}")"
+              git show "$base_ref:$file" > "$baseline_tmp"
+              if npx prettier --check "$baseline_tmp" >/dev/null 2>&1; then
                 checked+=("$file")
               else
                 echo "::warning file=$file::Pre-existing formatting debt on the base branch; not introduced by this change."
               fi
+              rm -f "$baseline_tmp"
             else
               checked+=("$file")
             fi
