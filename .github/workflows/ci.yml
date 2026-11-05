@@ -69,7 +69,7 @@ jobs:
           checked=()
           for file in "${changed_files[@]}"; do
             if [[ -n "$base_ref" ]] && git cat-file -e "$base_ref:$file" 2>/dev/null; then
-              baseline_tmp="$(mktemp --suffix=".\${file##*.}")"
+              baseline_tmp="$(mktemp --suffix=.${file##*.})"
               git show "$base_ref:$file" > "$baseline_tmp"
               if npx prettier --check "$baseline_tmp" >/dev/null 2>&1; then
                 checked+=("$file")
