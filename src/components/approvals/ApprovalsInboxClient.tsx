@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, type ReactNode, useState } from "react";
+import { Search } from "lucide-react";
 import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/States";
@@ -268,7 +269,9 @@ export function ApprovalsInboxClient({
         </div>
 
         <div className="search-input-wrapper" style={{ minWidth: "min(100%, 16rem)" }}>
-          <span className="search-icon">🔍</span>
+          <span className="search-icon" aria-hidden="true">
+            <Search size={15} />
+          </span>
           <input
             type="search"
             value={search}
@@ -285,7 +288,7 @@ export function ApprovalsInboxClient({
         <EmptyState
           title={
             activeTab === "pending"
-              ? "All submitted trips have been reviewed!"
+              ? "All submitted trips have been reviewed"
               : `No trips with status '${activeTab}'`
           }
           description={

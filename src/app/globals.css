@@ -1746,8 +1746,8 @@ a.kpi-card:hover {
 }
 
 .kpi-rule-summary::after {
-  content: " ℹ️";
-  font-size: 0.625rem;
+  content: " ▾";
+  font-size: 0.6875rem;
 }
 
 .kpi-rule-summary:hover {
@@ -10548,6 +10548,18 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   }
 }
 
+/* Tabular numbers across KPIs, counters, telemetry, and tables (Unslop Pass 5) */
+.kpi-value,
+.bento-ring-value,
+.bento-ring-pct,
+.hero-obsidian-number,
+.status-tile-count,
+.activity-bento-delta,
+.data-table td,
+.table td {
+  font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 1023px) {
   .dashboard-bento-hero-row {
     grid-template-columns: 1fr;
@@ -10556,6 +10568,23 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   .kpi-grid--four,
   .kpi-grid--three {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Tablet Breakpoint Polish (768px–1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .app-content {
+    padding: 1.25rem 1.25rem 2.5rem !important;
+    gap: 1.25rem !important;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.875rem !important;
+  }
+
+  .kpi-grid > .bento-ring-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
 }
 
@@ -10593,7 +10622,7 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
     justify-content: center;
     gap: 0.15rem;
     min-height: var(--touch-target-min, 2.75rem);
-    border-radius: 0.875rem;
+    border-radius: 0.625rem;
     color: #64748b;
     text-decoration: none;
     font-size: 0.6875rem;
@@ -10613,8 +10642,9 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
     border-radius: 9999px;
   }
 
+  /* Unslop Mobile Token: Page padding 16px (1rem) */
   .app-content {
-    padding: 0.875rem 1rem calc(5.25rem + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 1rem 1rem calc(5.25rem + env(safe-area-inset-bottom, 0px)) !important;
     overflow-x: hidden;
   }
 
@@ -10624,17 +10654,19 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   }
 
   /* ========================================================================
-   * MOBILE-FIRST UI REFINEMENT (<= 767px, targeting 320px–430px)
-   * Protects Desktop (>= 1024px) completely while delivering a compact,
-   * scannable, modern smartphone experience across all FieldTrack modules.
+   * UNSLOP MOBILE-FIRST DESIGN SYSTEM (<= 767px, targeting 320px–430px)
+   * Page padding: 16px | Card padding: 14–18px | Card gaps: 12px
+   * Section spacing: 20px | Page headings: 22–25px | Card headings: 14–16px
+   * Body text: 13–15px | Secondary text: 11–13px | Button height: 44–48px
+   * Card radius: 14–18px (16px outer / 10px inner)
    * ======================================================================== */
 
-  /* 1. Mobile Page Layout & Section Spacing (18–20px) */
+  /* 1. Mobile Page Layout & Section Spacing (20px = 1.25rem) */
   .dashboard-page-stack,
   .mobile-page-stack {
     display: flex !important;
     flex-direction: column !important;
-    gap: 1.125rem !important; /* 18px section spacing */
+    gap: 1.25rem !important; /* 20px section spacing */
   }
 
   /* 2. Mobile Dashboard Hierarchy:
@@ -10654,41 +10686,44 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
 
   .dashboard-page-stack > .dashboard-bento-hero-row {
     order: 3;
-    gap: 0.75rem !important;
+    gap: 0.75rem !important; /* 12px card gap */
   }
 
   .dashboard-page-stack > *:not(.dashboard-hero):not(.kpi-grid):not(.dashboard-bento-hero-row) {
     order: 4;
   }
 
-  /* 3. Mobile Typography & Page Headings (21–24px headings, 13–14px body, 11–12px secondary) */
+  /* 3. Mobile Typography & Page Headings (22–25px headings, 13–15px body, 11–13px secondary) */
   .page-header,
   .dashboard-hero {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.625rem !important;
-    padding: 0.125rem 0 !important;
+    gap: 0.5rem !important;
+    padding: 0 !important;
     margin-bottom: 0 !important;
   }
 
   .page-title,
   .dashboard-hero-title {
-    font-size: clamp(1.3125rem, 5.2vw, 1.5rem) !important; /* 21–24px */
+    font-size: clamp(1.375rem, 5.2vw, 1.5625rem) !important; /* 22–25px */
+    font-weight: 600 !important;
     line-height: 1.2 !important;
-    letter-spacing: -0.025em !important;
+    letter-spacing: -0.02em !important;
     margin: 0 !important;
   }
 
   .page-eyebrow {
     font-size: 0.6875rem !important; /* 11px */
+    letter-spacing: 0.02em !important;
     margin-bottom: 0.125rem !important;
   }
 
   .page-subtitle,
   .dashboard-hero-subtitle {
-    font-size: 0.78125rem !important; /* 12.5px */
-    line-height: 1.4 !important;
+    font-size: 0.8125rem !important; /* 13px */
+    line-height: 1.45 !important;
+    letter-spacing: 0 !important;
     margin: 0.125rem 0 0 !important;
   }
 
@@ -10702,8 +10737,9 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   .workspace-context-pill,
   .workspace-isolation-pill,
   .workspace-date-pill {
-    font-size: 0.6875rem !important;
-    padding: 0.2rem 0.55rem !important;
+    font-size: 0.6875rem !important; /* 11px */
+    padding: 0.25rem 0.5rem !important;
+    letter-spacing: 0 !important;
   }
 
   .page-actions,
@@ -10718,18 +10754,19 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   .dashboard-hero-actions .btn {
     flex: 1 1 auto;
     min-height: 2.75rem !important; /* 44px touch target */
-    font-size: 0.8125rem !important;
+    max-height: 3rem;
+    font-size: 0.8125rem !important; /* 13px */
     padding: 0.5rem 0.875rem !important;
     justify-content: center;
   }
 
-  /* 4. Compact Two-Column KPI Grid on Mobile (320px–767px) */
+  /* 4. Compact Two-Column KPI Grid on Mobile (320px–767px) — 12px card gaps */
   .kpi-grid,
   .kpi-grid--four,
   .kpi-grid--three {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.6875rem !important; /* 11px card spacing */
+    gap: 0.75rem !important; /* 12px card gap */
   }
 
   /* When a 5-card or 3-card KPI grid has an odd last item on 2-col mobile, span full width cleanly */
@@ -10737,7 +10774,8 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
     grid-column: 1 / -1;
   }
 
-  /* 5. Compact GoalRingCard Proportions on Mobile (14–16px padding, 16px radius, 42px ring gauge) */
+  /* 5. Compact GoalRingCard Proportions on Mobile (14–16px padding, 16px radius, 42px ring gauge)
+   * Never hide user-needed badges, legends, or rule details — wrap them cleanly. */
   .bento-ring-card {
     padding: 0.875rem !important; /* 14px card padding */
     border-radius: 1rem !important; /* 16px card radius */
@@ -10747,7 +10785,8 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
 
   .bento-ring-header {
     gap: 0.45rem !important;
-    align-items: center !important;
+    align-items: flex-start !important;
+    flex-wrap: wrap;
   }
 
   .bento-ring-icon {
@@ -10762,25 +10801,21 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   }
 
   .bento-ring-title {
-    font-size: 0.8125rem !important; /* 13px compact card heading */
-    line-height: 1.2 !important;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 0.875rem !important; /* 14px card heading */
+    font-weight: 600 !important;
+    line-height: 1.25 !important;
+    overflow-wrap: break-word;
   }
 
   .bento-ring-subtitle {
-    font-size: 0.6875rem !important; /* 11px */
-    line-height: 1.25 !important;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 0.6875rem !important; /* 11px secondary text */
+    line-height: 1.3 !important;
+    letter-spacing: 0 !important;
   }
 
   .bento-ring-badge {
-    display: none !important; /* Keep 2-col mobile KPI header clean */
+    font-size: 0.625rem !important;
+    padding: 0.125rem 0.4rem !important;
   }
 
   .bento-ring-body {
@@ -10810,12 +10845,8 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   }
 
   .bento-ring-total {
-    font-size: 0.65rem !important;
-    line-height: 1.2 !important;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 0.6875rem !important; /* 11px */
+    line-height: 1.25 !important;
   }
 
   .bento-ring-footer {
@@ -10827,12 +10858,9 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   }
 
   .bento-ring-legend {
-    font-size: 0.625rem !important;
-    gap: 0.25rem !important;
-  }
-
-  .bento-ring-legend-item:nth-child(2) {
-    display: none; /* Show primary segment concisely in 2-col mobile cards */
+    font-size: 0.6875rem !important; /* 11px */
+    gap: 0.25rem 0.5rem !important;
+    flex-wrap: wrap !important;
   }
 
   .kpi-card-footer {
@@ -10841,19 +10869,20 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   }
 
   .kpi-action-btn {
-    min-height: 1.75rem !important;
-    padding: 0.2rem 0.55rem !important;
+    min-height: 2rem !important;
+    padding: 0.25rem 0.55rem !important;
     font-size: 0.6875rem !important;
   }
 
   .kpi-rule-details {
-    display: none; /* Prevent rule popovers from bloating 2-col mobile KPI cards */
+    font-size: 0.6875rem !important;
+    margin-top: 0.125rem !important;
   }
 
   /* 6. Compact Dark Obsidian Fleet Progress Card & Activity Card on Mobile */
   .hero-obsidian-card {
-    padding: 1rem 1.0625rem !important; /* 16px-17px */
-    border-radius: 1.0625rem !important; /* 17px */
+    padding: 1rem !important; /* 16px */
+    border-radius: 1rem !important; /* 16px */
     min-height: auto !important;
     gap: 0.75rem !important;
   }
@@ -10865,11 +10894,11 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   }
 
   .hero-obsidian-org {
-    font-size: 0.875rem !important;
+    font-size: 0.875rem !important; /* 14px */
   }
 
   .hero-obsidian-sub {
-    font-size: 0.6875rem !important;
+    font-size: 0.6875rem !important; /* 11px */
   }
 
   .hero-obsidian-number {
@@ -10877,7 +10906,7 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   }
 
   .hero-obsidian-caption {
-    font-size: 0.71875rem !important;
+    font-size: 0.75rem !important; /* 12px */
     line-height: 1.35 !important;
   }
 
@@ -10891,8 +10920,8 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   }
 
   .activity-bento-card {
-    padding: 0.9375rem 1rem !important; /* 15px 16px */
-    border-radius: 1.0625rem !important;
+    padding: 1rem !important; /* 16px */
+    border-radius: 1rem !important; /* 16px */
     gap: 0.625rem !important;
   }
 
@@ -10910,28 +10939,31 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
     font-size: 0.6875rem !important;
   }
 
-  /* 7. General Cards, Filter Bars, Buttons, and Tables on Mobile */
+  /* 7. General Cards, Filter Bars, Buttons, and Mobile Card-Tables */
   .card,
   .neu-card,
   .status-distribution-card {
-    padding: 0.9375rem 1rem !important; /* 15px 16px */
+    padding: 1rem !important; /* 16px */
     border-radius: 1rem !important; /* 16px */
   }
 
   .card-title,
-  .dashboard-section-title {
+  .dashboard-section-title,
+  .section-heading {
     font-size: 0.9375rem !important; /* 15px card heading */
+    font-weight: 600 !important;
     line-height: 1.3 !important;
   }
 
   .card-meta,
   .dashboard-section-subtitle {
     font-size: 0.75rem !important; /* 12px secondary text */
+    letter-spacing: 0 !important;
   }
 
   .filter-bar {
-    padding: 0.75rem 0.875rem !important;
-    border-radius: 0.9375rem !important;
+    padding: 0.75rem !important; /* 12px */
+    border-radius: 1rem !important; /* 16px outer */
     gap: 0.5rem !important;
     display: flex !important;
     flex-direction: column !important;
@@ -10946,13 +10978,95 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   .filter-bar .form-input,
   .filter-bar .form-select,
   .filter-bar .input-field {
-    min-height: 2.625rem !important; /* 42px compact input */
-    font-size: 0.8125rem !important;
-    padding: 0.45rem 0.75rem !important;
+    min-height: 2.75rem !important; /* 44px touch target */
+    font-size: 0.8125rem !important; /* 13px */
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 0.625rem !important; /* 10px nested radius */
   }
 
   .filter-bar .search-input-wrapper .form-input {
     padding-left: 2.125rem !important;
+  }
+
+  /* Mobile-friendly Stacked Cards for Data Tables (no horizontal table scrolling on phones) */
+  .table-container,
+  .table-responsive {
+    overflow-x: visible !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .data-table,
+  .table,
+  .data-table tbody,
+  .table tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.625rem !important;
+    width: 100% !important;
+  }
+
+  .data-table thead,
+  .table thead {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+
+  .data-table tbody tr,
+  .table tbody tr {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.375rem !important;
+    background: var(--bg-surface) !important;
+    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    border-radius: 0.875rem !important; /* 14px card radius */
+    padding: 0.875rem !important; /* 14px card padding */
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+  }
+
+  .data-table td,
+  .table td {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.5rem !important;
+    padding: 0.25rem 0 !important;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.05) !important;
+    font-size: 0.8125rem !important; /* 13px body text */
+    text-align: right !important;
+    flex-wrap: wrap !important;
+    min-width: 0 !important;
+  }
+
+  .data-table td:first-child,
+  .table td:first-child {
+    text-align: left !important;
+    font-weight: 600;
+  }
+
+  .data-table td:last-child,
+  .table td:last-child {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+  }
+
+  .data-table td[data-label]::before,
+  .table td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.6875rem; /* 11px secondary label */
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0;
+    text-align: left;
+    flex-shrink: 0;
   }
 
   .tabs-container {
@@ -10996,9 +11110,9 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   /* Compact Mobile Collapsible Filter Disclosure */
   .mobile-filter-toggle-btn {
     display: inline-flex !important;
-    min-height: 2.625rem !important;
+    min-height: 2.75rem !important; /* 44px touch target */
     padding: 0 0.75rem !important;
-    font-size: 0.78125rem !important;
+    font-size: 0.8125rem !important;
     flex-shrink: 0;
   }
 
@@ -11026,11 +11140,12 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
     align-items: center;
     justify-content: space-between;
     width: 100%;
+    min-height: 2.75rem;
     padding: 0.5rem 0.75rem;
     background: var(--bg-subtle, #f3f4f8);
     border: 1px solid var(--border-default, #e2e8f0);
-    border-radius: 0.75rem;
-    font-size: 0.78125rem;
+    border-radius: 0.625rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     color: var(--text-primary);
     cursor: pointer;
@@ -11047,7 +11162,7 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   .kpi-grid--four,
   .kpi-grid--three {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.55rem !important;
+    gap: 0.625rem !important;
   }
 
   .bento-ring-body {
@@ -11062,7 +11177,7 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   }
 
   .bento-ring-card {
-    padding: 0.6875rem !important;
+    padding: 0.75rem !important;
   }
 
   .bento-ring-gauge {

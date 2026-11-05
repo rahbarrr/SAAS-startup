@@ -1,0 +1,1 @@
+import{j as s}from"./client-DiRHWdFC.js";import"./chart-CvXh5QN7.js";function p({tone:d="neutral",dot:a,icon:e,children:n,className:t,...r}){return s.jsxs("span",{...r,className:`ss-badge${t?` ${t}`:""}`,"data-tone":d,"data-lead":a||e?"":void 0,children:[a&&s.jsx("span",{className:"ss-badge__dot"}),e,s.jsx("span",{className:"ss-badge__label",children:n})]})}export{p as B};

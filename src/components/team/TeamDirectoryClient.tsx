@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type ReactNode, type FormEvent } from "react";
+import { AlertCircle, Copy, Search } from "lucide-react";
 import { createInFlightActionGuard } from "@/lib/ux/formatting-and-resilience";
 import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { Modal } from "@/components/ui/Modal";
@@ -269,7 +270,9 @@ export function TeamDirectoryClient({
         aria-label="Filter team members by role and keyword"
       >
         <div className="search-input-wrapper">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon" aria-hidden="true">
+            <Search size={15} />
+          </span>
           <input
             type="search"
             value={search}
@@ -331,7 +334,7 @@ export function TeamDirectoryClient({
             <tbody>
               {filteredMembers.map((m) => (
                 <tr key={m.id}>
-                  <td>
+                  <td data-label="Member">
                     <div
                       style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
                     >
@@ -363,13 +366,13 @@ export function TeamDirectoryClient({
                       </div>
                     </div>
                   </td>
-                  <td>
+                  <td data-label="Role">
                     <StatusBadge descriptor={getOrgRoleDescriptor(m.role)} />
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <StatusBadge descriptor={getMembershipStatusDescriptor(m.status)} />
                   </td>
-                  <td>
+                  <td data-label="Reporting Manager">
                     <span
                       style={{
                         fontSize: "0.8125rem",
@@ -381,14 +384,14 @@ export function TeamDirectoryClient({
                       {m.managerName ?? "—"}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Joined Date">
                     <span
                       style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}
                     >
                       {new Date(m.createdAt).toLocaleDateString()}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Action">
                     <button
                       type="button"
                       className="btn btn-sm btn-outline"
@@ -436,13 +439,13 @@ export function TeamDirectoryClient({
               }}
             >
               <div>
-                <span className="card-meta">FULL NAME</span>
+                <span className="card-meta">Full name</span>
                 <p style={{ margin: "0.25rem 0 0", fontWeight: 600 }}>
                   {selectedMember.name}
                 </p>
               </div>
               <div>
-                <span className="card-meta">EMAIL ADDRESS</span>
+                <span className="card-meta">Email address</span>
                 <p style={{ margin: "0.25rem 0 0", fontWeight: 600 }}>
                   {selectedMember.email}
                 </p>
@@ -457,13 +460,13 @@ export function TeamDirectoryClient({
               }}
             >
               <div>
-                <span className="card-meta">WORKSPACE ROLE</span>
+                <span className="card-meta">Workspace role</span>
                 <div style={{ marginTop: "0.25rem" }}>
                   <StatusBadge descriptor={getOrgRoleDescriptor(selectedMember.role)} />
                 </div>
               </div>
               <div>
-                <span className="card-meta">MEMBERSHIP STATUS</span>
+                <span className="card-meta">Membership status</span>
                 <div style={{ marginTop: "0.25rem" }}>
                   <StatusBadge
                     descriptor={getMembershipStatusDescriptor(selectedMember.status)}
@@ -473,7 +476,7 @@ export function TeamDirectoryClient({
             </div>
 
             <div>
-              <span className="card-meta">USER ID (SYSTEM)</span>
+              <span className="card-meta">System user ID</span>
               <p
                 style={{
                   margin: "0.25rem 0 0",
@@ -519,7 +522,7 @@ export function TeamDirectoryClient({
                   className="btn btn-primary"
                   onClick={handleCopyInviteLink}
                 >
-                  📋 Copy Link
+                  <Copy size={14} aria-hidden="true" /> Copy Link
                 </button>
               </div>
             ) : (
@@ -603,7 +606,14 @@ export function TeamDirectoryClient({
               onSubmit={handleInviteSubmit}
               style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
             >
-              {inviteError && <div className="form-error">⚠️ {inviteError}</div>}
+              {inviteError && (
+                <div
+                  className="form-error"
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+                >
+                  <AlertCircle size={14} aria-hidden="true" /> {inviteError}
+                </div>
+              )}
 
               <div className="form-group">
                 <label htmlFor="invite-email" className="form-label">

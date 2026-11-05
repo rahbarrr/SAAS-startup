@@ -1,0 +1,1 @@
+import{j as m}from"./client-DiRHWdFC.js";import"./chart-CvXh5QN7.js";function c({items:r,value:s,targets:a,className:t,style:n,...i}){return m.jsx("div",{...i,className:`ss-menu${t?` ${t}`:""}`,style:n,role:"menu",children:r.map((o,e)=>m.jsx("div",{className:"ss-menu__item","data-active":e===s||void 0,"data-target":a?.[e],role:"menuitem",children:o},e))})}export{c as M};

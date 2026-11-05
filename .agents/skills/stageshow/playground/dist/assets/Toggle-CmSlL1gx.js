@@ -1,0 +1,1 @@
+import{j as e}from"./client-DiRHWdFC.js";import"./chart-CvXh5QN7.js";function i({on:s,className:o,...t}){return e.jsx("span",{...t,className:`ss-toggle${o?` ${o}`:""}`,"data-on":s||void 0,role:"switch","aria-checked":s,children:e.jsx("span",{className:"ss-toggle__knob"})})}export{i as T};

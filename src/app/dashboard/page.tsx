@@ -674,18 +674,18 @@ export default async function DashboardPage(
                   <tbody>
                     {employeeTrips.map((trip) => (
                       <tr key={trip.id}>
-                        <td>
+                        <td data-label="Trip">
                           <strong>{trip.title}</strong>
                         </td>
-                        <td>
+                        <td data-label="Schedule">
                           {trip.startDate} to {trip.endDate}
                         </td>
-                        <td>
+                        <td data-label="Status">
                           <StatusBadge
                             descriptor={getApprovalStatusDescriptor(trip.status)}
                           />
                         </td>
-                        <td>
+                        <td data-label="Action">
                           <Link
                             href={`/trips/${trip.id}`}
                             className="btn btn-sm btn-secondary"
@@ -1312,7 +1312,7 @@ export default async function DashboardPage(
                         key={row.tripStopId}
                         className={row.requiresAttention ? "is-attention" : undefined}
                       >
-                        <td>
+                        <td data-label="Trip">
                           <div style={{ display: "flex", flexDirection: "column" }}>
                             <strong style={{ fontSize: "0.875rem" }}>
                               {row.tripTitle}
@@ -1322,8 +1322,8 @@ export default async function DashboardPage(
                             </span>
                           </div>
                         </td>
-                        <td>Stop #{row.sequenceNumber}</td>
-                        <td>
+                        <td data-label="Stop">Stop #{row.sequenceNumber}</td>
+                        <td data-label="Store">
                           <div style={{ display: "flex", flexDirection: "column" }}>
                             <span>{row.storeName}</span>
                             <span className="card-meta" style={{ fontSize: "0.75rem" }}>
@@ -1331,8 +1331,8 @@ export default async function DashboardPage(
                             </span>
                           </div>
                         </td>
-                        <td>{row.plannedAt}</td>
-                        <td>
+                        <td data-label="Planned At">{row.plannedAt}</td>
+                        <td data-label="Check-In / Out">
                           <div
                             style={{
                               display: "flex",
@@ -1344,7 +1344,7 @@ export default async function DashboardPage(
                             <span>Out: {row.checkedOutAt ?? "—"}</span>
                           </div>
                         </td>
-                        <td>
+                        <td data-label="Checklist">
                           {row.requiredChecklistCompletedCount} /{" "}
                           {row.requiredChecklistTotalCount}
                           {row.flaggedChecklistCount > 0 ? (
@@ -1359,8 +1359,8 @@ export default async function DashboardPage(
                             </span>
                           ) : null}
                         </td>
-                        <td>{row.evidenceCount} photos</td>
-                        <td>
+                        <td data-label="Evidence">{row.evidenceCount} photos</td>
+                        <td data-label="Status">
                           <span
                             className={
                               row.requiresAttention
@@ -1371,7 +1371,7 @@ export default async function DashboardPage(
                             {row.actualVisitStatus ?? row.plannedStopStatus}
                           </span>
                         </td>
-                        <td>
+                        <td data-label="Action">
                           <Link
                             href={`/trips/${row.tripId}`}
                             className="btn btn-sm btn-secondary"

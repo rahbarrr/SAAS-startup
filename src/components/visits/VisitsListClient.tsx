@@ -2,6 +2,17 @@
 
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ClipboardCheck,
+  Clock,
+  Crosshair,
+  MapPin,
+  Radio,
+  Search,
+  User,
+} from "lucide-react";
 import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { EmptyState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
@@ -106,7 +117,7 @@ export function VisitsListClient({
           totalLabel={`in ${activeOrgName}`}
           percentage={100}
           tone="blue"
-          icon="📍"
+          icon={<MapPin size={16} aria-hidden="true" />}
           primarySegmentLabel={`Total (${counts.total})`}
           secondarySegmentLabel="Committed"
         />
@@ -120,7 +131,7 @@ export function VisitsListClient({
             counts.total > 0 ? Math.round((counts.submitted / counts.total) * 100) : 0
           }
           tone="blue"
-          icon="✓"
+          icon={<CheckCircle2 size={16} aria-hidden="true" />}
           primarySegmentLabel={`Submitted (${counts.submitted})`}
           secondarySegmentLabel="Verified"
         />
@@ -134,7 +145,7 @@ export function VisitsListClient({
             counts.total > 0 ? Math.round((counts.inProgress / counts.total) * 100) : 0
           }
           tone="obsidian"
-          icon="⏱️"
+          icon={<Clock size={16} aria-hidden="true" />}
           primarySegmentLabel={`On-site (${counts.inProgress})`}
           secondarySegmentLabel="Active"
         />
@@ -148,7 +159,7 @@ export function VisitsListClient({
             counts.total > 0 ? Math.round((counts.reviewed / counts.total) * 100) : 0
           }
           tone="obsidian"
-          icon="📋"
+          icon={<ClipboardCheck size={16} aria-hidden="true" />}
           primarySegmentLabel={`Reviewed (${counts.reviewed})`}
           secondarySegmentLabel="Audited"
         />
@@ -162,7 +173,7 @@ export function VisitsListClient({
             counts.total > 0 ? Math.round((counts.autoGeofence / counts.total) * 100) : 0
           }
           tone="blue"
-          icon="🎯"
+          icon={<Crosshair size={16} aria-hidden="true" />}
           primarySegmentLabel={`Geofenced (${counts.autoGeofence})`}
           secondarySegmentLabel="150m Radius"
         />
@@ -191,7 +202,9 @@ export function VisitsListClient({
         aria-label="Filter visits by execution status and store"
       >
         <div className="search-input-wrapper">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon" aria-hidden="true">
+            <Search size={15} />
+          </span>
           <input
             id="visit-search"
             type="search"
@@ -324,6 +337,9 @@ export function VisitsListClient({
                   visit.checkOutSource === "automatic_geofence" ? (
                     <span
                       style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
                         fontSize: "0.75rem",
                         fontWeight: 600,
                         padding: "0.2rem 0.5rem",
@@ -333,11 +349,14 @@ export function VisitsListClient({
                         border: "1px solid #A7F3D0",
                       }}
                     >
-                      📡 Auto Geofence
+                      <Radio size={12} aria-hidden="true" /> Auto Geofence
                     </span>
                   ) : (
                     <span
                       style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
                         fontSize: "0.75rem",
                         fontWeight: 600,
                         padding: "0.2rem 0.5rem",
@@ -347,12 +366,15 @@ export function VisitsListClient({
                         border: "1px solid var(--border-default)",
                       }}
                     >
-                      👤 Manual
+                      <User size={12} aria-hidden="true" /> Manual
                     </span>
                   )}
                   {visit.verificationStatus === "pending_review" ? (
                     <span
                       style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
                         fontSize: "0.75rem",
                         fontWeight: 600,
                         padding: "0.2rem 0.5rem",
@@ -362,11 +384,14 @@ export function VisitsListClient({
                         border: "1px solid #FDE68A",
                       }}
                     >
-                      ⚠️ Pending Review
+                      <AlertTriangle size={12} aria-hidden="true" /> Pending Review
                     </span>
                   ) : (
                     <span
                       style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
                         fontSize: "0.75rem",
                         fontWeight: 600,
                         padding: "0.2rem 0.5rem",
@@ -376,7 +401,7 @@ export function VisitsListClient({
                         border: "1px solid #BBF7D0",
                       }}
                     >
-                      ✓ Verified
+                      <CheckCircle2 size={12} aria-hidden="true" /> Verified
                     </span>
                   )}
                   <StatusBadge descriptor={getApprovalStatusDescriptor(visit.status)} />
@@ -413,9 +438,17 @@ export function VisitsListClient({
                   </span>
                 ) : null}
                 {visit.checkInLocation ? (
-                  <span style={{ color: "var(--status-success)", fontWeight: 600 }}>
-                    ✓ GPS Telemetry Recorded (±
-                    {visit.checkInLocation.accuracyMeters ?? 10}m)
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.25rem",
+                      color: "var(--status-success)",
+                      fontWeight: 600,
+                    }}
+                  >
+                    <CheckCircle2 size={13} aria-hidden="true" /> GPS Telemetry Recorded
+                    (±{visit.checkInLocation.accuracyMeters ?? 10}m)
                   </span>
                 ) : null}
               </div>

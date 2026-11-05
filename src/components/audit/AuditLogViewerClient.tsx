@@ -202,12 +202,12 @@ export function AuditLogViewerClient({
 
       {/* Filter Controls Bar */}
       <div
-        className="card"
+        className="filter-bar"
         style={{
           padding: "1rem 1.25rem",
           display: "flex",
           flexWrap: "wrap",
-          gap: "1rem",
+          gap: "0.75rem",
           alignItems: "center",
           background: "var(--surface)",
         }}
@@ -353,6 +353,7 @@ export function AuditLogViewerClient({
                   return (
                     <tr key={ev.id}>
                       <td
+                        data-label="Timestamp (UTC)"
                         style={{
                           padding: "0.75rem 1rem",
                           fontSize: "0.8125rem",
@@ -364,7 +365,7 @@ export function AuditLogViewerClient({
                           .replace("T", " ")
                           .slice(0, 19)}
                       </td>
-                      <td style={{ padding: "0.75rem 1rem" }}>
+                      <td data-label="Action" style={{ padding: "0.75rem 1rem" }}>
                         <span
                           className="status-badge"
                           style={{
@@ -377,7 +378,10 @@ export function AuditLogViewerClient({
                           {ev.actionType}
                         </span>
                       </td>
-                      <td style={{ padding: "0.75rem 1rem", fontSize: "0.8125rem" }}>
+                      <td
+                        data-label="Actor & Role"
+                        style={{ padding: "0.75rem 1rem", fontSize: "0.8125rem" }}
+                      >
                         <div style={{ fontWeight: 600, color: "var(--brand-dark)" }}>
                           {ev.actorUserId ? ev.actorUserId.slice(0, 8) + "…" : "System"}
                         </div>
@@ -385,13 +389,17 @@ export function AuditLogViewerClient({
                           {ev.actorRole ?? "automated"}
                         </div>
                       </td>
-                      <td style={{ padding: "0.75rem 1rem", fontSize: "0.8125rem" }}>
+                      <td
+                        data-label="Entity"
+                        style={{ padding: "0.75rem 1rem", fontSize: "0.8125rem" }}
+                      >
                         <span style={{ fontWeight: 600 }}>{ev.entityType}</span>:{" "}
                         <span style={{ color: "var(--text-muted)" }}>
                           {ev.entityId.slice(0, 8)}…
                         </span>
                       </td>
                       <td
+                        data-label="Reason"
                         style={{
                           padding: "0.75rem 1rem",
                           fontSize: "0.8125rem",
@@ -400,7 +408,10 @@ export function AuditLogViewerClient({
                       >
                         {ev.reason ?? "—"}
                       </td>
-                      <td style={{ padding: "0.75rem 1rem", textAlign: "right" }}>
+                      <td
+                        data-label="Changes"
+                        style={{ padding: "0.75rem 1rem", textAlign: "right" }}
+                      >
                         <button
                           type="button"
                           onClick={() => setInspectingEvent(ev)}

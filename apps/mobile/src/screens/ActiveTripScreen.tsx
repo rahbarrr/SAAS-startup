@@ -459,8 +459,8 @@ export function ActiveTripScreen({
               <View style={styles.stopFooter}>
                 <Text style={styles.coordMeta}>
                   {hasCoords
-                    ? "📍 120m Geofence Active"
-                    : "⚠️ No Coordinates (Manual Only)"}
+                    ? "● 150m Geofence Active"
+                    : "○ No Coordinates (Manual Only)"}
                 </Text>
 
                 {item.status === "planned" && !activeVisitId && (

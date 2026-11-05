@@ -615,16 +615,23 @@ export function StoresDirectoryClient({
         </section>
       ) : null}
 
-      <section className="card" aria-label="Store filters and search">
+      <section className="filter-bar" aria-label="Store filters and search">
         <div
-          style={{ display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center" }}
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "0.75rem",
+            alignItems: "flex-end",
+            width: "100%",
+          }}
         >
-          <div style={{ flex: "1 1 12rem" }}>
+          <div style={{ flex: "1 1 12rem", minWidth: 0 }}>
             <label
               htmlFor="store-search"
+              className="form-label"
               style={{
                 display: "block",
-                fontSize: "0.875rem",
+                fontSize: "0.8125rem",
                 fontWeight: 600,
                 marginBottom: "0.25rem",
               }}
@@ -637,21 +644,17 @@ export function StoresDirectoryClient({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Filter by name, city, or region…"
-              style={{
-                width: "100%",
-                padding: "0.375rem 0.75rem",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--border-strong)",
-              }}
+              className="form-input"
             />
           </div>
 
-          <div>
+          <div style={{ flex: "1 1 10rem", minWidth: 0 }}>
             <label
               htmlFor="store-region-filter"
+              className="form-label"
               style={{
                 display: "block",
-                fontSize: "0.875rem",
+                fontSize: "0.8125rem",
                 fontWeight: 600,
                 marginBottom: "0.25rem",
               }}
@@ -662,12 +665,7 @@ export function StoresDirectoryClient({
               id="store-region-filter"
               value={regionFilter}
               onChange={(e) => setRegionFilter(e.target.value)}
-              style={{
-                padding: "0.375rem 0.75rem",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--border-strong)",
-                backgroundColor: "var(--bg-surface)",
-              }}
+              className="form-select"
             >
               <option value="">All Regions</option>
               {availableRegions.map((r) => (
@@ -683,7 +681,7 @@ export function StoresDirectoryClient({
               display: "flex",
               alignItems: "center",
               gap: "0.5rem",
-              marginTop: "1.25rem",
+              minHeight: "var(--touch-target-min, 2.75rem)",
             }}
           >
             <input
@@ -692,7 +690,7 @@ export function StoresDirectoryClient({
               checked={showArchived}
               onChange={(e) => setShowArchived(e.target.checked)}
             />
-            <label htmlFor="show-archived" style={{ fontSize: "0.875rem" }}>
+            <label htmlFor="show-archived" style={{ fontSize: "0.8125rem" }}>
               Include Archived
             </label>
           </div>
@@ -704,7 +702,7 @@ export function StoresDirectoryClient({
         className="card"
         style={{
           padding: "1rem 1.25rem",
-          background: "linear-gradient(180deg, #FFFFFF 0%, #F9FAFF 100%)",
+          background: "var(--bg-surface)",
         }}
         aria-label="Territory Clusters Overview"
       >
@@ -910,8 +908,31 @@ export function StoresDirectoryClient({
                 </div>
 
                 {store.latitude !== null && store.longitude !== null ? (
-                  <p className="card-meta" style={{ fontSize: "0.75rem" }}>
-                    📍 {store.latitude.toFixed(4)}, {store.longitude.toFixed(4)}
+                  <p
+                    className="card-meta"
+                    style={{
+                      fontSize: "0.75rem",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.25rem",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    {store.latitude.toFixed(4)}, {store.longitude.toFixed(4)}
                   </p>
                 ) : null}
 

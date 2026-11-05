@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { RefreshCw, Sparkles } from "lucide-react";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
 import type { ManagerDailyBriefing } from "@/modules/ai-intelligence/domain";
@@ -138,7 +138,7 @@ export function AiInsightsClient({
         style={{
           borderLeft: "4px solid var(--brand-primary)",
           padding: "1.25rem 1.5rem",
-          background: "linear-gradient(180deg, #FFFFFF 0%, #F9FAFF 100%)",
+          background: "var(--bg-surface)",
         }}
       >
         <div
@@ -231,7 +231,8 @@ export function AiInsightsClient({
             disabled={loading}
             style={{ fontSize: "0.8125rem" }}
           >
-            {loading ? "Refreshing…" : "🔄 Refresh Live Data"}
+            <RefreshCw size={14} aria-hidden="true" />
+            <span>{loading ? "Refreshing…" : "Refresh Live Data"}</span>
           </button>
         </div>
       </div>
@@ -256,14 +257,19 @@ export function AiInsightsClient({
             <div
               style={{
                 fontSize: "0.75rem",
+                fontWeight: 600,
                 color: "var(--text-secondary)",
-                textTransform: "uppercase",
               }}
             >
               Trips Today
             </div>
             <div
-              style={{ fontSize: "1.35rem", fontWeight: 700, color: "var(--brand-dark)" }}
+              style={{
+                fontSize: "1.35rem",
+                fontWeight: 700,
+                color: "var(--brand-dark)",
+                fontVariantNumeric: "tabular-nums",
+              }}
             >
               {briefing.metrics.tripsScheduledToday}
             </div>
@@ -283,14 +289,19 @@ export function AiInsightsClient({
             <div
               style={{
                 fontSize: "0.75rem",
+                fontWeight: 600,
                 color: "var(--text-secondary)",
-                textTransform: "uppercase",
               }}
             >
               Visits Scheduled
             </div>
             <div
-              style={{ fontSize: "1.35rem", fontWeight: 700, color: "var(--brand-dark)" }}
+              style={{
+                fontSize: "1.35rem",
+                fontWeight: 700,
+                color: "var(--brand-dark)",
+                fontVariantNumeric: "tabular-nums",
+              }}
             >
               {briefing.metrics.visitsScheduledToday}
             </div>
@@ -310,8 +321,8 @@ export function AiInsightsClient({
             <div
               style={{
                 fontSize: "0.75rem",
+                fontWeight: 600,
                 color: "var(--text-secondary)",
-                textTransform: "uppercase",
               }}
             >
               Overdue Visits
@@ -320,6 +331,7 @@ export function AiInsightsClient({
               style={{
                 fontSize: "1.35rem",
                 fontWeight: 700,
+                fontVariantNumeric: "tabular-nums",
                 color:
                   briefing.metrics.overdueVisitsCount > 0
                     ? "var(--error-red)"
@@ -344,8 +356,8 @@ export function AiInsightsClient({
             <div
               style={{
                 fontSize: "0.75rem",
+                fontWeight: 600,
                 color: "var(--text-secondary)",
-                textTransform: "uppercase",
               }}
             >
               Pending Approvals
@@ -354,6 +366,7 @@ export function AiInsightsClient({
               style={{
                 fontSize: "1.35rem",
                 fontWeight: 700,
+                fontVariantNumeric: "tabular-nums",
                 color:
                   briefing.metrics.pendingApprovalsCount > 0
                     ? "var(--brand-accent)"
@@ -378,8 +391,8 @@ export function AiInsightsClient({
             <div
               style={{
                 fontSize: "0.75rem",
+                fontWeight: 600,
                 color: "var(--text-secondary)",
-                textTransform: "uppercase",
               }}
             >
               Missing Evidence
@@ -388,6 +401,7 @@ export function AiInsightsClient({
               style={{
                 fontSize: "1.35rem",
                 fontWeight: 700,
+                fontVariantNumeric: "tabular-nums",
                 color:
                   briefing.metrics.missingEvidenceCount > 0
                     ? "var(--brand-accent)"

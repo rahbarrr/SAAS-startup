@@ -1,0 +1,434 @@
+/* FieldTrack Mobile Design System: Forest & Ivory Identity */
+
+:root {
+  --ft-forest: #244B3C;
+  --ft-forest-deep: #19362B;
+  --ft-forest-light: #2E5F4C;
+  --ft-forest-subtle: rgba(36, 75, 60, 0.08);
+  --ft-forest-soft: rgba(36, 75, 60, 0.14);
+  --ft-forest-border: rgba(36, 75, 60, 0.22);
+
+  --ft-ivory: #F5F2E9;
+  --ft-ivory-warm: #FAF8F3;
+  --ft-ivory-tint: #ECE6D8;
+  --ft-ivory-card: #FFFFFF;
+  --ft-ivory-border: #E5DFD1;
+
+  --ft-charcoal: #252B27;
+  --ft-charcoal-muted: #535E56;
+  --ft-charcoal-light: #7E8A82;
+  --ft-charcoal-border: rgba(37, 43, 39, 0.08);
+
+  --ft-copper: #B98252;
+  --ft-copper-deep: #96663E;
+  --ft-copper-light: #D49D6F;
+  --ft-copper-subtle: rgba(185, 130, 82, 0.12);
+  --ft-copper-border: rgba(185, 130, 82, 0.26);
+
+  --ft-shadow-sm: 0 1px 3px rgba(37, 43, 39, 0.06), 0 1px 2px rgba(37, 43, 39, 0.04);
+  --ft-shadow-md: 0 4px 12px rgba(37, 43, 39, 0.08), 0 2px 4px rgba(37, 43, 39, 0.04);
+  --ft-shadow-lg: 0 12px 24px rgba(37, 43, 39, 0.12), 0 4px 8px rgba(37, 43, 39, 0.06);
+
+  --ft-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  --ft-font-mono: ui-monospace, "SF Mono", Menlo, Monaco, monospace;
+}
+
+/* Stage & Container Base */
+.ft-stage-canvas {
+  background: #EAE6DB;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(36, 75, 60, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(185, 130, 82, 0.05) 0%, transparent 40%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ft-font-sans);
+  color: var(--ft-charcoal);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* Phone Screen Inner Shell */
+.ft-phone-screen {
+  background: var(--ft-ivory);
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  font-family: var(--ft-font-sans);
+  color: var(--ft-charcoal);
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* App Header */
+.ft-app-header {
+  padding: 12px 16px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--ft-ivory);
+  border-bottom: 1px solid var(--ft-charcoal-border);
+  z-index: 10;
+}
+
+.ft-brand-mark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ft-brand-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--ft-forest);
+  color: var(--ft-ivory);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(36, 75, 60, 0.2);
+}
+
+.ft-brand-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--ft-forest);
+  line-height: 1.25;
+}
+
+.ft-brand-sub {
+  font-size: 10px;
+  color: var(--ft-charcoal-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+  margin-top: 3px;
+}
+
+/* Status Indicator Pill */
+.ft-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.ft-status-pill--active {
+  background: var(--ft-forest-subtle);
+  color: var(--ft-forest);
+  border: 1px solid var(--ft-forest-border);
+}
+
+.ft-status-pill--copper {
+  background: var(--ft-copper-subtle);
+  color: var(--ft-copper-deep);
+  border: 1px solid var(--ft-copper-border);
+}
+
+.ft-status-pill--simulation {
+  background: rgba(185, 130, 82, 0.15);
+  color: var(--ft-copper-deep);
+  border: 1px dashed var(--ft-copper);
+}
+
+.ft-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  position: relative;
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
+.ft-pulse-dot::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  animation: ft-pulse 2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+@keyframes ft-pulse {
+  0% { transform: scale(0.8); opacity: 0.9; }
+  60% { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Simulation watermark banner */
+.ft-simulation-banner {
+  background: #FFFBF5;
+  border-bottom: 1px dashed var(--ft-copper-border);
+  padding: 4px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ft-copper-deep);
+  letter-spacing: 0.2px;
+  z-index: 9;
+}
+
+/* Card primitives */
+.ft-card {
+  background: var(--ft-ivory-card);
+  border: 1px solid var(--ft-ivory-border);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: var(--ft-shadow-sm);
+  box-sizing: border-box;
+}
+
+.ft-card--forest {
+  background: linear-gradient(145deg, var(--ft-forest) 0%, var(--ft-forest-deep) 100%);
+  color: var(--ft-ivory);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 6px 16px rgba(36, 75, 60, 0.22);
+}
+
+.ft-card--copper {
+  background: linear-gradient(145deg, #FAF7F2 0%, #F5EFE4 100%);
+  border: 1px solid var(--ft-copper-border);
+}
+
+/* Typography styles */
+.ft-h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--ft-charcoal);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.ft-h2 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--ft-charcoal);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.ft-caption {
+  font-size: 11px;
+  color: var(--ft-charcoal-muted);
+  font-weight: 400;
+  line-height: 1.35;
+  margin-top: 3px;
+}
+
+.ft-meta {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ft-charcoal-light);
+  letter-spacing: 0.3px;
+  line-height: 1.25;
+}
+
+/* Buttons */
+.ft-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--ft-font-sans);
+  box-sizing: border-box;
+}
+
+.ft-btn--forest {
+  background: var(--ft-forest);
+  color: var(--ft-ivory);
+  box-shadow: 0 3px 10px rgba(36, 75, 60, 0.2);
+}
+
+.ft-btn--forest:hover {
+  background: var(--ft-forest-light);
+  transform: translateY(-1px);
+}
+
+.ft-btn--copper {
+  background: var(--ft-copper);
+  color: #FFFFFF;
+  box-shadow: 0 3px 10px rgba(185, 130, 82, 0.2);
+}
+
+.ft-btn--outline {
+  background: transparent;
+  color: var(--ft-charcoal);
+  border: 1px solid var(--ft-ivory-border);
+}
+
+/* Metric / Stat Tiles */
+.ft-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.ft-stat-tile {
+  background: var(--ft-ivory-warm);
+  border: 1px solid var(--ft-ivory-border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ft-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--ft-forest);
+  font-feature-settings: "tnum";
+}
+
+.ft-stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--ft-charcoal-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* Stop Row in Trips */
+.ft-stop-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--ft-ivory-card);
+  border: 1px solid var(--ft-ivory-border);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.ft-stop-row[data-active="true"] {
+  border-color: var(--ft-forest);
+  box-shadow: 0 2px 6px rgba(36, 75, 60, 0.1);
+  background: #FFFFFF;
+}
+
+.ft-stop-row[data-completed="true"] {
+  opacity: 0.8;
+  background: var(--ft-ivory-warm);
+}
+
+.ft-stop-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: var(--ft-ivory-tint);
+  color: var(--ft-charcoal);
+}
+
+.ft-stop-row[data-active="true"] .ft-stop-num {
+  background: var(--ft-forest);
+  color: var(--ft-ivory);
+}
+
+.ft-stop-row[data-completed="true"] .ft-stop-num {
+  background: var(--ft-forest-light);
+  color: var(--ft-ivory);
+}
+
+/* Map Simulation Styles */
+.ft-map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #EFECE1;
+  overflow: hidden;
+}
+
+.ft-geofence-circle {
+  fill: rgba(36, 75, 60, 0.12);
+  stroke: var(--ft-forest);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+/* Checklist items */
+.ft-check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--ft-ivory-card);
+  border: 1px solid var(--ft-ivory-border);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ft-charcoal);
+  transition: all 0.25s ease;
+}
+
+.ft-check-item[data-checked="true"] {
+  border-color: var(--ft-forest-border);
+  background: var(--ft-forest-subtle);
+  color: var(--ft-forest);
+}
+
+.ft-checkbox-disc {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ft-charcoal-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.ft-check-item[data-checked="true"] .ft-checkbox-disc {
+  background: var(--ft-forest);
+  border-color: var(--ft-forest);
+  color: var(--ft-ivory);
+}
+
+/* Prompt Box */
+.ft-arrival-prompt {
+  background: #FFFFFF;
+  border: 1.5px solid var(--ft-forest);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 14px rgba(36, 75, 60, 0.18);
+  animation: ft-prompt-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ft-prompt-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

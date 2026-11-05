@@ -127,55 +127,28 @@ function OnboardingContent(): ReactNode {
 
   return (
     <div
+      className="mobile-page-stack"
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: "1.75rem",
+        gap: "1.5rem",
         maxWidth: "56rem",
         margin: "1rem auto",
         width: "100%",
       }}
     >
-      <section aria-labelledby="onboarding-heading">
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            marginBottom: "0.25rem",
-          }}
-        >
-          <span
-            style={{
-              fontSize: "0.75rem",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              padding: "0.2rem 0.5rem",
-              borderRadius: "var(--radius-sm)",
-              background: "rgba(27, 53, 128, 0.1)",
-              color: "var(--brand-primary)",
-              letterSpacing: "0.05em",
-            }}
-          >
-            Workspace Setup
-          </span>
+      <section className="page-header" aria-labelledby="onboarding-heading">
+        <div className="page-header-text">
+          <p className="page-eyebrow">Workspace Setup</p>
+          <h1 id="onboarding-heading" className="page-title">
+            {tokenParam ? "Join Your Invited Workspace" : "Set Up Your Company"}
+          </h1>
+          <p className="page-subtitle">
+            {tokenParam
+              ? "Your invitation is being verified and your assigned role will be activated after authentication."
+              : "Complete your company profile to create your workspace as the initial administrator."}
+          </p>
         </div>
-        <h1
-          id="onboarding-heading"
-          style={{
-            margin: "0 0 0.5rem",
-            fontSize: "1.75rem",
-            fontFamily: "var(--font-heading)",
-            color: "var(--brand-dark)",
-          }}
-        >
-          {tokenParam ? "Join Your Invited Workspace" : "Set Up Your Company"}
-        </h1>
-        <p className="card-meta" style={{ fontSize: "0.9375rem" }}>
-          {tokenParam
-            ? "Your invitation is being verified and your assigned role will be activated after authentication."
-            : "Complete your company profile to create your workspace as the initial administrator."}
-        </p>
       </section>
 
       {error ? (

@@ -362,8 +362,8 @@ export function TripSelectorScreen({
       {pendingOrDraftCount > 0 ? (
         <View style={styles.infoBanner}>
           <Text style={styles.infoBannerText}>
-            ℹ️ You also have {pendingOrDraftCount} trip(s) in draft/submitted status. Only
-            manager-approved or in-progress trips can activate store geofencing.
+            Note: You also have {pendingOrDraftCount} trip(s) in draft/submitted status.
+            Only manager-approved or in-progress trips can activate store geofencing.
           </Text>
         </View>
       ) : null}
@@ -405,7 +405,7 @@ export function TripSelectorScreen({
                 </View>
 
                 <Text style={styles.tripDates}>
-                  📅 {item.startDate} → {item.endDate}
+                  Schedule: {item.startDate} → {item.endDate}
                 </Text>
                 {item.purpose ? (
                   <Text style={styles.tripPurpose} numberOfLines={2}>

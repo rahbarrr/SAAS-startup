@@ -604,7 +604,7 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
                 <tbody>
                   {filteredReps.map((rep) => (
                     <tr key={rep.userId}>
-                      <td>
+                      <td data-label="Representative">
                         <div
                           style={{
                             display: "flex",
@@ -651,7 +651,7 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
                           </div>
                         </div>
                       </td>
-                      <td>
+                      <td data-label="Territory">
                         <span
                           style={{
                             fontSize: "0.8125rem",
@@ -661,7 +661,7 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
                           {rep.territory}
                         </span>
                       </td>
-                      <td>
+                      <td data-label="Completed Visits">
                         <span
                           style={{
                             fontWeight: 600,
@@ -671,7 +671,7 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
                           {rep.completedVisits} / {rep.plannedStops}
                         </span>
                       </td>
-                      <td>
+                      <td data-label="Pending / Overdue">
                         <span
                           style={{
                             fontSize: "0.8125rem",
@@ -692,7 +692,7 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
                           ) : null}
                         </span>
                       </td>
-                      <td>
+                      <td data-label="Completion %">
                         <div
                           style={{
                             display: "flex",
@@ -722,7 +722,7 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
                           </span>
                         </div>
                       </td>
-                      <td>
+                      <td data-label="Avg. Duration">
                         <span
                           style={{
                             fontSize: "0.8125rem",
@@ -732,7 +732,7 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
                           {rep.avgVisitDurationMin} mins
                         </span>
                       </td>
-                      <td>
+                      <td data-label="Exceptions">
                         {rep.exceptionsFlagged > 0 ? (
                           <span
                             className="status-badge"
@@ -948,15 +948,22 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
                   <tbody>
                     {report.storeVisitAnalytics.map((s) => (
                       <tr key={s.storeId}>
-                        <td style={{ fontWeight: 600, color: "var(--brand-dark)" }}>
+                        <td
+                          data-label="Store Name"
+                          style={{ fontWeight: 600, color: "var(--brand-dark)" }}
+                        >
                           {s.storeName}
                         </td>
-                        <td>{s.storeRegion}</td>
-                        <td>{s.plannedVisitsCount}</td>
-                        <td style={{ fontWeight: 600, color: "var(--success-green)" }}>
+                        <td data-label="Territory">{s.storeRegion}</td>
+                        <td data-label="Planned Visits">{s.plannedVisitsCount}</td>
+                        <td
+                          data-label="Completed"
+                          style={{ fontWeight: 600, color: "var(--success-green)" }}
+                        >
                           {s.completedVisitsCount}
                         </td>
                         <td
+                          data-label="Missed"
                           style={{
                             fontWeight: 600,
                             color:
@@ -967,8 +974,9 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
                         >
                           {s.missedVisitsCount}
                         </td>
-                        <td>{s.completionRate}%</td>
+                        <td data-label="Completion %">{s.completionRate}%</td>
                         <td
+                          data-label="Last Visited"
                           style={{
                             fontSize: "0.8125rem",
                             color: "var(--text-secondary)",

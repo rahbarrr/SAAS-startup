@@ -88,7 +88,7 @@ export function CheckInModal({
           {isOutside && (
             <View style={styles.alertBanner}>
               <Text style={styles.alertText}>
-                ⚠️ You are currently outside the 150m store geofence. Check-in will be
+                Notice: You are currently outside the 150m store geofence. Check-in will be
                 flagged for manager review.
               </Text>
             </View>
@@ -97,7 +97,7 @@ export function CheckInModal({
           {isAccuracyPoor && (
             <View style={styles.alertBanner}>
               <Text style={styles.alertText}>
-                ⚠️ GPS accuracy is ±{Math.round(accuracy ?? 0)}m (threshold is 50m).
+                Notice: GPS accuracy is ±{Math.round(accuracy ?? 0)}m (threshold is 50m).
                 Consider retrying outdoors.
               </Text>
             </View>
@@ -106,7 +106,7 @@ export function CheckInModal({
           {!hasCoords && (
             <View style={styles.alertBanner}>
               <Text style={styles.alertText}>
-                ⚠️ Device location unavailable. Offline check-in will be marked pending
+                Notice: Device location unavailable. Offline check-in will be marked pending
                 verification.
               </Text>
             </View>
@@ -118,7 +118,7 @@ export function CheckInModal({
               onPress={onRetryGps}
               disabled={isSubmitting}
             >
-              <Text style={styles.retryBtnText}>🔄 Fresh GPS</Text>
+              <Text style={styles.retryBtnText}>↻ Fresh GPS</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

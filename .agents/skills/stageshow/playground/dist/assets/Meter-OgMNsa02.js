@@ -1,0 +1,1 @@
+import{j as s}from"./client-DiRHWdFC.js";import"./chart-CvXh5QN7.js";function o({value:e,tone:a="accent",className:t,style:n,...r}){return s.jsx("span",{...r,className:`ss-meter${t?` ${t}`:""}`,"data-tone":a,style:n,children:s.jsx("span",{className:"ss-meter__fill",style:{clipPath:`inset(0 ${(1-Math.max(0,Math.min(1,e)))*100}% 0 0 round 3px)`}})})}export{o as M};

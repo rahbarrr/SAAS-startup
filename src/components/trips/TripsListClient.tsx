@@ -2,6 +2,15 @@
 
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
+import {
+  Calendar,
+  CheckCircle2,
+  Clock,
+  List,
+  Map,
+  Navigation,
+  Search,
+} from "lucide-react";
 import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { EmptyState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
@@ -80,7 +89,7 @@ export function TripsListClient({
           totalLabel={`in ${activeOrgName}`}
           percentage={100}
           tone="blue"
-          icon="🗺️"
+          icon={<Map size={16} aria-hidden="true" />}
           primarySegmentLabel={`Total (${counts.total})`}
           secondarySegmentLabel="Active Scope"
         />
@@ -94,7 +103,7 @@ export function TripsListClient({
             counts.total > 0 ? Math.round((counts.submitted / counts.total) * 100) : 0
           }
           tone="obsidian"
-          icon="⚖️"
+          icon={<Clock size={16} aria-hidden="true" />}
           primarySegmentLabel={`Pending (${counts.submitted})`}
           secondarySegmentLabel={`Reviewed (${Math.max(0, counts.total - counts.submitted)})`}
         />
@@ -108,7 +117,7 @@ export function TripsListClient({
             counts.total > 0 ? Math.round((counts.inProgress / counts.total) * 100) : 0
           }
           tone="blue"
-          icon="📍"
+          icon={<Navigation size={16} aria-hidden="true" />}
           primarySegmentLabel={`Active (${counts.inProgress})`}
           secondarySegmentLabel="60s GPS Sync"
         />
@@ -122,7 +131,7 @@ export function TripsListClient({
             counts.total > 0 ? Math.round((counts.completed / counts.total) * 100) : 0
           }
           tone="obsidian"
-          icon="✓"
+          icon={<CheckCircle2 size={16} aria-hidden="true" />}
           primarySegmentLabel={`Done (${counts.completed})`}
           secondarySegmentLabel="Verified"
         />
@@ -143,7 +152,9 @@ export function TripsListClient({
           }}
         >
           <div className="search-input-wrapper" style={{ flex: 1, minWidth: 0 }}>
-            <span className="search-icon">🔍</span>
+            <span className="search-icon" aria-hidden="true">
+              <Search size={15} />
+            </span>
             <input
               id="trip-search"
               type="search"
@@ -207,14 +218,14 @@ export function TripsListClient({
               className={`tab-btn ${viewMode === "list" ? "active" : ""}`}
               onClick={() => setViewMode("list")}
             >
-              ☰ List View
+              <List size={14} aria-hidden="true" /> List View
             </button>
             <button
               type="button"
               className={`tab-btn ${viewMode === "calendar" ? "active" : ""}`}
               onClick={() => setViewMode("calendar")}
             >
-              📅 Schedule View
+              <Calendar size={14} aria-hidden="true" /> Schedule View
             </button>
           </div>
         </div>
@@ -272,8 +283,18 @@ export function TripsListClient({
                         descriptor={getApprovalStatusDescriptor(trip.status)}
                       />
                     </div>
-                    <p className="card-meta" style={{ margin: 0 }}>
-                      📅 <strong>{trip.startDate}</strong> →{" "}
+                    <p
+                      className="card-meta"
+                      style={{
+                        margin: 0,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.3rem",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <Calendar size={13} aria-hidden="true" />
+                      <strong>{trip.startDate}</strong> →{" "}
                       <strong>{trip.endDate}</strong> • Rep:{" "}
                       <code>{trip.ownerUserId.slice(0, 8)}</code>
                     </p>
