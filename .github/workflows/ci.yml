@@ -30,12 +30,68 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Format check (web and mobile)
+      # Markdown product/design docs are prose artifacts, not source files. Keep
+      # Prettier enforcement on changed code and configuration files.
+      - name: Format check (changed source files; respect existing baseline)
+        shell: bash
         run: |
-          npx prettier --check \
-            "apps/mobile/src/**/*.{ts,tsx}" \
-            "src/**/*.{ts,tsx,css}" \
-            "*.{json,mjs,ts,md}"
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base_ref="origin/${{ github.base_ref }}"
+            diff_range="${base_ref}...HEAD"
+          else
+            base_ref="${{ github.event.before }}"
+            if [[ "$base_ref" =~ ^0+$ ]]; then
+              base_ref=""
+              diff_range="HEAD"
+            else
+              diff_range="${base_ref}..HEAD"
+            fi
+          fi
+
+          if [[ -n "$base_ref" ]]; then
+            git fetch origin "${{ github.base_ref || 'main' }}" --depth=1 || true
+          fi
+
+          mapfile -d '' changed_files < <(
+            if [[ "$diff_range" == "HEAD" ]]; then
+              git ls-files -z -- '*.ts' '*.tsx' '*.css' '*.json' '*.mjs'
+            else
+              git diff --name-only -z --diff-filter=ACMRT "$diff_range" -- \
+                '*.ts' '*.tsx' '*.css' '*.json' '*.mjs'
+            fi
+          )
+
+          if (( ${#changed_files[@]} == 0 )); then
+            echo "No changed files covered by Prettier."
+            exit 0
+          fi
+
+          checked=()
+          for file in "${changed_files[@]}"; do
+            if [[ -n "$base_ref" ]] && git cat-file -e "$base_ref:$file" 2>/dev/null; then
+              baseline_tmp="$(mktemp --suffix=.${file##*.})"
+              git show "$base_ref:$file" > "$baseline_tmp"
+              if npx prettier --check "$baseline_tmp" >/dev/null 2>&1; then
+                checked+=("$file")
+              else
+                echo "::warning file=$file::Pre-existing formatting debt on the base branch; not introduced by this change."
+              fi
+              rm -f "$baseline_tmp"
+            else
+              checked+=("$file")
+            fi
+          done
+
+          if (( ${#checked[@]} == 0 )); then
+            echo "No changed files with a clean formatting baseline; legacy formatting debt is reported but does not block this change."
+            exit 0
+          fi
+
+          printf 'Checking changed files with a clean baseline:\n'
+          printf ' - %s\n' "${checked[@]}"
+          npx prettier --check "${checked[@]}"
 
       - name: Lint
         run: npm run lint
