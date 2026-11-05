@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
+import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { EmptyState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
 import { useCurrentRole } from "@/components/ui/RoleContext";
@@ -66,57 +67,61 @@ export function TripsListClient({
         </div>
       </section>
 
-      {/* Quick Status KPI Strip */}
-      <div className="kpi-grid">
-        <div className="kpi-card kpi-card--primary">
-          <div className="kpi-card-top">
-            <span className="kpi-label">Total Planned</span>
-            <span className="kpi-icon" aria-hidden="true">
-              🗺️
-            </span>
-          </div>
-          <div className="kpi-value">{counts.total}</div>
-          <p className="kpi-footnote">Itineraries on record</p>
-        </div>
+      {/* Quick Status Circular Ring KPI Strip */}
+      <div className="kpi-grid kpi-grid--four">
+        <GoalRingCard
+          title="Total Planned"
+          subtitle="Itineraries on record"
+          value={counts.total}
+          totalLabel={`in ${activeOrgName}`}
+          percentage={100}
+          tone="blue"
+          icon="🗺️"
+          primarySegmentLabel={`Total (${counts.total})`}
+          secondarySegmentLabel="Active Scope"
+        />
 
-        <div className="kpi-card kpi-card--warning">
-          <div className="kpi-card-top">
-            <span className="kpi-label">Awaiting Approval</span>
-            <span className="kpi-icon" aria-hidden="true">
-              ⚖️
-            </span>
-          </div>
-          <div className="kpi-value" style={{ color: "var(--status-warning-text)" }}>
-            {counts.submitted}
-          </div>
-          <p className="kpi-footnote">Manager review required</p>
-        </div>
+        <GoalRingCard
+          title="Awaiting Approval"
+          subtitle="Manager review required"
+          value={counts.submitted}
+          totalLabel={`of ${counts.total} itineraries`}
+          percentage={
+            counts.total > 0 ? Math.round((counts.submitted / counts.total) * 100) : 0
+          }
+          tone="obsidian"
+          icon="⚖️"
+          primarySegmentLabel={`Pending (${counts.submitted})`}
+          secondarySegmentLabel={`Reviewed (${Math.max(0, counts.total - counts.submitted)})`}
+        />
 
-        <div className="kpi-card kpi-card--info">
-          <div className="kpi-card-top">
-            <span className="kpi-label">In Progress</span>
-            <span className="kpi-icon" aria-hidden="true">
-              📍
-            </span>
-          </div>
-          <div className="kpi-value" style={{ color: "var(--status-info-text)" }}>
-            {counts.inProgress}
-          </div>
-          <p className="kpi-footnote">Currently on the road</p>
-        </div>
+        <GoalRingCard
+          title="In Progress"
+          subtitle="Currently on the road"
+          value={counts.inProgress}
+          totalLabel={`of ${counts.total} itineraries`}
+          percentage={
+            counts.total > 0 ? Math.round((counts.inProgress / counts.total) * 100) : 0
+          }
+          tone="blue"
+          icon="📍"
+          primarySegmentLabel={`Active (${counts.inProgress})`}
+          secondarySegmentLabel="60s GPS Sync"
+        />
 
-        <div className="kpi-card kpi-card--success">
-          <div className="kpi-card-top">
-            <span className="kpi-label">Completed</span>
-            <span className="kpi-icon" aria-hidden="true">
-              ✓
-            </span>
-          </div>
-          <div className="kpi-value" style={{ color: "var(--status-success)" }}>
-            {counts.completed}
-          </div>
-          <p className="kpi-footnote">Finished field visits</p>
-        </div>
+        <GoalRingCard
+          title="Completed"
+          subtitle="Finished field visits"
+          value={counts.completed}
+          totalLabel={`of ${counts.total} itineraries`}
+          percentage={
+            counts.total > 0 ? Math.round((counts.completed / counts.total) * 100) : 0
+          }
+          tone="obsidian"
+          icon="✓"
+          primarySegmentLabel={`Done (${counts.completed})`}
+          secondarySegmentLabel="Verified"
+        />
       </div>
 
       {/* Filter and View Controls */}

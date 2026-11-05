@@ -7,6 +7,7 @@ import { TripSelectorScreen } from "./screens/TripSelectorScreen";
 import { FieldTrackMobileApiClient } from "./services/api";
 import { MobileAuthService } from "./services/auth";
 import { GeofenceManager } from "./services/geofencing";
+import { MOBILE_THEME } from "./theme";
 import type { MobileAuthSession, MobileTrip } from "./types";
 
 export interface FieldTrackMobileAppProps {
@@ -153,7 +154,7 @@ export function App({
         />
       ) : isRestoringSession ? (
         <View style={styles.loadingState}>
-          <ActivityIndicator size="large" color="#0284c7" />
+          <ActivityIndicator size="large" color={MOBILE_THEME.colors.electricBlue} />
           <Text style={styles.loadingText}>Initializing FieldTrack Mobile…</Text>
         </View>
       ) : session ? (
@@ -176,7 +177,7 @@ export default App;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f1f5f9",
+    backgroundColor: MOBILE_THEME.colors.canvasBg,
   },
   loadingState: {
     flex: 1,
@@ -186,7 +187,8 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 13,
-    color: "#64748b",
+    color: MOBILE_THEME.colors.textSecondary,
     marginTop: 10,
+    fontWeight: "600",
   },
 });

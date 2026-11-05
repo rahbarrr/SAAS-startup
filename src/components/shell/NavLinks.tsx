@@ -312,7 +312,7 @@ export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-      {SIDEBAR_NAV_SECTIONS.map((section) => {
+      {SIDEBAR_NAV_SECTIONS.map((section, sectionIdx) => {
         const visibleItems = section.items.filter(
           (item) => !item.allowedRoles || item.allowedRoles.includes(currentRole)
         );
@@ -320,8 +320,21 @@ export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
         if (visibleItems.length === 0) return null;
 
         return (
-          <div key={section.title}>
-            <p className="sidebar-nav-group-label">{section.title}</p>
+          <div key={section.title} className="sidebar-nav-section">
+            <div className="sidebar-nav-group-row">
+              <p className="sidebar-nav-group-label">{section.title}</p>
+              {sectionIdx === 0 ? (
+                <Link
+                  href="/trips/new"
+                  className="sidebar-group-plus-btn"
+                  title="Plan New Field Trip"
+                  aria-label="Plan new field trip"
+                  onClick={onItemClick}
+                >
+                  +
+                </Link>
+              ) : null}
+            </div>
             <ul className="sidebar-nav-list">
               {visibleItems.map((item) => {
                 const isActive =
@@ -339,17 +352,29 @@ export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
                       aria-current={isActive ? "page" : undefined}
                       onClick={onItemClick}
                     >
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          color: isActive ? "var(--brand-primary)" : "var(--text-muted)",
-                        }}
-                      >
+                      <span className="sidebar-nav-icon">
                         <NavIcon name={item.icon} />
                       </span>
-                      <span style={{ flex: 1 }}>{item.label}</span>
+                      <span className="sidebar-nav-label" style={{ flex: 1 }}>
+                        {item.label}
+                      </span>
                       {item.badge ? (
                         <span className="nav-badge">{item.badge}</span>
+                      ) : isActive ? (
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                          className="sidebar-active-chevron"
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
                       ) : null}
                     </Link>
                   </li>
@@ -360,6 +385,98 @@ export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
         );
       })}
     </div>
+  );
+}
+
+const TOP_PILL_ITEMS: readonly {
+  href: string;
+  label: string;
+  allowedRoles?: OrgRole[];
+}[] = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/reports", label: "Analytics" },
+  { href: "/trips", label: "Field Trips" },
+  { href: "/visits", label: "Store Visits" },
+  {
+    href: "/dashboard/live-tracking",
+    label: "Live Radar",
+    allowedRoles: ["admin", "manager"],
+  },
+  {
+    href: "/approvals",
+    label: "Approvals",
+    allowedRoles: ["admin", "manager"],
+  },
+];
+
+export function TopPillNav(): ReactNode {
+  const pathname = usePathname();
+  const { currentRole } = useCurrentRole();
+
+  const visiblePills = TOP_PILL_ITEMS.filter(
+    (item) => !item.allowedRoles || item.allowedRoles.includes(currentRole)
+  );
+
+  return (
+    <nav className="top-pill-nav" aria-label="Quick module navigation">
+      {visiblePills.map((item) => {
+        const isActive =
+          item.href === "/dashboard"
+            ? pathname === "/dashboard"
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`top-pill-link ${isActive ? "active" : ""}`}
+            aria-current={isActive ? "page" : undefined}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function MobileBottomNav(): ReactNode {
+  const pathname = usePathname();
+  const { currentRole } = useCurrentRole();
+
+  const mobileItems: { href: string; label: string; icon: string }[] = [
+    { href: "/dashboard", label: "Overview", icon: "grid" },
+    ...(currentRole === "admin" || currentRole === "manager"
+      ? [{ href: "/dashboard/live-tracking", label: "Live Map", icon: "radar" }]
+      : [{ href: "/stores", label: "Stores", icon: "building" }]),
+    { href: "/trips", label: "Trips", icon: "map-pin" },
+    { href: "/visits", label: "Visits", icon: "clipboard-list" },
+    { href: "/reports", label: "Reports", icon: "bar-chart" },
+  ];
+
+  return (
+    <nav className="mobile-bottom-nav" aria-label="Mobile primary navigation">
+      {mobileItems.map((item) => {
+        const isActive =
+          item.href === "/dashboard"
+            ? pathname === "/dashboard"
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`mobile-bottom-nav-item ${isActive ? "active" : ""}`}
+            aria-current={isActive ? "page" : undefined}
+          >
+            <span className="mobile-bottom-nav-icon">
+              <NavIcon name={item.icon} />
+            </span>
+            <span className="mobile-bottom-nav-label">{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 

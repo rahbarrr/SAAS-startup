@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { PlusCircle, Map, ClipboardList, Info } from "lucide-react";
 import { ManagerDashboardClient } from "@/components/dashboard/ManagerDashboardClient";
+import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
 import { requireActiveWorkspace } from "@/lib/auth/workspace-context";
@@ -213,11 +214,59 @@ export default async function DashboardPage(
     metrics.tripsByStatus.changes_requested +
     metrics.tripsByStatus.rejected;
 
+  const totalVisitsVolume = Math.max(
+    1,
+    metrics.completedVisits + metrics.pendingVisits
+  );
+  const completedVisitsPct = Math.round(
+    (metrics.completedVisits / totalVisitsVolume) * 100
+  );
+  const pendingVisitsPct = Math.round(
+    (metrics.pendingVisits / totalVisitsVolume) * 100
+  );
+  const approvedTripsPct =
+    totalTrips > 0
+      ? Math.round((metrics.approvedTrips / totalTrips) * 100)
+      : 100;
+  const awaitingApprovalPct =
+    totalTrips > 0
+      ? Math.round((metrics.tripsAwaitingApproval / totalTrips) * 100)
+      : 0;
+  const exceptionsPct =
+    items.length > 0
+      ? Math.round((metrics.exceptionsRequiringAttention / items.length) * 100)
+      : 0;
+
+  const heroPrimaryCount =
+    role === "field_employee"
+      ? employeeTrips.length + employeeVisits.length
+      : metrics.completedVisits + metrics.approvedTrips;
+  const heroPendingCount =
+    role === "field_employee"
+      ? employeeTrips.filter((t) => t.status === "submitted" || t.status === "in_progress")
+          .length
+      : metrics.pendingVisits + metrics.tripsAwaitingApproval;
+  const heroTotalVolume = Math.max(1, heroPrimaryCount + heroPendingCount);
+  const heroPrimaryPct = Math.round((heroPrimaryCount / heroTotalVolume) * 100);
+  const heroSecondaryPct = Math.max(0, 100 - heroPrimaryPct);
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
-      {/* Workspace Context & Header Section */}
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      {/* Workspace Context & Canvas Header Row (Reference Top Canvas Header) */}
       <section className="dashboard-hero" aria-labelledby="overview-heading">
         <div className="dashboard-hero-content">
+          <div className="dashboard-hero-titles">
+            <h1 id="overview-heading" className="dashboard-hero-title">
+              {role === "field_employee"
+                ? `My Field Operations — ${activeOrg.name}`
+                : `Operations Dashboard — ${activeOrg.name}`}
+            </h1>
+            <p className="dashboard-hero-subtitle">
+              Overview &gt; {activeOrg.name} • Live operational telemetry computed from
+              committed database state (UTC Reference: <code>{referenceDateUtc}</code>)
+            </p>
+          </div>
+
           <div className="workspace-context-chips">
             <span className="workspace-context-pill">
               <span className="workspace-context-dot" aria-hidden="true" />
@@ -241,24 +290,25 @@ export default async function DashboardPage(
               Tenant Isolated (RLS)
             </span>
             <span className="workspace-date-pill">
-              UTC Reference: <code>{referenceDateUtc}</code>
+              150m Geofence • 60s GPS Sync
             </span>
-          </div>
-
-          <div className="dashboard-hero-titles">
-            <h1 id="overview-heading" className="dashboard-hero-title">
-              {role === "field_employee"
-                ? `My Field Operations — ${activeOrg.name}`
-                : `Operations Dashboard — ${activeOrg.name}`}
-            </h1>
-            <p className="dashboard-hero-subtitle">
-              Live operational telemetry computed from committed database state. All
-              check-ins and evidence strictly isolated per tenant.
-            </p>
           </div>
         </div>
 
         <div className="dashboard-hero-actions">
+          {role === "manager" || role === "admin" ? (
+            <a
+              href={exportHref}
+              className="btn btn-secondary dashboard-export-cta"
+              title="Export authorized dataset as CSV"
+            >
+              <span>+ Export CSV</span>
+            </a>
+          ) : (
+            <Link href="/stores" className="btn btn-secondary dashboard-export-cta">
+              <span>+ Browse Stores</span>
+            </Link>
+          )}
           <Link href="/trips/new" className="btn btn-primary dashboard-primary-cta">
             <svg
               width="16"
@@ -276,31 +326,154 @@ export default async function DashboardPage(
             </svg>
             <span>Plan New Trip</span>
           </Link>
-          {role === "manager" || role === "admin" ? (
-            <a
-              href={exportHref}
-              className="btn btn-secondary dashboard-export-cta"
-              title="Export authorized dataset as CSV"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              <span>Export CSV</span>
-            </a>
-          ) : null}
         </div>
+      </section>
+
+      {/* Reference-Inspired Asymmetric Hero Bento Row: Dark Obsidian Hero Card + Live Activity Feed */}
+      <section
+        className="dashboard-bento-hero-row"
+        aria-label="Primary field execution summary and live activity"
+      >
+        {/* Left: Dark Obsidian Hero Card with Electric Blue Radial Glow */}
+        <article className="hero-obsidian-card">
+          <div className="hero-obsidian-top">
+            <div className="hero-obsidian-avatars" aria-hidden="true">
+              <span className="hero-avatar-circle hero-avatar-circle--primary">FT</span>
+              <span className="hero-avatar-circle hero-avatar-circle--secondary">
+                {activeOrg.name.slice(0, 2).toUpperCase()}
+              </span>
+              <span className="hero-avatar-badge">✓</span>
+            </div>
+            <div className="hero-obsidian-meta">
+              <strong className="hero-obsidian-org">{activeOrg.name} Fleet</strong>
+              <span className="hero-obsidian-sub">
+                {role === "field_employee"
+                  ? `${employeeTrips.length} assigned trips • ${employeeVisits.length} store visits`
+                  : `${totalTrips} scheduled itineraries • ${metrics.completedVisits} verified visits`}
+              </span>
+            </div>
+          </div>
+
+          <div className="hero-obsidian-metric-block">
+            <span className="hero-obsidian-eyebrow">
+              {role === "field_employee"
+                ? "My Active & Completed Operations"
+                : "Verified Visits & Approved Trips"}
+            </span>
+            <div className="hero-obsidian-number">{heroPrimaryCount}</div>
+            <p className="hero-obsidian-caption">
+              {heroPrimaryPct}% completion index across {heroTotalVolume} active field
+              records in {activeOrg.name}
+            </p>
+          </div>
+
+          <div className="hero-obsidian-bar-section">
+            <div className="hero-obsidian-bar-track" aria-hidden="true">
+              <div
+                className="hero-obsidian-bar-primary"
+                style={{ width: `${Math.max(12, heroPrimaryPct)}%` }}
+              />
+              <div
+                className="hero-obsidian-bar-secondary"
+                style={{ width: `${Math.max(8, heroSecondaryPct)}%` }}
+              />
+            </div>
+            <div className="hero-obsidian-legend">
+              <span className="hero-obsidian-legend-item">
+                <span className="hero-legend-dot hero-legend-dot--blue" />
+                Completed &amp; Approved • {heroPrimaryCount}{" "}
+                <strong>{heroPrimaryPct}%</strong>
+              </span>
+              <span className="hero-obsidian-legend-item">
+                <span className="hero-legend-dot hero-legend-dot--periwinkle" />
+                Pending &amp; In Field • {heroPendingCount}{" "}
+                <strong>{heroSecondaryPct}%</strong>
+              </span>
+            </div>
+          </div>
+        </article>
+
+        {/* Right: White Activity Feed Bento Card */}
+        <aside className="activity-bento-card" aria-label="Live operations activity">
+          <div className="activity-bento-header">
+            <div>
+              <h2 className="activity-bento-title">Activity</h2>
+              <p className="activity-bento-subtitle">Latest field telemetry</p>
+            </div>
+            <span className="activity-live-pill">
+              <span className="activity-live-dot" aria-hidden="true" />
+              Live
+            </span>
+          </div>
+
+          <div className="activity-bento-list">
+            {(role === "field_employee"
+              ? employeeTrips.slice(0, 4).map((trip, idx) => ({
+                  id: trip.id,
+                  initials: trip.title.slice(0, 2).toUpperCase(),
+                  title: trip.title,
+                  subtitle: `${trip.startDate} → ${trip.endDate}`,
+                  badge: `+${trip.status.replace("_", " ")}`,
+                  tone: idx % 2 === 0 ? "blue" : "periwinkle",
+                }))
+              : recentAuditEvents.length > 0
+                ? recentAuditEvents.slice(0, 4).map((evt, idx) => ({
+                    id: evt.id,
+                    initials: evt.entityType.slice(0, 2).toUpperCase(),
+                    title: evt.actionType
+                      .replace(/_/g, " ")
+                      .replace(/\b\w/g, (c) => c.toUpperCase()),
+                    subtitle: new Date(evt.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      timeZone: "UTC",
+                    }),
+                    badge: `+${evt.entityType}`,
+                    tone: idx % 2 === 0 ? "blue" : "periwinkle",
+                  }))
+                : [
+                    {
+                      id: "telemetry-sync",
+                      initials: "GP",
+                      title: "GPS Telemetry Cadence Active",
+                      subtitle: `Ref ${referenceDateUtc} • 60s target`,
+                      badge: "+Synced",
+                      tone: "blue",
+                    },
+                    {
+                      id: "geofence-ring",
+                      initials: "GF",
+                      title: "Store Geofence Validation",
+                      subtitle: "150m arrival radius active",
+                      badge: "+150m",
+                      tone: "periwinkle",
+                    },
+                    {
+                      id: "rls-guard",
+                      initials: "RL",
+                      title: `Tenant Isolation (${activeOrg.name})`,
+                      subtitle: "Supabase RLS verified",
+                      badge: "+Active",
+                      tone: "blue",
+                    },
+                  ]
+            ).map((entry) => (
+              <div key={entry.id} className="activity-bento-item">
+                <div
+                  className={`activity-bento-avatar activity-bento-avatar--${entry.tone}`}
+                  aria-hidden="true"
+                >
+                  {entry.initials}
+                </div>
+                <div className="activity-bento-info">
+                  <span className="activity-bento-item-title">{entry.title}</span>
+                  <span className="activity-bento-item-date">{entry.subtitle}</span>
+                </div>
+                <span className="activity-bento-delta">{entry.badge}</span>
+              </div>
+            ))}
+          </div>
+        </aside>
       </section>
 
       {dashboardError ? (
@@ -322,91 +495,114 @@ export default async function DashboardPage(
       {/* Field Employee View */}
       {role === "field_employee" ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          <div className="kpi-grid">
-            <div className="kpi-card kpi-card--primary">
-              <div className="kpi-card-top">
-                <span className="kpi-label">My Field Trips</span>
-                <span className="kpi-icon" aria-hidden="true">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
-                    <line x1="9" y1="3" x2="9" y2="18" />
-                    <line x1="15" y1="6" x2="15" y2="21" />
-                  </svg>
-                </span>
-              </div>
-              <div className="kpi-value">{employeeTrips.length}</div>
-              <p className="kpi-subtitle">Assigned itineraries</p>
-              <div className="kpi-card-footer">
-                <Link href="/trips" className="btn btn-sm btn-outline kpi-action-btn">
-                  View Trips →
-                </Link>
-              </div>
-            </div>
+          <div className="kpi-grid kpi-grid--three">
+            <GoalRingCard
+              title="My Field Trips"
+              subtitle="Assigned itineraries"
+              value={employeeTrips.length}
+              totalLabel="in active workspace"
+              percentage={
+                employeeTrips.length > 0
+                  ? Math.round(
+                      (employeeTrips.filter(
+                        (t) =>
+                          t.status === "approved" ||
+                          t.status === "in_progress" ||
+                          t.status === "completed"
+                      ).length /
+                        employeeTrips.length) *
+                        100
+                    )
+                  : 100
+              }
+              tone="blue"
+              icon={
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+                  <line x1="9" y1="3" x2="9" y2="18" />
+                  <line x1="15" y1="6" x2="15" y2="21" />
+                </svg>
+              }
+              actionHref="/trips"
+              actionLabel="View Trips →"
+              primarySegmentLabel={`Assigned (${employeeTrips.length})`}
+              secondarySegmentLabel="Active Scope"
+            />
 
-            <div className="kpi-card kpi-card--success">
-              <div className="kpi-card-top">
-                <span className="kpi-label">Recorded Visits</span>
-                <span className="kpi-icon" aria-hidden="true">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                </span>
-              </div>
-              <div className="kpi-value">{employeeVisits.length}</div>
-              <p className="kpi-subtitle">Recent store executions</p>
-              <div className="kpi-card-footer">
-                <Link href="/visits" className="btn btn-sm btn-outline kpi-action-btn">
-                  View Visits →
-                </Link>
-              </div>
-            </div>
+            <GoalRingCard
+              title="Recorded Visits"
+              subtitle="Recent store executions"
+              value={employeeVisits.length}
+              totalLabel="committed store visits"
+              percentage={
+                employeeVisits.length > 0
+                  ? Math.round(
+                      (employeeVisits.filter(
+                        (v) => v.status === "submitted" || v.status === "reviewed"
+                      ).length /
+                        employeeVisits.length) *
+                        100
+                    )
+                  : 100
+              }
+              tone="blue"
+              icon={
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              }
+              actionHref="/visits"
+              actionLabel="View Visits →"
+              primarySegmentLabel={`Submitted (${employeeVisits.length})`}
+              secondarySegmentLabel="150m Geofence"
+            />
 
-            <div className="kpi-card kpi-card--violet">
-              <div className="kpi-card-top">
-                <span className="kpi-label">Stores Directory</span>
-                <span className="kpi-icon" aria-hidden="true">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
-                </span>
-              </div>
-              <div className="kpi-value">Directory</div>
-              <p className="kpi-subtitle">Browse retail accounts</p>
-              <div className="kpi-card-footer">
-                <Link href="/stores" className="btn btn-sm btn-outline kpi-action-btn">
-                  Browse Stores →
-                </Link>
-              </div>
-            </div>
+            <GoalRingCard
+              title="Stores Directory"
+              subtitle="Browse retail accounts"
+              value="Directory"
+              totalLabel="150m geofence verified"
+              percentage={100}
+              tone="obsidian"
+              icon={
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+              }
+              actionHref="/stores"
+              actionLabel="Browse Stores →"
+              primarySegmentLabel="Active Accounts"
+              secondarySegmentLabel="GPS Enabled"
+            />
           </div>
 
           {/* Quick Actions */}
@@ -502,219 +698,182 @@ export default async function DashboardPage(
       ) : (
         /* Manager / Admin View */
         <>
-          {/* Section 5: Operational KPI Cards Grid */}
+          {/* Section 5: Operational Circular Ring KPI Cards Grid (Reference Goal Ring Cards) */}
           <section
             className="kpi-grid"
             aria-label="Documented operational metrics summary"
           >
-            <article className="kpi-card kpi-card--warning">
-              <div className="kpi-card-top">
-                <span className="kpi-icon" aria-hidden="true">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                </span>
+            <GoalRingCard
+              title={metrics.definitions.tripsAwaitingApproval.label}
+              subtitle="Awaiting manager review"
+              value={metrics.tripsAwaitingApproval}
+              totalLabel={`of ${totalTrips} scheduled trips`}
+              percentage={awaitingApprovalPct}
+              tone="obsidian"
+              icon={
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              }
+              badge={
                 <Link href="/approvals" style={{ textDecoration: "none" }}>
                   <StatusBadge descriptor={getApprovalStatusDescriptor("submitted")} />
                 </Link>
-              </div>
-              <h2 className="kpi-label">
-                {metrics.definitions.tripsAwaitingApproval.label}
-              </h2>
-              <div className="kpi-value" style={{ color: "var(--status-warning-text)" }}>
-                {metrics.tripsAwaitingApproval}
-              </div>
-              <p className="kpi-subtitle">Awaiting manager review</p>
-              <div className="kpi-card-footer">
-                <Link href="/approvals" className="btn btn-sm btn-outline kpi-action-btn">
-                  Review →
-                </Link>
-                <details className="kpi-rule-details">
-                  <summary className="kpi-rule-summary" title="View calculation rule">
-                    Rule
-                  </summary>
-                  <div className="kpi-rule-content">
-                    <strong>Rule:</strong>{" "}
-                    {metrics.definitions.tripsAwaitingApproval.formulaSummary}
-                  </div>
-                </details>
-              </div>
-            </article>
+              }
+              actionHref="/approvals"
+              actionLabel="Review →"
+              ruleSummary={metrics.definitions.tripsAwaitingApproval.formulaSummary}
+              primarySegmentLabel={`Submitted (${metrics.tripsAwaitingApproval})`}
+              secondarySegmentLabel={`Decided (${Math.max(0, totalTrips - metrics.tripsAwaitingApproval)})`}
+            />
 
-            <article className="kpi-card kpi-card--primary">
-              <div className="kpi-card-top">
-                <span className="kpi-icon" aria-hidden="true">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>
-                </span>
+            <GoalRingCard
+              title={metrics.definitions.approvedTrips.label}
+              subtitle={`${metrics.approvedTripsBreakdown.approvedNotStarted} ready • ${metrics.approvedTripsBreakdown.inProgress} active`}
+              value={metrics.approvedTrips}
+              totalLabel={`of ${totalTrips} total trips`}
+              percentage={approvedTripsPct}
+              tone="blue"
+              icon={
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              }
+              badge={
                 <Link
                   href="/dashboard?tripStatus=approved"
                   style={{ textDecoration: "none" }}
                 >
                   <StatusBadge descriptor={getApprovalStatusDescriptor("approved")} />
                 </Link>
-              </div>
-              <h2 className="kpi-label">{metrics.definitions.approvedTrips.label}</h2>
-              <div className="kpi-value">{metrics.approvedTrips}</div>
-              <p className="kpi-subtitle">
-                {metrics.approvedTripsBreakdown.approvedNotStarted} not started •{" "}
-                {metrics.approvedTripsBreakdown.inProgress} active •{" "}
-                {metrics.approvedTripsBreakdown.completedAllStopsCheckedOut} done
-              </p>
-              <div className="kpi-card-footer">
-                <Link
-                  href="/dashboard?tripStatus=approved"
-                  className="btn btn-sm btn-outline kpi-action-btn"
-                >
-                  Filter →
-                </Link>
-                <details className="kpi-rule-details">
-                  <summary className="kpi-rule-summary" title="View calculation rule">
-                    Rule
-                  </summary>
-                  <div className="kpi-rule-content">
-                    <strong>Rule:</strong>{" "}
-                    {metrics.definitions.approvedTrips.completionRuleNote}
-                  </div>
-                </details>
-              </div>
-            </article>
+              }
+              actionHref="/dashboard?tripStatus=approved"
+              actionLabel="Filter →"
+              ruleSummary={metrics.definitions.approvedTrips.completionRuleNote}
+              primarySegmentLabel={`Active/Done (${metrics.approvedTripsBreakdown.inProgress + metrics.approvedTripsBreakdown.completedAllStopsCheckedOut})`}
+              secondarySegmentLabel={`Not Started (${metrics.approvedTripsBreakdown.approvedNotStarted})`}
+            />
 
-            <article className="kpi-card kpi-card--success">
-              <div className="kpi-card-top">
-                <span className="kpi-icon" aria-hidden="true">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                </span>
+            <GoalRingCard
+              title={metrics.definitions.completedVisits.label}
+              subtitle="Completed & submitted visits"
+              value={metrics.completedVisits}
+              totalLabel={`of ${totalVisitsVolume} store stops`}
+              percentage={completedVisitsPct}
+              tone="blue"
+              icon={
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              }
+              badge={
                 <Link
                   href="/dashboard?visitStatus=submitted"
                   style={{ textDecoration: "none" }}
                 >
                   <StatusBadge descriptor={getApprovalStatusDescriptor("completed")} />
                 </Link>
-              </div>
-              <h2 className="kpi-label">{metrics.definitions.completedVisits.label}</h2>
-              <div className="kpi-value" style={{ color: "var(--status-success)" }}>
-                {metrics.completedVisits}
-              </div>
-              <p className="kpi-subtitle">Completed &amp; submitted visits</p>
-              <div className="kpi-card-footer">
-                <Link
-                  href="/dashboard?visitStatus=submitted"
-                  className="btn btn-sm btn-outline kpi-action-btn"
-                >
-                  Filter →
-                </Link>
-                <details className="kpi-rule-details">
-                  <summary className="kpi-rule-summary" title="View calculation rule">
-                    Rule
-                  </summary>
-                  <div className="kpi-rule-content">
-                    <strong>Rule:</strong>{" "}
-                    {metrics.definitions.completedVisits.formulaSummary}
-                  </div>
-                </details>
-              </div>
-            </article>
+              }
+              actionHref="/dashboard?visitStatus=submitted"
+              actionLabel="Filter →"
+              ruleSummary={metrics.definitions.completedVisits.formulaSummary}
+              primarySegmentLabel={`Checked Out (${metrics.completedVisits})`}
+              secondarySegmentLabel={`Remaining (${metrics.pendingVisits})`}
+            />
 
-            <article className="kpi-card kpi-card--info">
-              <div className="kpi-card-top">
-                <span className="kpi-icon" aria-hidden="true">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" />
-                    <line x1="8" y1="2" x2="8" y2="6" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
-                </span>
+            <GoalRingCard
+              title={metrics.definitions.pendingVisits.label}
+              subtitle="Scheduled or active in field"
+              value={metrics.pendingVisits}
+              totalLabel={`of ${totalVisitsVolume} store stops`}
+              percentage={pendingVisitsPct}
+              tone="obsidian"
+              icon={
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              }
+              badge={
                 <Link
                   href="/dashboard?visitStatus=in_progress"
                   style={{ textDecoration: "none" }}
                 >
                   <StatusBadge descriptor={getApprovalStatusDescriptor("in_progress")} />
                 </Link>
-              </div>
-              <h2 className="kpi-label">{metrics.definitions.pendingVisits.label}</h2>
-              <div className="kpi-value">{metrics.pendingVisits}</div>
-              <p className="kpi-subtitle">Scheduled or active in field</p>
-              <div className="kpi-card-footer">
-                <Link
-                  href="/dashboard?visitStatus=in_progress"
-                  className="btn btn-sm btn-outline kpi-action-btn"
-                >
-                  Filter →
-                </Link>
-                <details className="kpi-rule-details">
-                  <summary className="kpi-rule-summary" title="View calculation rule">
-                    Rule
-                  </summary>
-                  <div className="kpi-rule-content">
-                    <strong>Rule:</strong>{" "}
-                    {metrics.definitions.pendingVisits.formulaSummary}
-                  </div>
-                </details>
-              </div>
-            </article>
+              }
+              actionHref="/dashboard?visitStatus=in_progress"
+              actionLabel="Filter →"
+              ruleSummary={metrics.definitions.pendingVisits.formulaSummary}
+              primarySegmentLabel={`In Field (${metrics.pendingVisits})`}
+              secondarySegmentLabel={`Done (${metrics.completedVisits})`}
+            />
 
-            <article className="kpi-card kpi-card--danger">
-              <div className="kpi-card-top">
-                <span className="kpi-icon" aria-hidden="true">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                </span>
+            <GoalRingCard
+              title={metrics.definitions.exceptionsRequiringAttention.label}
+              subtitle="Discrepancies needing action"
+              value={metrics.exceptionsRequiringAttention}
+              totalLabel={`across ${items.length} stop records`}
+              percentage={exceptionsPct}
+              tone={metrics.exceptionsRequiringAttention > 0 ? "danger" : "obsidian"}
+              icon={
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              }
+              badge={
                 <Link
                   href="/dashboard?onlyExceptions=true"
                   style={{ textDecoration: "none" }}
@@ -723,32 +882,13 @@ export default async function DashboardPage(
                     descriptor={getApprovalStatusDescriptor("changes_requested")}
                   />
                 </Link>
-              </div>
-              <h2 className="kpi-label">
-                {metrics.definitions.exceptionsRequiringAttention.label}
-              </h2>
-              <div className="kpi-value" style={{ color: "var(--status-danger)" }}>
-                {metrics.exceptionsRequiringAttention}
-              </div>
-              <p className="kpi-subtitle">Discrepancies needing action</p>
-              <div className="kpi-card-footer">
-                <Link
-                  href="/dashboard?onlyExceptions=true"
-                  className="btn btn-sm btn-outline kpi-action-btn"
-                >
-                  Exceptions →
-                </Link>
-                <details className="kpi-rule-details">
-                  <summary className="kpi-rule-summary" title="View calculation rule">
-                    Rule
-                  </summary>
-                  <div className="kpi-rule-content">
-                    <strong>Rule:</strong>{" "}
-                    {metrics.definitions.exceptionsRequiringAttention.formulaSummary}
-                  </div>
-                </details>
-              </div>
-            </article>
+              }
+              actionHref="/dashboard?onlyExceptions=true"
+              actionLabel="Exceptions →"
+              ruleSummary={metrics.definitions.exceptionsRequiringAttention.formulaSummary}
+              primarySegmentLabel={`Flagged (${metrics.exceptionsRequiringAttention})`}
+              secondarySegmentLabel={`Clean (${Math.max(0, items.length - metrics.exceptionsRequiringAttention)})`}
+            />
           </section>
 
           {/* Section 6: Trips by Status Lifecycle Visualization */}

@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ReactNode, type FormEvent } from "react";
 import { createInFlightActionGuard } from "@/lib/ux/formatting-and-resilience";
+import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/States";
 import {
@@ -206,55 +207,57 @@ export function TeamDirectoryClient({
 
       {/* Role Counts Summary Bar */}
       <div className="kpi-grid">
-        <div className="kpi-card kpi-card--primary">
-          <div className="kpi-card-top">
-            <span className="kpi-label">Total Members</span>
-            <span className="kpi-icon" aria-hidden="true">
-              👥
-            </span>
-          </div>
-          <div className="kpi-value">{roleCounts.all}</div>
-          <p className="kpi-footnote">Active team members</p>
-        </div>
-
-        <div className="kpi-card kpi-card--violet">
-          <div className="kpi-card-top">
-            <span className="kpi-label">Administrators</span>
-            <span className="kpi-icon" aria-hidden="true">
-              🛡️
-            </span>
-          </div>
-          <div className="kpi-value" style={{ color: "var(--brand-violet-strong)" }}>
-            {roleCounts.admin}
-          </div>
-          <p className="kpi-footnote">Workspace owners</p>
-        </div>
-
-        <div className="kpi-card kpi-card--warning">
-          <div className="kpi-card-top">
-            <span className="kpi-label">Field Managers</span>
-            <span className="kpi-icon" aria-hidden="true">
-              ⚖️
-            </span>
-          </div>
-          <div className="kpi-value" style={{ color: "var(--status-warning-text)" }}>
-            {roleCounts.manager}
-          </div>
-          <p className="kpi-footnote">Approval authorities</p>
-        </div>
-
-        <div className="kpi-card kpi-card--info">
-          <div className="kpi-card-top">
-            <span className="kpi-label">Field Reps</span>
-            <span className="kpi-icon" aria-hidden="true">
-              📍
-            </span>
-          </div>
-          <div className="kpi-value" style={{ color: "var(--status-info-text)" }}>
-            {roleCounts.field_employee}
-          </div>
-          <p className="kpi-footnote">On-ground operations</p>
-        </div>
+        <GoalRingCard
+          title="Total Members"
+          subtitle="Active team members"
+          value={roleCounts.all}
+          targetText={`in ${activeOrgName}`}
+          percentage={100}
+          variant="primary"
+          primarySegment={{ label: "Field Reps", value: `${roleCounts.field_employee}` }}
+          secondarySegment={{
+            label: "Leadership",
+            value: `${roleCounts.admin + roleCounts.manager}`,
+          }}
+        />
+        <GoalRingCard
+          title="Administrators"
+          subtitle="Workspace owners"
+          value={roleCounts.admin}
+          targetText={`of ${roleCounts.all} members`}
+          percentage={
+            roleCounts.all > 0 ? Math.round((roleCounts.admin / roleCounts.all) * 100) : 0
+          }
+          variant="dark"
+          primarySegment={{ label: "Admins", value: `${roleCounts.admin}` }}
+          secondarySegment={{ label: "Full RLS", value: "Enabled" }}
+        />
+        <GoalRingCard
+          title="Field Managers"
+          subtitle="Approval authorities"
+          value={roleCounts.manager}
+          targetText={`of ${roleCounts.all} members`}
+          percentage={
+            roleCounts.all > 0 ? Math.round((roleCounts.manager / roleCounts.all) * 100) : 0
+          }
+          variant="warning"
+          primarySegment={{ label: "Managers", value: `${roleCounts.manager}` }}
+          secondarySegment={{ label: "Approvers", value: "Verified" }}
+        />
+        <GoalRingCard
+          title="Field Reps"
+          subtitle="On-ground operations"
+          value={roleCounts.field_employee}
+          targetText={`of ${roleCounts.all} members`}
+          percentage={
+            roleCounts.all > 0
+              ? Math.round((roleCounts.field_employee / roleCounts.all) * 100)
+              : 0
+          }
+          variant="success"
+          primarySegment={{ label: "Field Reps", value: `${roleCounts.field_employee}` }}
+          secondarySegment={{ label: "GPS Ready", value: "60s sync" }}
+        />
       </div>
 
       {/* Filter and Search Bar */}

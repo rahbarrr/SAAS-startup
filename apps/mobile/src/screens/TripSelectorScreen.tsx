@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { FieldTrackMobileApiClient } from "../services/api";
 import { MobileAuthService } from "../services/auth";
+import { MOBILE_THEME } from "../theme";
 import type { MobileAuthSession, MobileTrip, MobileTripSummary } from "../types";
 
 export interface TripSelectorScreenProps {
@@ -289,6 +290,33 @@ export function TripSelectorScreen({
         </View>
       ) : null}
 
+      {/* Reference Dark Obsidian Field Summary Card */}
+      <View style={styles.heroObsidianCard}>
+        <Text style={styles.heroEyebrow}>Field Operations Summary</Text>
+        <Text style={styles.heroValue}>{executableTrips.length} Active Routes</Text>
+        <Text style={styles.heroSubtitle}>
+          150m store geofencing • 60s background GPS telemetry
+        </Text>
+        <View style={styles.heroBarTrack}>
+          <View
+            style={[
+              styles.heroBarPrimary,
+              {
+                flex: Math.max(1, executableTrips.length),
+              },
+            ]}
+          />
+          <View
+            style={[
+              styles.heroBarSecondary,
+              {
+                flex: Math.max(1, pendingOrDraftCount),
+              },
+            ]}
+          />
+        </View>
+      </View>
+
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
           Authorized Trips ({executableTrips.length})
@@ -381,7 +409,7 @@ export function TripSelectorScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f1f5f9",
+    backgroundColor: MOBILE_THEME.colors.canvasBg,
     paddingHorizontal: 16,
     paddingTop: 44,
     paddingBottom: 16,
@@ -390,40 +418,42 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 14,
   },
   userCol: {
     flex: 1,
     marginRight: 12,
   },
   screenTitle: {
-    fontSize: 19,
-    fontWeight: "700",
-    color: "#0f172a",
+    fontSize: 20,
+    fontWeight: "800",
+    color: MOBILE_THEME.colors.textPrimary,
   },
   userEmail: {
     fontSize: 12,
-    color: "#64748b",
+    color: MOBILE_THEME.colors.textSecondary,
     marginTop: 2,
   },
   signOutBtn: {
-    backgroundColor: "#e2e8f0",
-    paddingHorizontal: 12,
+    backgroundColor: MOBILE_THEME.colors.surfaceCard,
+    borderWidth: 1,
+    borderColor: MOBILE_THEME.colors.borderSubtle,
+    paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 6,
+    borderRadius: MOBILE_THEME.radii.pill,
   },
   signOutText: {
     fontSize: 12,
-    fontWeight: "600",
-    color: "#334155",
+    fontWeight: "700",
+    color: MOBILE_THEME.colors.textPrimary,
   },
   orgRow: {
     marginBottom: 12,
   },
   orgLabel: {
     fontSize: 11,
-    fontWeight: "600",
-    color: "#64748b",
+    fontWeight: "700",
+    color: MOBILE_THEME.colors.textSecondary,
     textTransform: "uppercase",
     marginBottom: 6,
   },
@@ -433,67 +463,105 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   orgPill: {
-    backgroundColor: "#ffffff",
+    backgroundColor: MOBILE_THEME.colors.surfaceCard,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    borderColor: MOBILE_THEME.colors.borderSubtle,
+    borderRadius: MOBILE_THEME.radii.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
   },
   orgPillSelected: {
-    backgroundColor: "#0284c7",
-    borderColor: "#0284c7",
+    backgroundColor: MOBILE_THEME.colors.electricBlue,
+    borderColor: MOBILE_THEME.colors.electricBlue,
   },
   orgPillText: {
     fontSize: 12,
-    fontWeight: "600",
-    color: "#334155",
+    fontWeight: "700",
+    color: MOBILE_THEME.colors.textSecondary,
   },
   orgPillTextSelected: {
     color: "#ffffff",
   },
+  heroObsidianCard: {
+    backgroundColor: MOBILE_THEME.colors.obsidianHero,
+    borderRadius: MOBILE_THEME.radii.hero,
+    padding: 18,
+    marginBottom: 14,
+  },
+  heroEyebrow: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: MOBILE_THEME.colors.periwinkle,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  heroValue: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    marginTop: 4,
+  },
+  heroSubtitle: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.68)",
+    marginTop: 2,
+    marginBottom: 12,
+  },
+  heroBarTrack: {
+    flexDirection: "row",
+    height: 8,
+    gap: 6,
+  },
+  heroBarPrimary: {
+    backgroundColor: MOBILE_THEME.colors.electricBlue,
+    borderRadius: 999,
+  },
+  heroBarSecondary: {
+    backgroundColor: MOBILE_THEME.colors.periwinkle,
+    borderRadius: 999,
+  },
   warningBox: {
-    backgroundColor: "#fffbeb",
+    backgroundColor: MOBILE_THEME.colors.warningSoft,
     borderColor: "#fde68a",
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: 12,
     marginBottom: 12,
   },
   warningText: {
     fontSize: 12,
-    color: "#92400e",
+    color: MOBILE_THEME.colors.warningText,
     lineHeight: 17,
   },
   onboardingCard: {
     marginTop: 10,
     backgroundColor: "#ffffff",
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 14,
+    padding: 12,
     borderWidth: 1,
     borderColor: "#fde68a",
   },
   onboardingTitle: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#0f172a",
+    color: MOBILE_THEME.colors.textPrimary,
     marginBottom: 6,
   },
   onboardingInput: {
     backgroundColor: "#f8fafc",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 6,
+    borderColor: MOBILE_THEME.colors.borderStrong,
+    borderRadius: 10,
     paddingHorizontal: 10,
-    paddingVertical: 7,
+    paddingVertical: 8,
     fontSize: 12,
-    color: "#0f172a",
+    color: MOBILE_THEME.colors.textPrimary,
     marginBottom: 6,
   },
   onboardingBtn: {
-    backgroundColor: "#0284c7",
-    borderRadius: 6,
-    paddingVertical: 8,
+    backgroundColor: MOBILE_THEME.colors.electricBlue,
+    borderRadius: MOBILE_THEME.radii.pill,
+    paddingVertical: 9,
     alignItems: "center",
   },
   onboardingBtnText: {
@@ -502,21 +570,21 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   onboardingSecondaryBtn: {
-    backgroundColor: "#e2e8f0",
-    borderRadius: 6,
-    paddingVertical: 8,
+    backgroundColor: MOBILE_THEME.colors.canvasBg,
+    borderRadius: MOBILE_THEME.radii.pill,
+    paddingVertical: 9,
     alignItems: "center",
   },
   onboardingSecondaryBtnText: {
-    color: "#1e293b",
+    color: MOBILE_THEME.colors.textPrimary,
     fontSize: 12,
     fontWeight: "700",
   },
   errorBox: {
-    backgroundColor: "#fef2f2",
+    backgroundColor: MOBILE_THEME.colors.dangerSoft,
     borderColor: "#fecaca",
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 12,
     marginBottom: 12,
   },
@@ -529,35 +597,35 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#1e293b",
+    fontSize: 15,
+    fontWeight: "800",
+    color: MOBILE_THEME.colors.textPrimary,
   },
   refreshBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    backgroundColor: "#e0f2fe",
-    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    backgroundColor: MOBILE_THEME.colors.electricBlueSoft,
+    borderRadius: MOBILE_THEME.radii.pill,
   },
   refreshBtnText: {
     fontSize: 12,
-    fontWeight: "600",
-    color: "#0369a1",
+    fontWeight: "700",
+    color: MOBILE_THEME.colors.electricBlue,
   },
   infoBanner: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#cbd5e1",
+    backgroundColor: "#ffffff",
+    borderColor: MOBILE_THEME.colors.borderSubtle,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: 10,
     marginBottom: 10,
   },
   infoBannerText: {
     fontSize: 11,
-    color: "#475569",
+    color: MOBILE_THEME.colors.textSecondary,
     lineHeight: 16,
   },
   centeredState: {
@@ -568,38 +636,38 @@ const styles = StyleSheet.create({
   },
   stateText: {
     fontSize: 13,
-    color: "#64748b",
+    color: MOBILE_THEME.colors.textSecondary,
     marginTop: 10,
   },
   emptyCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
+    backgroundColor: MOBILE_THEME.colors.surfaceCard,
+    borderRadius: MOBILE_THEME.radii.card,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: MOBILE_THEME.colors.borderSubtle,
     marginTop: 12,
   },
   emptyTitle: {
     fontSize: 15,
-    fontWeight: "700",
-    color: "#0f172a",
+    fontWeight: "800",
+    color: MOBILE_THEME.colors.textPrimary,
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: "#64748b",
+    color: MOBILE_THEME.colors.textSecondary,
     lineHeight: 19,
   },
   listContent: {
     paddingBottom: 24,
   },
   tripCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-    padding: 16,
+    backgroundColor: MOBILE_THEME.colors.surfaceCard,
+    borderRadius: MOBILE_THEME.radii.card,
+    padding: 18,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: MOBILE_THEME.colors.borderSubtle,
   },
   tripCardHeader: {
     flexDirection: "row",
@@ -610,40 +678,40 @@ const styles = StyleSheet.create({
   tripTitle: {
     flex: 1,
     fontSize: 16,
-    fontWeight: "700",
-    color: "#0f172a",
+    fontWeight: "800",
+    color: MOBILE_THEME.colors.textPrimary,
     marginRight: 8,
   },
   statusBadge: {
     fontSize: 10,
     fontWeight: "700",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: MOBILE_THEME.radii.pill,
   },
   statusApproved: {
-    backgroundColor: "#dcfce7",
-    color: "#15803d",
+    backgroundColor: MOBILE_THEME.colors.emeraldSoft,
+    color: MOBILE_THEME.colors.emeraldText,
   },
   statusInProgress: {
-    backgroundColor: "#e0f2fe",
-    color: "#0369a1",
+    backgroundColor: MOBILE_THEME.colors.electricBlueSoft,
+    color: MOBILE_THEME.colors.electricBlue,
   },
   tripDates: {
     fontSize: 12,
-    color: "#475569",
+    color: MOBILE_THEME.colors.textSecondary,
     marginBottom: 4,
   },
   tripPurpose: {
     fontSize: 12,
-    color: "#64748b",
+    color: MOBILE_THEME.colors.textSecondary,
     marginBottom: 12,
     lineHeight: 17,
   },
   selectTripBtn: {
-    backgroundColor: "#0284c7",
-    borderRadius: 8,
-    paddingVertical: 10,
+    backgroundColor: MOBILE_THEME.colors.electricBlue,
+    borderRadius: MOBILE_THEME.radii.pill,
+    paddingVertical: 11,
     alignItems: "center",
     marginTop: 4,
   },

@@ -1,4 +1,5 @@
 export { KpiCard, type KpiCardProps } from "./KpiCard";
+export { GoalRingCard, type GoalRingCardProps } from "./GoalRingCard";
 export { Modal, type ModalProps } from "./Modal";
 export { EmptyState, ErrorState, LoadingState } from "./States";
 export { StatusBadge, getApprovalStatusDescriptor } from "./StatusBadge";

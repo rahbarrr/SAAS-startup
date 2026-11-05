@@ -63,19 +63,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
     marginBottom: 10,
     borderWidth: 1,
   },
   barActive: {
-    backgroundColor: "#eff6ff",
-    borderColor: "#bfdbfe",
+    backgroundColor: "#EEF3FF",
+    borderColor: "#8BA8FF",
   },
   barInactive: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#e2e8f0",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E8EAF0",
   },
   left: {
     flexDirection: "row",
@@ -90,34 +89,34 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   dotPulse: {
-    backgroundColor: "#16a34a",
+    backgroundColor: "#10B981",
   },
   dotInactive: {
-    backgroundColor: "#94a3b8",
+    backgroundColor: "#8C94A6",
   },
   statusTitle: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#11141D",
   },
   statusSubtitle: {
     fontSize: 11,
-    color: "#64748b",
+    color: "#5A6275",
     marginTop: 2,
   },
   button: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 999,
     borderWidth: 1,
   },
   buttonStart: {
-    backgroundColor: "#2563eb",
-    borderColor: "#1d4ed8",
+    backgroundColor: "#2558FF",
+    borderColor: "#2558FF",
   },
   buttonStartText: {
     color: "#ffffff",
-    fontWeight: "600",
+    fontWeight: "700",
     fontSize: 12,
   },
   buttonStop: {
@@ -126,7 +125,7 @@ const styles = StyleSheet.create({
   },
   buttonStopText: {
     color: "#dc2626",
-    fontWeight: "600",
+    fontWeight: "700",
     fontSize: 12,
   },
   buttonDisabled: {
@@ -134,6 +133,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "700",
   },
 });

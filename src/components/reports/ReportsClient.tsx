@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { KpiCard } from "@/components/ui/KpiCard";
+import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
 import { buildManagerReportCsv } from "@/modules/reporting/csv";
@@ -254,72 +254,76 @@ export function ReportsClient({ initialReport, orgId }: ReportsClientProps) {
 
       {/* KPI Cards Strip */}
       <div className="kpi-grid">
-        <KpiCard
+        <GoalRingCard
           title="Visit Execution Rate"
-          value={`${report.kpis.visitCompletionRate}%`}
           subtitle="Planned vs actual completed field visits"
-          trend={{
-            direction: "up",
-            label: `${report.kpis.completedTrips} of ${report.kpis.totalTrips} trips complete`,
-          }}
-          variant="success"
-        />
-        <KpiCard
-          title="Audit Compliance Score"
-          value={`${report.kpis.auditComplianceScore}%`}
-          subtitle="Stores passing clean 4-point checklist"
-          trend={{
-            direction: "up",
-            label: `${report.kpis.activeStoresCount} active store doors`,
-          }}
-          variant="success"
-        />
-        <KpiCard
-          title="Total Field Hours"
-          value={`${report.kpis.totalFieldHours}h`}
-          subtitle="Cumulative on-site execution duration"
-          trend={{
-            direction: "neutral",
-            label: `${report.rows.length} planned stops`,
-          }}
+          value={`${report.kpis.visitCompletionRate}%`}
+          targetText={`${report.kpis.completedTrips} of ${report.kpis.totalTrips} trips complete`}
+          percentage={report.kpis.visitCompletionRate}
           variant="primary"
-        />
-        <KpiCard
-          title="Approval Turnaround"
-          value={
-            report.kpis.approvalTurnaroundHoursAvg !== null
-              ? `${report.kpis.approvalTurnaroundHoursAvg}h`
-              : "—"
-          }
-          subtitle="Avg submission-to-decision time"
-          trend={{
-            direction: report.kpis.exceptionsLogged > 0 ? "down" : "neutral",
-            label: `${report.kpis.exceptionsLogged} exceptions flagged`,
+          primarySegment={{
+            label: "Completed",
+            value: `${report.kpis.completedTrips} trips`,
           }}
-          variant={report.kpis.exceptionsLogged > 0 ? "warning" : "primary"}
-        />
-        <KpiCard
-          title="Evidence Capture Rate"
-          value={`${report.kpis.evidenceCompletionRate ?? 100}%`}
-          subtitle="Completed visits with verified photo/sign evidence"
-          trend={{
-            direction: "up",
-            label: "Audit-ready evidence attachments",
+          secondarySegment={{
+            label: "Total",
+            value: `${report.kpis.totalTrips} trips`,
           }}
+        />
+        <GoalRingCard
+          title="Audit Compliance Score"
+          subtitle="Stores passing clean 4-point checklist"
+          value={`${report.kpis.auditComplianceScore}%`}
+          targetText={`${report.kpis.activeStoresCount} active store doors`}
+          percentage={report.kpis.auditComplianceScore}
           variant="success"
-        />
-        <KpiCard
-          title="Overdue Visits"
-          value={`${report.kpis.overdueVisitsCount ?? 0}`}
-          subtitle="Planned stops past trip deadline"
-          trend={{
-            direction: (report.kpis.overdueVisitsCount ?? 0) > 0 ? "down" : "neutral",
-            label:
-              (report.kpis.overdueVisitsCount ?? 0) > 0
-                ? "Requires attention"
-                : "All on schedule",
+          primarySegment={{
+            label: "Compliance",
+            value: `${report.kpis.auditComplianceScore}%`,
           }}
+          secondarySegment={{
+            label: "Active Doors",
+            value: `${report.kpis.activeStoresCount}`,
+          }}
+        />
+        <GoalRingCard
+          title="Total Field Hours"
+          subtitle="Cumulative on-site execution duration"
+          value={`${report.kpis.totalFieldHours}h`}
+          targetText={`${report.rows.length} planned stops`}
+          percentage={Math.min(
+            100,
+            Math.max(18, Math.round(report.kpis.totalFieldHours * 2.5))
+          )}
+          variant="dark"
+          primarySegment={{
+            label: "Field Hours",
+            value: `${report.kpis.totalFieldHours}h`,
+          }}
+          secondarySegment={{
+            label: "Stops",
+            value: `${report.rows.length}`,
+          }}
+        />
+        <GoalRingCard
+          title="Evidence Capture Rate"
+          subtitle="Completed visits with verified photo/sign evidence"
+          value={`${report.kpis.evidenceCompletionRate ?? 100}%`}
+          targetText={
+            report.kpis.approvalTurnaroundHoursAvg !== null
+              ? `Avg approval: ${report.kpis.approvalTurnaroundHoursAvg}h`
+              : "Audit-ready evidence attachments"
+          }
+          percentage={report.kpis.evidenceCompletionRate ?? 100}
           variant={(report.kpis.overdueVisitsCount ?? 0) > 0 ? "warning" : "primary"}
+          primarySegment={{
+            label: "Evidence",
+            value: `${report.kpis.evidenceCompletionRate ?? 100}%`,
+          }}
+          secondarySegment={{
+            label: "Overdue",
+            value: `${report.kpis.overdueVisitsCount ?? 0}`,
+          }}
         />
       </div>
 

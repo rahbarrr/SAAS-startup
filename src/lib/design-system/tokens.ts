@@ -101,7 +101,32 @@ export const RADII = {
   md: "0.5rem", // 8px
   lg: "0.75rem", // 12px
   xl: "1rem", // 16px
+  bento: "1.375rem", // 22px
+  canvas: "1.75rem", // 28px
   full: "9999px",
+} as const;
+
+export const SAAS_REFERENCE_TOKENS = {
+  palette: {
+    electricBlue: "#2558FF",
+    electricBlueHover: "#1B46D8",
+    electricBlueSoft: "#EBF0FF",
+    periwinkle: "#8BA8FF",
+    obsidianHero: "#10121A",
+    obsidianPill: "#141720",
+    shellWhite: "#FFFFFF",
+    canvasGray: "#F3F4F8",
+    cardWhite: "#FFFFFF",
+    liveEmerald: "#10B981",
+  },
+  breakpoints: {
+    smallMobile: 320,
+    standardMobile: 375,
+    largeMobile: 431,
+    tablet: 768,
+    desktop: 1024,
+    largeDesktop: 1440,
+  },
 } as const;
 
 export const ANIMATION = {

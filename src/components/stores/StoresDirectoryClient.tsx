@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, type ReactNode, useMemo, useState } from "react";
+import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import {
   LocationPickerMap,
@@ -229,6 +230,68 @@ export function StoresDirectoryClient({
           ) : null}
         </div>
       </section>
+
+      {/* Reference Store Network KPI Ring Row */}
+      <div className="kpi-grid">
+        <GoalRingCard
+          title="Active Retail Doors"
+          subtitle="Verified organization stores"
+          value={stores.filter((s) => s.active).length}
+          targetText={`of ${stores.length} registered doors`}
+          percentage={
+            stores.length > 0
+              ? Math.round((stores.filter((s) => s.active).length / stores.length) * 100)
+              : 100
+          }
+          variant="primary"
+          primarySegment={{
+            label: "Active",
+            value: `${stores.filter((s) => s.active).length}`,
+          }}
+          secondarySegment={{
+            label: "Archived",
+            value: `${stores.filter((s) => !s.active).length}`,
+          }}
+        />
+        <GoalRingCard
+          title="Geofenced Coordinates"
+          subtitle="150m arrival radius ready"
+          value={stores.filter((s) => s.latitude !== null && s.longitude !== null).length}
+          targetText={`of ${stores.length} total doors`}
+          percentage={
+            stores.length > 0
+              ? Math.round(
+                  (stores.filter((s) => s.latitude !== null && s.longitude !== null).length /
+                    stores.length) *
+                    100
+                )
+              : 100
+          }
+          variant="success"
+          primarySegment={{
+            label: "GPS Mapped",
+            value: `${stores.filter((s) => s.latitude !== null && s.longitude !== null).length}`,
+          }}
+          secondarySegment={{
+            label: "Regions",
+            value: `${availableRegions.length}`,
+          }}
+        />
+        <GoalRingCard
+          title="Active Territories"
+          subtitle="Regional cluster coverage"
+          value={availableRegions.length}
+          targetText={`${visibleStores.length} doors filtered`}
+          percentage={
+            stores.length > 0
+              ? Math.min(100, Math.round((visibleStores.length / stores.length) * 100))
+              : 100
+          }
+          variant="dark"
+          primarySegment={{ label: "Clusters", value: `${dynamicClusters.length}` }}
+          secondarySegment={{ label: "Visible", value: `${visibleStores.length}` }}
+        />
+      </div>
 
       {error ? (
         <ErrorState

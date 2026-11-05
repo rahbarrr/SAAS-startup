@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, type ReactNode, useState } from "react";
+import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
@@ -196,6 +197,46 @@ export function ApprovalsInboxClient({
           </span>
         </div>
       </section>
+
+      {/* Reference KPI Ring Row */}
+      <div className="kpi-grid">
+        <GoalRingCard
+          title="Pending Review"
+          subtitle="Awaiting manager sign-off"
+          value={pendingTrips.length}
+          targetText={`of ${trips.length} total trips`}
+          percentage={
+            trips.length > 0 ? Math.round((pendingTrips.length / trips.length) * 100) : 0
+          }
+          variant={pendingTrips.length > 0 ? "warning" : "success"}
+          primarySegment={{ label: "Submitted", value: `${pendingTrips.length}` }}
+          secondarySegment={{ label: "Reviewed", value: `${trips.length - pendingTrips.length}` }}
+        />
+        <GoalRingCard
+          title="Approved & Active"
+          subtitle="Policy-cleared field routes"
+          value={approvedTrips.length}
+          targetText={`of ${trips.length} total trips`}
+          percentage={
+            trips.length > 0 ? Math.round((approvedTrips.length / trips.length) * 100) : 100
+          }
+          variant="primary"
+          primarySegment={{ label: "Approved", value: `${approvedTrips.length}` }}
+          secondarySegment={{ label: "Pending", value: `${pendingTrips.length}` }}
+        />
+        <GoalRingCard
+          title="Changes & Rejected"
+          subtitle="Returned with manager note"
+          value={rejectedTrips.length}
+          targetText="Policy governance"
+          percentage={
+            trips.length > 0 ? Math.round((rejectedTrips.length / trips.length) * 100) : 0
+          }
+          variant="dark"
+          primarySegment={{ label: "Returned", value: `${rejectedTrips.length}` }}
+          secondarySegment={{ label: "Session Log", value: `${decisionHistory.length}` }}
+        />
+      </div>
 
       {/* Tabs and Search Bar */}
       <section className="filter-bar" aria-label="Approvals tabs and search filter">

@@ -9,7 +9,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { ThemeToggle } from "@/components/theme";
 import { signOutAction } from "@/modules/auth/actions";
 import type { OrgRole } from "@/modules/tenancy/domain";
-import { SidebarNav } from "./NavLinks";
+import { MobileBottomNav, SidebarNav, TopPillNav } from "./NavLinks";
 import { OrgSwitcher, type OrgSwitcherOption } from "./OrgSwitcher";
 
 export interface AppShellProps {
@@ -147,12 +147,17 @@ function UserProfileMenu({
         aria-label="User profile and account settings"
       >
         <div className="user-avatar">{profile.avatarInitials}</div>
-        <span
-          className="user-menu-trigger-name"
-          style={{ fontSize: "0.8125rem", fontWeight: 600 }}
-        >
-          {profile.userName}
-        </span>
+        <div className="user-menu-trigger-text">
+          <span
+            className="user-menu-trigger-name"
+            style={{ fontSize: "0.8125rem", fontWeight: 700, lineHeight: 1.2 }}
+          >
+            {profile.userName}
+          </span>
+          <span className="user-menu-trigger-email">
+            {userEmail}
+          </span>
+        </div>
         <svg
           width="14"
           height="14"
@@ -376,6 +381,18 @@ function InnerShell({
           </div>
 
           <div className="sidebar-content">
+            {/* Personal Welcome Block (Reference SaaS Sidebar Greeting) */}
+            <div className="sidebar-welcome-block">
+              <p className="sidebar-welcome-heading">
+                Welcome Back,
+                <br />
+                {profile.userName ? profile.userName.split(" ")[0] : "Operator"}!
+              </p>
+              <p className="sidebar-welcome-subtitle">
+                Current field operations report
+              </p>
+            </div>
+
             {/* Workspace & Org context */}
             <OrgSwitcher
               activeOrgId={activeOrgId}
@@ -388,6 +405,46 @@ function InnerShell({
 
             {/* Navigation links */}
             <SidebarNav />
+
+            {/* Vibrant Royal Blue Telemetry Card (Reference Bottom-Left Promo Card) */}
+            <div className="sidebar-promo-card">
+              <div className="sidebar-promo-bars" aria-hidden="true">
+                <span className="sidebar-promo-bar sidebar-promo-bar--1" />
+                <span className="sidebar-promo-bar sidebar-promo-bar--2" />
+                <span className="sidebar-promo-bar sidebar-promo-bar--3" />
+              </div>
+              <p className="sidebar-promo-title">
+                Live GPS &amp;
+                <br />
+                Geofence Engine
+              </p>
+              <p className="sidebar-promo-meta">150m radius • 60s sync</p>
+              <div className="sidebar-promo-footer">
+                <Link
+                  href={
+                    activeRole === "field_employee"
+                      ? "/trips/new"
+                      : "/dashboard/live-tracking"
+                  }
+                  className="sidebar-promo-cta"
+                >
+                  {activeRole === "field_employee"
+                    ? "Plan New Trip"
+                    : "Open Live Map"}
+                </Link>
+                <Link
+                  href={
+                    activeRole === "field_employee"
+                      ? "/trips/new"
+                      : "/dashboard/live-tracking"
+                  }
+                  className="sidebar-promo-arrow"
+                  aria-label="Open live telemetry"
+                >
+                  ↗
+                </Link>
+              </div>
+            </div>
           </div>
 
           {/* Sidebar Footer with current user profile */}
@@ -464,6 +521,14 @@ function InnerShell({
             </button>
           </div>
           <div className="sidebar-content">
+            <div className="sidebar-welcome-block">
+              <p className="sidebar-welcome-heading">
+                Welcome Back, {profile.userName ? profile.userName.split(" ")[0] : "Operator"}!
+              </p>
+              <p className="sidebar-welcome-subtitle">
+                Current field operations report
+              </p>
+            </div>
             <OrgSwitcher
               activeOrgId={activeOrgId}
               activeOrgName={activeOrgName}
@@ -550,9 +615,37 @@ function InnerShell({
               ) : null}
             </div>
 
+            {/* Center Top Pill Navigation Bar (Reference SaaS Header Pills) */}
+            <div className="top-header-center">
+              <TopPillNav />
+            </div>
+
             <div className="top-header-right">
               {/* Verified Role Badge */}
               <VerifiedRoleBadge />
+
+              {/* Settings Icon Circle Button */}
+              <Link
+                href="/settings"
+                className="icon-btn header-circle-btn"
+                aria-label="Workspace settings"
+                title="Workspace Settings"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+              </Link>
 
               {/* Theme Toggle (Light / Dark / System) */}
               <ThemeToggle className="header-theme-toggle" />
@@ -560,7 +653,7 @@ function InnerShell({
               {/* In-app notification bell */}
               <Link
                 href="/notifications"
-                className="icon-btn header-notification-btn"
+                className="icon-btn header-notification-btn header-circle-btn"
                 aria-label="View notifications"
                 title="Notifications"
                 style={{ position: "relative" }}
@@ -590,6 +683,9 @@ function InnerShell({
           <main id="main-content" className="app-content" tabIndex={-1}>
             {children}
           </main>
+
+          {/* Mobile Primary Bottom Navigation Bar */}
+          <MobileBottomNav />
         </div>
       </div>
     </div>

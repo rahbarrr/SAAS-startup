@@ -26,7 +26,7 @@ export function AuthLayout({ children }: AuthLayoutProps): ReactNode {
               fontWeight: 700,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
-              color: "#c9c0ff",
+              color: "#8BA8FF",
               marginBottom: "0.75rem",
             }}
           >

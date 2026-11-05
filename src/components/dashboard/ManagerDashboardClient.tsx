@@ -359,12 +359,9 @@ export function ManagerDashboardClient({
                         width: "0.5rem",
                         height: "0.5rem",
                         borderRadius: "50%",
-                        background:
-                          index === 0
-                            ? "var(--tactical-lime, #d4ff24)"
-                            : "var(--tactical-cobalt, #1558c9)",
+                        background: index === 0 ? "#10b981" : "#2558ff",
                         boxShadow:
-                          index === 0 ? "0 0 6px rgba(212, 255, 36, 0.7)" : "none",
+                          index === 0 ? "0 0 8px rgba(16, 185, 129, 0.55)" : "none",
                         marginTop: "0.35rem",
                       }}
                     />

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
+import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { EmptyState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
 import type { Visit } from "@/modules/visits/domain";
@@ -93,70 +94,75 @@ export function VisitsListClient({
         </div>
       </section>
 
-      {/* Quick Summary Cards */}
+      {/* Quick Summary Circular Ring Cards */}
       <div className="kpi-grid">
-        <div className="kpi-card kpi-card--primary">
-          <div className="kpi-card-top">
-            <span className="kpi-label">Total Visits</span>
-            <span className="kpi-icon" aria-hidden="true">
-              📍
-            </span>
-          </div>
-          <div className="kpi-value">{counts.total}</div>
-          <p className="kpi-footnote">All recorded stops</p>
-        </div>
+        <GoalRingCard
+          title="Total Visits"
+          subtitle="All recorded stops"
+          value={counts.total}
+          totalLabel={`in ${activeOrgName}`}
+          percentage={100}
+          tone="blue"
+          icon="📍"
+          primarySegmentLabel={`Total (${counts.total})`}
+          secondarySegmentLabel="Committed"
+        />
 
-        <div className="kpi-card kpi-card--success">
-          <div className="kpi-card-top">
-            <span className="kpi-label">Completed</span>
-            <span className="kpi-icon" aria-hidden="true">
-              ✓
-            </span>
-          </div>
-          <div className="kpi-value" style={{ color: "var(--status-success)" }}>
-            {counts.submitted}
-          </div>
-          <p className="kpi-footnote">Checked out & signed</p>
-        </div>
+        <GoalRingCard
+          title="Completed"
+          subtitle="Checked out & signed"
+          value={counts.submitted}
+          totalLabel={`of ${counts.total} visits`}
+          percentage={
+            counts.total > 0 ? Math.round((counts.submitted / counts.total) * 100) : 0
+          }
+          tone="blue"
+          icon="✓"
+          primarySegmentLabel={`Submitted (${counts.submitted})`}
+          secondarySegmentLabel="Verified"
+        />
 
-        <div className="kpi-card kpi-card--info">
-          <div className="kpi-card-top">
-            <span className="kpi-label">In Progress</span>
-            <span className="kpi-icon" aria-hidden="true">
-              ⏱️
-            </span>
-          </div>
-          <div className="kpi-value" style={{ color: "var(--status-info-text)" }}>
-            {counts.inProgress}
-          </div>
-          <p className="kpi-footnote">Actively checked in</p>
-        </div>
+        <GoalRingCard
+          title="In Progress"
+          subtitle="Actively checked in"
+          value={counts.inProgress}
+          totalLabel={`of ${counts.total} visits`}
+          percentage={
+            counts.total > 0 ? Math.round((counts.inProgress / counts.total) * 100) : 0
+          }
+          tone="obsidian"
+          icon="⏱️"
+          primarySegmentLabel={`On-site (${counts.inProgress})`}
+          secondarySegmentLabel="Active"
+        />
 
-        <div className="kpi-card kpi-card--violet">
-          <div className="kpi-card-top">
-            <span className="kpi-label">Reviewed</span>
-            <span className="kpi-icon" aria-hidden="true">
-              📋
-            </span>
-          </div>
-          <div className="kpi-value" style={{ color: "var(--brand-violet-strong)" }}>
-            {counts.reviewed}
-          </div>
-          <p className="kpi-footnote">Manager verified</p>
-        </div>
+        <GoalRingCard
+          title="Reviewed"
+          subtitle="Manager verified"
+          value={counts.reviewed}
+          totalLabel={`of ${counts.total} visits`}
+          percentage={
+            counts.total > 0 ? Math.round((counts.reviewed / counts.total) * 100) : 0
+          }
+          tone="obsidian"
+          icon="📋"
+          primarySegmentLabel={`Reviewed (${counts.reviewed})`}
+          secondarySegmentLabel="Audited"
+        />
 
-        <div className="kpi-card kpi-card--success">
-          <div className="kpi-card-top">
-            <span className="kpi-label">Auto Geofenced</span>
-            <span className="kpi-icon" aria-hidden="true">
-              🎯
-            </span>
-          </div>
-          <div className="kpi-value" style={{ color: "var(--status-success)" }}>
-            {counts.autoGeofence}
-          </div>
-          <p className="kpi-footnote">Verified perimeter</p>
-        </div>
+        <GoalRingCard
+          title="Auto Geofenced"
+          subtitle="150m verified perimeter"
+          value={counts.autoGeofence}
+          totalLabel={`of ${counts.total} visits`}
+          percentage={
+            counts.total > 0 ? Math.round((counts.autoGeofence / counts.total) * 100) : 0
+          }
+          tone="blue"
+          icon="🎯"
+          primarySegmentLabel={`Geofenced (${counts.autoGeofence})`}
+          secondarySegmentLabel="150m Radius"
+        />
       </div>
 
       {/* Telemetry Disclosure Notice */}
