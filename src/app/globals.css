@@ -6,50 +6,50 @@
    ========================================================================== */
 :root {
   /* Brand Palette (Preserved base tokens for test suite compatibility) */
-  --brand-royal: #293f91;
-  --brand-violet: #8875f7;
-  --brand-cyan: #38d9d6;
-  --brand-cyan-soft: rgba(56, 217, 214, 0.12);
-  --brand-cyan-border: rgba(56, 217, 214, 0.35);
-  --brand-cyan-strong: #0e9f9c;
+  --brand-royal: #216a85;
+  --brand-violet: #65a7c2;
+  --brand-cyan: #65a7c2;
+  --brand-cyan-soft: rgba(101, 167, 194, 0.14);
+  --brand-cyan-border: rgba(101, 167, 194, 0.38);
+  --brand-cyan-strong: #216a85;
 
   /* Tactical Theme Palette (Midnight Black #030407, Electric Cobalt Blue #1558C9, Acid Lime #D4FF24) */
-  --tactical-black: #030407;
-  --tactical-cobalt: #1558c9;
-  --tactical-cobalt-hover: #1146a2;
-  --tactical-cobalt-soft: rgba(21, 88, 201, 0.08);
-  --tactical-cobalt-border: rgba(21, 88, 201, 0.25);
-  --tactical-lime: #d4ff24;
-  --tactical-lime-hover: #beec12;
-  --tactical-lime-soft: rgba(212, 255, 36, 0.16);
-  --tactical-lime-border: rgba(212, 255, 36, 0.45);
-  --tactical-lime-text: #030407;
+  --tactical-black: #021d24;
+  --tactical-cobalt: #216a85;
+  --tactical-cobalt-hover: #093f52;
+  --tactical-cobalt-soft: rgba(33, 106, 133, 0.12);
+  --tactical-cobalt-border: rgba(33, 106, 133, 0.3);
+  --tactical-lime: #65a7c2;
+  --tactical-lime-hover: #c7e5f2;
+  --tactical-lime-soft: rgba(101, 167, 194, 0.16);
+  --tactical-lime-border: rgba(101, 167, 194, 0.42);
+  --tactical-lime-text: #021d24;
 
   /* Primary Action & Brand Identity */
-  --brand-primary: #1558c9;
-  --brand-primary-hover: #1146a2;
-  --brand-dark: #0a0e17;
-  --brand-darker: #030407;
+  --brand-primary: #216a85;
+  --brand-primary-hover: #093f52;
+  --brand-dark: #042933;
+  --brand-darker: #021d24;
   --brand-on-primary: #ffffff;
 
   /* Accent scale */
-  --brand-violet-hover: #1146a2;
-  --brand-violet-strong: #1558c9;
-  --brand-violet-soft: rgba(21, 88, 201, 0.08);
-  --brand-violet-border: rgba(21, 88, 201, 0.25);
-  --brand-royal-soft: rgba(21, 88, 201, 0.08);
-  --brand-royal-border: rgba(21, 88, 201, 0.25);
+  --brand-violet-hover: #216a85;
+  --brand-violet-strong: #216a85;
+  --brand-violet-soft: rgba(101, 167, 194, 0.14);
+  --brand-violet-border: rgba(101, 167, 194, 0.38);
+  --brand-royal-soft: rgba(33, 106, 133, 0.12);
+  --brand-royal-border: rgba(33, 106, 133, 0.3);
 
   /* Tactical accent tokens */
-  --brand-accent: #1558c9;
-  --brand-accent-hover: #1146a2;
+  --brand-accent: #65a7c2;
+  --brand-accent-hover: #216a85;
 
   /* Premium Gradients */
-  --gradient-brand: linear-gradient(135deg, #293f91 0%, #152255 100%);
-  --gradient-accent: linear-gradient(135deg, #1e40af 0%, #38d9d6 100%);
-  --gradient-brand-subtle: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  --gradient-cyan-subtle: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  --gradient-sidebar: linear-gradient(180deg, #1c2b66 0%, #152255 100%);
+  --gradient-brand: linear-gradient(135deg, #216a85 0%, #042933 100%);
+  --gradient-accent: linear-gradient(135deg, #216a85 0%, #65a7c2 100%);
+  --gradient-brand-subtle: linear-gradient(135deg, #c7e5f2 0%, #ffffff 100%);
+  --gradient-cyan-subtle: linear-gradient(135deg, #c7e5f2 0%, #ffffff 100%);
+  --gradient-sidebar: linear-gradient(180deg, #063442 0%, #021d24 100%);
   --gradient-glass: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.95) 0%,
@@ -57,11 +57,11 @@
   );
 
   /* Surfaces & Backgrounds */
-  --bg-canvas: #f5f6fa;
+  --bg-canvas: #eff7fa;
   --bg-surface: #ffffff;
-  --bg-subtle: #f0f2f8;
-  --bg-hover: #eceff8;
-  --bg-muted: #f8fafc;
+  --bg-subtle: #c7e5f2;
+  --bg-hover: #e5f2f7;
+  --bg-muted: #f6fbfd;
 
   /* Clean Hairline & Elevation Shadow Tokens (Grounded craft, no colored glow) */
   --shadow-neu-raised: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -74,19 +74,19 @@
   --shadow-glow-violet: 0 1px 2px rgba(15, 23, 42, 0.04);
 
   /* Typography Colors (Primary text grounded in Midnight Black #030407) */
-  --text-primary: #030407;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
+  --text-primary: #021d24;
+  --text-secondary: #063442;
+  --text-muted: #216a85;
+  --text-light: #65a7c2;
   --text-on-dark: #ffffff;
   --text-on-dark-muted: rgba(255, 255, 255, 0.75);
 
   /* Borders & Dividers */
-  --border-default: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --border-subtle: #f1f5f9;
-  --focus-ring: #1558c9;
-  --focus-ring-shadow: 0 0 0 3px rgba(21, 88, 201, 0.25);
+  --border-default: #c7e5f2;
+  --border-strong: #65a7c2;
+  --border-subtle: #e5f2f7;
+  --focus-ring: #216a85;
+  --focus-ring-shadow: 0 0 0 3px rgba(33, 106, 133, 0.25);
 
   /* Semantic Status Colors (kept distinct from brand colors) */
   --status-success: #15803d;
@@ -141,10 +141,10 @@
   --muted: var(--bg-subtle);
   --muted-foreground: var(--text-secondary);
   --border: var(--border-default);
-  --primary: var(--brand-royal);
+  --primary: var(--brand-primary);
   --primary-foreground: #ffffff;
-  --accent: var(--brand-violet);
-  --accent-hover: var(--brand-violet-hover);
+  --accent: #65a7c2;
+  --accent-hover: #216a85;
   --success: var(--status-success);
   --warning: var(--status-warning);
   --danger: var(--status-danger);
@@ -188,7 +188,7 @@
   --font-heading:
     "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
+
 
 /* ==========================================================================
    Dark Theme Surfaces & Design Tokens (Tactical Mode)
@@ -206,56 +206,56 @@
 html[data-theme="dark"],
 html.dark {
   /* Surfaces & Backgrounds grounded in Midnight Black #030407 */
-  --bg-canvas: #030407;
-  --bg-surface: #0a0e17;
-  --bg-subtle: #111724;
-  --bg-hover: #182030;
-  --bg-muted: #0d121c;
-  --bg-card: #0a0e17;
-  --surface: #0a0e17;
-  --surface-elevated: #151d2d;
-  --surface-hover: #1c263b;
+  --bg-canvas: #021d24;
+  --bg-surface: #042933;
+  --bg-subtle: #063442;
+  --bg-hover: #093f52;
+  --bg-muted: #042933;
+  --bg-card: #042933;
+  --surface: #042933;
+  --surface-elevated: #093f52;
+  --surface-hover: #093f52;
 
   /* Typography Colors */
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-light: #475569;
-  --text-main: #f8fafc;
-  --foreground: #f8fafc;
-  --background: #030407;
-  --muted-foreground: #94a3b8;
+  --text-primary: #c7e5f2;
+  --text-secondary: #65a7c2;
+  --text-muted: #65a7c2;
+  --text-light: #216a85;
+  --text-main: #c7e5f2;
+  --foreground: #c7e5f2;
+  --background: #021d24;
+  --muted-foreground: #65a7c2;
 
   /* Brand Accents — Electric Cobalt & Acid Lime */
-  --brand-royal: #1558c9;
-  --brand-primary: #1558c9;
-  --brand-primary-hover: #2267dc;
-  --brand-dark: #f8fafc;
+  --brand-royal: #65a7c2;
+  --brand-primary: #65a7c2;
+  --brand-primary-hover: #c7e5f2;
+  --brand-dark: #c7e5f2;
   --brand-darker: #ffffff;
-  --brand-on-primary: #ffffff;
-  --brand-royal-soft: rgba(21, 88, 201, 0.22);
-  --brand-royal-border: #1a2947;
-  --brand-violet-soft: rgba(21, 88, 201, 0.18);
-  --brand-violet-border: rgba(21, 88, 201, 0.35);
-  --brand-cyan-soft: rgba(212, 255, 36, 0.15);
-  --brand-cyan-border: rgba(212, 255, 36, 0.35);
+  --brand-on-primary: #021d24;
+  --brand-royal-soft: rgba(101, 167, 194, 0.18);
+  --brand-royal-border: rgba(101, 167, 194, 0.35);
+  --brand-violet-soft: rgba(101, 167, 194, 0.16);
+  --brand-violet-border: rgba(101, 167, 194, 0.35);
+  --brand-cyan-soft: rgba(101, 167, 194, 0.16);
+  --brand-cyan-border: rgba(101, 167, 194, 0.35);
 
   /* Borders & Dividers */
-  --border-default: #1c2436;
-  --border-strong: #2a3650;
-  --border-subtle: #121824;
-  --border: #1c2436;
-  --border-color: #1c2436;
+  --border-default: #216a85;
+  --border-strong: #65a7c2;
+  --border-subtle: #063442;
+  --border: #216a85;
+  --border-color: #216a85;
 
   /* Focus & Accents */
-  --focus-ring: #d4ff24;
-  --focus-ring-shadow: 0 0 0 3px rgba(212, 255, 36, 0.35);
-  --accent: #d4ff24;
-  --accent-hover: #beec12;
+  --focus-ring: #65a7c2;
+  --focus-ring-shadow: 0 0 0 3px rgba(101, 167, 194, 0.35);
+  --accent: #65a7c2;
+  --accent-hover: #c7e5f2;
 
   /* Gradients */
-  --gradient-brand: linear-gradient(135deg, #1558c9 0%, #0a0e17 100%);
-  --gradient-brand-subtle: linear-gradient(135deg, #0a0e17 0%, #030407 100%);
+  --gradient-brand: linear-gradient(135deg, #216a85 0%, #021d24 100%);
+  --gradient-brand-subtle: linear-gradient(135deg, #042933 0%, #021d24 100%);
   --gradient-glass: linear-gradient(
     135deg,
     rgba(10, 14, 23, 0.94) 0%,
@@ -289,7 +289,7 @@ html.dark {
   --status-neutral-bg: rgba(55, 65, 81, 0.4);
   --status-neutral-text: #e5e7eb;
   --status-neutral-border: #374151;
-}
+
 
 *,
 *::before,
@@ -470,7 +470,7 @@ svg {
 
 .app-sidebar .brand-icon-box,
 .mobile-drawer .brand-icon-box {
-  background: linear-gradient(135deg, #8875f7 0%, #6a5ae8 100%);
+  background: linear-gradient(135deg, #65a7c2 0%, #216a85 100%);
   box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.25);
 }
 
@@ -544,7 +544,7 @@ svg {
 .sidebar-org-context .org-pill-role {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #c9c0ff;
+  color: #c7e5f2;
 }
 
 .sidebar-org-context select {
@@ -652,11 +652,11 @@ svg {
 
 .sidebar-nav-item.active .sidebar-nav-icon,
 .sidebar-nav-item[aria-current="page"] .sidebar-nav-icon {
-  color: #c9c0ff;
+  color: #c7e5f2;
 }
 
 .sidebar-nav-item:focus-visible {
-  outline-color: #c9c0ff;
+  outline-color: #c7e5f2;
 }
 
 .sidebar-nav-item .nav-badge {
@@ -720,7 +720,7 @@ svg {
 
 .app-sidebar .user-avatar,
 .mobile-drawer .user-avatar {
-  background: linear-gradient(135deg, #8875f7 0%, #6a5ae8 100%);
+  background: linear-gradient(135deg, #65a7c2 0%, #216a85 100%);
 }
 
 /* Collapsed desktop sidebar */
