@@ -49,30 +49,30 @@ const TONE_COLORS: Record<
 > = {
   blue: {
     iconBg: "#216A85",
-    iconFg: "#FFFFFF",
-    ringStroke: "#216A85",
-    barPrimary: "#216A85",
-    barSecondary: "#65A7C2",
+    iconFg: "#C7E5F2",
+    ringStroke: "#65A7C2",
+    barPrimary: "#65A7C2",
+    barSecondary: "#216A85",
   },
   obsidian: {
     iconBg: "#021D24",
     iconFg: "#C7E5F2",
-    ringStroke: "#042933",
-    barPrimary: "#042933",
-    barSecondary: "#65A7C2",
+    ringStroke: "#C7E5F2",
+    barPrimary: "#C7E5F2",
+    barSecondary: "#216A85",
   },
   emerald: {
-    iconBg: "#216A85",
-    iconFg: "#FFFFFF",
-    ringStroke: "#216A85",
-    barPrimary: "#216A85",
-    barSecondary: "#65A7C2",
+    iconBg: "#093F52",
+    iconFg: "#C7E5F2",
+    ringStroke: "#65A7C2",
+    barPrimary: "#65A7C2",
+    barSecondary: "#093F52",
   },
   amber: {
-    iconBg: "#042933",
+    iconBg: "#093F52",
     iconFg: "#C7E5F2",
-    ringStroke: "#093F52",
-    barPrimary: "#093F52",
+    ringStroke: "#C7E5F2",
+    barPrimary: "#C7E5F2",
     barSecondary: "#65A7C2",
   },
   danger: {
@@ -162,7 +162,7 @@ export function GoalRingCard({
               cy="36"
               r={radius}
               fill="none"
-              stroke="var(--border-subtle, #E8ECF4)"
+              stroke="rgba(199, 229, 242, 0.18)"
               strokeWidth="6.5"
             />
             <circle

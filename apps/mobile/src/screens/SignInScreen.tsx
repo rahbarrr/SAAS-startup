@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     fontSize: 14,
     color: MOBILE_THEME.colors.textPrimary,
-    backgroundColor: "#FAFAFC",
+    backgroundColor: "#042933",
   },
   serverSection: {
     marginBottom: 18,

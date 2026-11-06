@@ -384,9 +384,8 @@ function InnerShell({
             {/* Personal Welcome Block (Reference SaaS Sidebar Greeting) */}
             <div className="sidebar-welcome-block">
               <p className="sidebar-welcome-heading">
-                Welcome Back,
-                <br />
-                {profile.userName ? profile.userName.split(" ")[0] : "Operator"}!
+                Welcome back,{" "}
+                {profile.userName ? profile.userName.split(" ")[0] : "Operator"}
               </p>
               <p className="sidebar-welcome-subtitle">
                 Current field operations report
@@ -406,19 +405,13 @@ function InnerShell({
             {/* Navigation links */}
             <SidebarNav />
 
-            {/* Vibrant Royal Blue Telemetry Card (Reference Bottom-Left Promo Card) */}
+            {/* Abyss Telemetry Status Card */}
             <div className="sidebar-promo-card">
-              <div className="sidebar-promo-bars" aria-hidden="true">
-                <span className="sidebar-promo-bar sidebar-promo-bar--1" />
-                <span className="sidebar-promo-bar sidebar-promo-bar--2" />
-                <span className="sidebar-promo-bar sidebar-promo-bar--3" />
+              <div className="sidebar-promo-header">
+                <span className="sidebar-promo-dot" aria-hidden="true" />
+                <p className="sidebar-promo-title">Live GPS &amp; Geofence</p>
               </div>
-              <p className="sidebar-promo-title">
-                Live GPS &amp;
-                <br />
-                Geofence Engine
-              </p>
-              <p className="sidebar-promo-meta">150m radius • 60s sync</p>
+              <p className="sidebar-promo-meta">150m store radius • 60s cadence</p>
               <div className="sidebar-promo-footer">
                 <Link
                   href={
@@ -428,20 +421,12 @@ function InnerShell({
                   }
                   className="sidebar-promo-cta"
                 >
-                  {activeRole === "field_employee"
-                    ? "Plan New Trip"
-                    : "Open Live Map"}
-                </Link>
-                <Link
-                  href={
-                    activeRole === "field_employee"
-                      ? "/trips/new"
-                      : "/dashboard/live-tracking"
-                  }
-                  className="sidebar-promo-arrow"
-                  aria-label="Open live telemetry"
-                >
-                  ↗
+                  <span>
+                    {activeRole === "field_employee"
+                      ? "Plan New Trip"
+                      : "Open Live Map"}
+                  </span>
+                  <span aria-hidden="true">→</span>
                 </Link>
               </div>
             </div>
@@ -523,7 +508,7 @@ function InnerShell({
           <div className="sidebar-content">
             <div className="sidebar-welcome-block">
               <p className="sidebar-welcome-heading">
-                Welcome Back, {profile.userName ? profile.userName.split(" ")[0] : "Operator"}!
+                Welcome back, {profile.userName ? profile.userName.split(" ")[0] : "Operator"}
               </p>
               <p className="sidebar-welcome-subtitle">
                 Current field operations report

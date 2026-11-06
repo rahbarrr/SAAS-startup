@@ -49,14 +49,14 @@ const script = async (a: Act<State>) => {
   }))
 }
 
-function RingGauge({ pct, color = '#216A85' }: { pct: number; color?: string }) {
+function RingGauge({ pct, color = '#65A7C2' }: { pct: number; color?: string }) {
   const r = 24
   const c = 2 * Math.PI * r
   const offset = c - (pct / 100) * c
   return (
     <div style={{ position: 'relative', width: 60, height: 60, flexShrink: 0 }}>
       <svg width="60" height="60" viewBox="0 0 60 60">
-        <circle cx="30" cy="30" r={r} fill="none" stroke="#D8EAF2" strokeWidth="5.5" />
+        <circle cx="30" cy="30" r={r} fill="none" stroke="rgba(199, 229, 242, 0.16)" strokeWidth="5.5" />
         <circle
           cx="30"
           cy="30"
@@ -80,7 +80,7 @@ function RingGauge({ pct, color = '#216A85' }: { pct: number; color?: string }) 
           justifyContent: 'center',
           fontSize: 12,
           fontWeight: 800,
-          color: '#021D24',
+          color: '#C7E5F2',
         }}
       >
         {pct}%
@@ -103,16 +103,16 @@ export default function FieldTrackSaasPlatformDemo() {
           style={{
             width: '100%',
             height: '100%',
-            background: '#FFFFFF',
+            background: 'linear-gradient(155deg, #216A85 0%, #093F52 38%, #042933 74%, #021D24 100%)',
             display: 'flex',
             fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif",
-            color: '#021D24',
+            color: '#C7E5F2',
             padding: 16,
             boxSizing: 'border-box',
             gap: 16,
           }}
         >
-          {/* Left White Sidebar */}
+          {/* Left Abyss Gradient Sidebar */}
           <aside
             style={{
               width: 228,
@@ -120,7 +120,11 @@ export default function FieldTrackSaasPlatformDemo() {
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              padding: '6px 4px',
+              padding: '12px 12px',
+              borderRadius: 24,
+              background: 'linear-gradient(180deg, #021D24 0%, #042933 55%, #063442 100%)',
+              border: '1px solid rgba(101, 167, 194, 0.28)',
+              boxShadow: '0 16px 36px rgba(2, 29, 36, 0.48)',
             }}
           >
             <div>
@@ -131,8 +135,8 @@ export default function FieldTrackSaasPlatformDemo() {
                     width: 30,
                     height: 30,
                     borderRadius: 9,
-                    background: 'linear-gradient(135deg, #216A85 0%, #093F52 100%)',
-                    color: '#FFFFFF',
+                    background: 'linear-gradient(135deg, #65A7C2 0%, #216A85 100%)',
+                    color: '#021D24',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -142,7 +146,7 @@ export default function FieldTrackSaasPlatformDemo() {
                 >
                   F
                 </div>
-                <span style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.02em', color: '#021D24' }}>
+                <span style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.02em', color: '#C7E5F2' }}>
                   FieldTrack
                 </span>
               </div>
@@ -151,18 +155,16 @@ export default function FieldTrackSaasPlatformDemo() {
               <div style={{ marginBottom: 18 }}>
                 <div
                   style={{
-                    fontSize: 19,
-                    fontWeight: 800,
-                    lineHeight: 1.2,
-                    letterSpacing: '-0.03em',
-                    color: '#021D24',
+                    fontSize: 17,
+                    fontWeight: 700,
+                    lineHeight: 1.25,
+                    letterSpacing: '-0.02em',
+                    color: '#C7E5F2',
                   }}
                 >
-                  Welcome Back,
-                  <br />
-                  Aarav!
+                  Welcome back, Aarav
                 </div>
-                <div style={{ fontSize: 11, color: '#456B7C', marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: '#65A7C2', marginTop: 4 }}>
                   Current field operations report
                 </div>
               </div>
@@ -172,7 +174,7 @@ export default function FieldTrackSaasPlatformDemo() {
                 style={{
                   fontSize: 10,
                   fontWeight: 700,
-                  color: '#456B7C',
+                  color: '#65A7C2',
                   letterSpacing: '0.08em',
                   marginBottom: 8,
                 }}
@@ -182,8 +184,9 @@ export default function FieldTrackSaasPlatformDemo() {
 
               <div
                 style={{
-                  background: '#042933',
-                  color: '#FFFFFF',
+                  background: 'linear-gradient(135deg, #216A85 0%, #093F52 100%)',
+                  color: '#C7E5F2',
+                  border: '1px solid rgba(199, 229, 242, 0.28)',
                   borderRadius: 999,
                   padding: '9px 14px',
                   fontSize: 12,
@@ -195,7 +198,7 @@ export default function FieldTrackSaasPlatformDemo() {
                 }}
               >
                 <span>Overview</span>
-                <span style={{ opacity: 0.7, color: '#C7E5F2' }}>⌄</span>
+                <span style={{ opacity: 0.85, color: '#C7E5F2' }}>⌄</span>
               </div>
 
               {['Live Tracking', 'Reports & Exports', 'AI Insights'].map((item) => (
@@ -205,7 +208,7 @@ export default function FieldTrackSaasPlatformDemo() {
                     padding: '8px 14px',
                     fontSize: 12,
                     fontWeight: 600,
-                    color: '#093F52',
+                    color: '#65A7C2',
                   }}
                 >
                   {item}
@@ -226,7 +229,7 @@ export default function FieldTrackSaasPlatformDemo() {
                   style={{
                     fontSize: 10,
                     fontWeight: 700,
-                    color: '#456B7C',
+                    color: '#65A7C2',
                     letterSpacing: '0.08em',
                   }}
                 >
@@ -237,8 +240,8 @@ export default function FieldTrackSaasPlatformDemo() {
                     width: 20,
                     height: 20,
                     borderRadius: '50%',
-                    background: '#216A85',
-                    color: '#FFFFFF',
+                    background: 'linear-gradient(135deg, #65A7C2 0%, #216A85 100%)',
+                    color: '#021D24',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -252,12 +255,13 @@ export default function FieldTrackSaasPlatformDemo() {
 
               <div
                 style={{
-                  background: '#EAF5FA',
+                  background: 'linear-gradient(145deg, #063442 0%, #093F52 100%)',
+                  border: '1px solid rgba(101, 167, 194, 0.25)',
                   borderRadius: 999,
                   padding: '8px 14px',
                   fontSize: 12,
                   fontWeight: 700,
-                  color: '#021D24',
+                  color: '#C7E5F2',
                   marginBottom: 4,
                 }}
               >
@@ -268,66 +272,66 @@ export default function FieldTrackSaasPlatformDemo() {
                   padding: '8px 14px',
                   fontSize: 12,
                   fontWeight: 600,
-                  color: '#093F52',
+                  color: '#65A7C2',
                 }}
               >
                 Store Geofences (150m)
               </div>
             </div>
 
-            {/* Bottom Abyss Ocean Teal Promo Card */}
+            {/* Bottom Abyss Ocean Teal Telemetry Status Card (Unslopped: 14px outer / 8px inner radius, flexShrink: 0) */}
             <div
               style={{
-                background: 'linear-gradient(135deg, #042933 0%, #093F52 48%, #216A85 100%)',
-                borderRadius: 20,
-                padding: 16,
-                color: '#FFFFFF',
-                position: 'relative',
-                overflow: 'hidden',
+                flexShrink: 0,
+                background: 'linear-gradient(145deg, #063442 0%, #093F52 100%)',
+                borderRadius: 14,
+                padding: '12px 14px',
+                color: '#C7E5F2',
+                border: '1px solid rgba(101, 167, 194, 0.28)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
               }}
             >
-              <div style={{ fontSize: 14, fontWeight: 800, lineHeight: 1.25 }}>
-                Live GPS &amp;
-                <br />
-                Geofence Engine
-              </div>
-              <div style={{ fontSize: 11, color: '#C7E5F2', marginTop: 4, marginBottom: 12 }}>
-                150m radius • 60s sync
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span
                   style={{
-                    background: '#021D24',
-                    color: '#FFFFFF',
+                    width: 8,
+                    height: 8,
                     borderRadius: 999,
-                    padding: '6px 12px',
-                    fontSize: 11,
-                    fontWeight: 700,
+                    background: '#10B981',
+                    flexShrink: 0,
                   }}
-                >
-                  Open Live Map
+                />
+                <span style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.25, color: '#C7E5F2' }}>
+                  Live GPS &amp; Geofence
                 </span>
-                <span
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: '50%',
-                    background: '#C7E5F2',
-                    color: '#021D24',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 11,
-                    fontWeight: 800,
-                  }}
-                >
-                  ↗
-                </span>
+              </div>
+              <div style={{ fontSize: 11, color: '#65A7C2', fontWeight: 400, lineHeight: 1.35 }}>
+                150m store radius • 60s cadence
+              </div>
+              <div
+                style={{
+                  marginTop: 2,
+                  background: '#042933',
+                  border: '1px solid rgba(101, 167, 194, 0.24)',
+                  color: '#C7E5F2',
+                  borderRadius: 8,
+                  padding: '8px 12px',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <span>Open Live Map</span>
+                <span>→</span>
               </div>
             </div>
           </aside>
 
-          {/* Right Main Column: Top Bar + Rounded Ice-Mist Canvas */}
+          {/* Right Main Column: Top Bar + Rounded Abyss Gradient Canvas */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
             {/* Top Bar */}
             <header
@@ -358,10 +362,13 @@ export default function FieldTrackSaasPlatformDemo() {
                       style={{
                         padding: '8px 16px',
                         borderRadius: 999,
-                        background: active ? '#216A85' : '#EDF5F9',
-                        color: active ? '#FFFFFF' : '#093F52',
+                        background: active
+                          ? 'linear-gradient(135deg, #65A7C2 0%, #C7E5F2 100%)'
+                          : 'linear-gradient(145deg, #063442 0%, #042933 100%)',
+                        color: active ? '#021D24' : '#C7E5F2',
+                        border: active ? '1px solid #C7E5F2' : '1px solid rgba(101, 167, 194, 0.28)',
                         fontSize: 12,
-                        fontWeight: active ? 700 : 600,
+                        fontWeight: active ? 800 : 600,
                       }}
                     >
                       {pill}
@@ -377,8 +384,9 @@ export default function FieldTrackSaasPlatformDemo() {
                     width: 36,
                     height: 36,
                     borderRadius: '50%',
-                    background: '#EDF5F9',
-                    color: '#093F52',
+                    background: 'linear-gradient(145deg, #063442 0%, #042933 100%)',
+                    border: '1px solid rgba(101, 167, 194, 0.28)',
+                    color: '#C7E5F2',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -392,7 +400,8 @@ export default function FieldTrackSaasPlatformDemo() {
                     width: 36,
                     height: 36,
                     borderRadius: '50%',
-                    background: '#EDF5F9',
+                    background: 'linear-gradient(145deg, #063442 0%, #042933 100%)',
+                    border: '1px solid rgba(101, 167, 194, 0.28)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -409,8 +418,8 @@ export default function FieldTrackSaasPlatformDemo() {
                       width: 16,
                       height: 16,
                       borderRadius: '50%',
-                      background: '#216A85',
-                      color: '#FFFFFF',
+                      background: '#65A7C2',
+                      color: '#021D24',
                       fontSize: 9,
                       fontWeight: 800,
                       display: 'flex',
@@ -427,8 +436,8 @@ export default function FieldTrackSaasPlatformDemo() {
                       width: 34,
                       height: 34,
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #216A85 0%, #093F52 100%)',
-                      color: '#FFFFFF',
+                      background: 'linear-gradient(135deg, #65A7C2 0%, #216A85 100%)',
+                      color: '#021D24',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -439,20 +448,22 @@ export default function FieldTrackSaasPlatformDemo() {
                     AS
                   </div>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: '#021D24' }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#C7E5F2' }}>
                       Aarav Sharma
                     </div>
-                    <div style={{ fontSize: 10, color: '#456B7C' }}>aarav@fieldtrack.in</div>
+                    <div style={{ fontSize: 10, color: '#65A7C2' }}>aarav@fieldtrack.in</div>
                   </div>
                 </div>
               </div>
             </header>
 
-            {/* Inset Rounded Soft Ice-Mist Content Canvas (#F1F7FA) */}
+            {/* Inset Rounded Deep Abyss Ocean Content Canvas */}
             <div
               style={{
                 flex: 1,
-                background: '#F1F7FA',
+                background: 'linear-gradient(160deg, #093F52 0%, #063442 46%, #042933 82%, #021D24 100%)',
+                border: '1px solid rgba(101, 167, 194, 0.3)',
+                boxShadow: '0 20px 48px rgba(2, 29, 36, 0.52)',
                 borderRadius: 28,
                 padding: 22,
                 display: 'flex',
@@ -474,12 +485,12 @@ export default function FieldTrackSaasPlatformDemo() {
                       fontSize: 22,
                       fontWeight: 800,
                       letterSpacing: '-0.03em',
-                      color: '#021D24',
+                      color: '#C7E5F2',
                     }}
                   >
                     Field Operations Overview
                   </div>
-                  <div style={{ fontSize: 12, color: '#456B7C', marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: '#65A7C2', marginTop: 2 }}>
                     Overview &gt; Bihar North Distribution Network
                   </div>
                 </div>
@@ -487,26 +498,26 @@ export default function FieldTrackSaasPlatformDemo() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div
                     style={{
-                      background: '#FFFFFF',
-                      border: '1px solid #D8EAF2',
+                      background: 'linear-gradient(145deg, #063442 0%, #042933 100%)',
+                      border: '1px solid rgba(101, 167, 194, 0.35)',
                       borderRadius: 999,
                       padding: '8px 16px',
                       fontSize: 12,
                       fontWeight: 700,
-                      color: '#021D24',
+                      color: '#C7E5F2',
                     }}
                   >
                     + Export CSV
                   </div>
                   <div
                     style={{
-                      background: '#216A85',
+                      background: 'linear-gradient(135deg, #65A7C2 0%, #C7E5F2 100%)',
                       borderRadius: 999,
                       padding: '8px 18px',
                       fontSize: 12,
-                      fontWeight: 700,
-                      color: '#FFFFFF',
-                      boxShadow: '0 6px 16px rgba(33, 106, 133, 0.28)',
+                      fontWeight: 800,
+                      color: '#021D24',
+                      boxShadow: '0 6px 16px rgba(2, 29, 36, 0.45)',
                     }}
                   >
                     Plan New Trip
@@ -514,7 +525,7 @@ export default function FieldTrackSaasPlatformDemo() {
                 </div>
               </div>
 
-              {/* Hero Bento Grid (Abyss Hero Card + White Live Activity Card) */}
+              {/* Hero Bento Grid (Abyss Hero Card + Abyss Gradient Live Activity Card) */}
               <div
                 style={{
                   display: 'grid',
@@ -526,15 +537,15 @@ export default function FieldTrackSaasPlatformDemo() {
                 <div
                   style={{
                     background:
-                      'radial-gradient(circle at 86% 18%, rgba(33, 106, 133, 0.56) 0%, rgba(101, 167, 194, 0.2) 38%, rgba(2, 29, 36, 0) 68%), linear-gradient(145deg, #021D24 0%, #042933 58%, #063442 100%)',
+                      'radial-gradient(circle at 86% 18%, rgba(199, 229, 242, 0.25) 0%, rgba(101, 167, 194, 0.28) 38%, rgba(2, 29, 36, 0) 68%), linear-gradient(135deg, #021D24 0%, #093F52 54%, #216A85 100%)',
                     borderRadius: 24,
                     padding: 22,
-                    color: '#FFFFFF',
+                    color: '#C7E5F2',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
                     minHeight: 250,
-                    border: '1px solid rgba(199, 229, 242, 0.16)',
+                    border: '1px solid rgba(199, 229, 242, 0.28)',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -545,6 +556,7 @@ export default function FieldTrackSaasPlatformDemo() {
                           height: 36,
                           borderRadius: '50%',
                           background: '#216A85',
+                          color: '#C7E5F2',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -575,17 +587,17 @@ export default function FieldTrackSaasPlatformDemo() {
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 800 }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: '#C7E5F2' }}>
                         Bihar Retail Fleet &amp; Managers
                       </div>
-                      <div style={{ fontSize: 11, color: '#C7E5F2' }}>
+                      <div style={{ fontSize: 11, color: '#65A7C2' }}>
                         18 active field trips • 150m geofencing
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <div style={{ fontSize: 12, color: '#C7E5F2' }}>
+                    <div style={{ fontSize: 12, color: '#65A7C2' }}>
                       Verified Store Visits Completed
                     </div>
                     <div
@@ -594,6 +606,7 @@ export default function FieldTrackSaasPlatformDemo() {
                         fontWeight: 800,
                         letterSpacing: '-0.04em',
                         margin: '4px 0',
+                        color: '#C7E5F2',
                       }}
                     >
                       {s.completedVisits} Visits
@@ -601,7 +614,7 @@ export default function FieldTrackSaasPlatformDemo() {
                     <div
                       style={{
                         fontSize: 12,
-                        color: 'rgba(199, 229, 242, 0.78)',
+                        color: '#65A7C2',
                         marginBottom: 14,
                       }}
                     >
@@ -613,14 +626,14 @@ export default function FieldTrackSaasPlatformDemo() {
                       <div
                         style={{
                           width: `${s.activePct}%`,
-                          background: '#216A85',
+                          background: 'linear-gradient(90deg, #65A7C2 0%, #C7E5F2 100%)',
                           borderRadius: 999,
                         }}
                       />
                       <div
                         style={{
                           width: `${100 - s.activePct}%`,
-                          background: '#65A7C2',
+                          background: '#093F52',
                           borderRadius: 999,
                         }}
                       />
@@ -640,16 +653,16 @@ export default function FieldTrackSaasPlatformDemo() {
                   </div>
                 </div>
 
-                {/* Right: White Live Activity Feed Card */}
+                {/* Right: Abyss Gradient Live Activity Feed Card */}
                 <div
                   style={{
-                    background: '#FFFFFF',
+                    background: 'linear-gradient(145deg, #063442 0%, #042933 65%, #021D24 100%)',
                     borderRadius: 24,
                     padding: 20,
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    border: '1px solid #D8EAF2',
+                    border: '1px solid rgba(101, 167, 194, 0.28)',
                   }}
                 >
                   <div
@@ -661,10 +674,10 @@ export default function FieldTrackSaasPlatformDemo() {
                     }}
                   >
                     <div>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: '#021D24' }}>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: '#C7E5F2' }}>
                         Activity
                       </div>
-                      <div style={{ fontSize: 11, color: '#456B7C' }}>
+                      <div style={{ fontSize: 11, color: '#65A7C2' }}>
                         Latest field check-ins &amp; decisions
                       </div>
                     </div>
@@ -672,7 +685,11 @@ export default function FieldTrackSaasPlatformDemo() {
                       style={{
                         fontSize: 11,
                         fontWeight: 700,
-                        color: '#10B981',
+                        color: '#C7E5F2',
+                        background: '#093F52',
+                        padding: '3px 9px',
+                        borderRadius: 999,
+                        border: '1px solid #65A7C2',
                       }}
                     >
                       ● Live
@@ -683,7 +700,7 @@ export default function FieldTrackSaasPlatformDemo() {
                     {
                       init: 'RK',
                       bg: '#216A85',
-                      fg: '#FFFFFF',
+                      fg: '#C7E5F2',
                       title: 'Rajesh checked into Mithila Bazaar',
                       time: 'Just now • 118m radius',
                       delta: '+Verified',
@@ -699,7 +716,7 @@ export default function FieldTrackSaasPlatformDemo() {
                     {
                       init: 'AS',
                       bg: '#093F52',
-                      fg: '#FFFFFF',
+                      fg: '#C7E5F2',
                       title: 'Approved NH-22 Muzaffarpur Route',
                       time: '34m ago • 6 stops',
                       delta: '+Approved',
@@ -740,13 +757,13 @@ export default function FieldTrackSaasPlatformDemo() {
                           {item.init}
                         </div>
                         <div>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: '#021D24' }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: '#C7E5F2' }}>
                             {item.title}
                           </div>
-                          <div style={{ fontSize: 10, color: '#456B7C' }}>{item.time}</div>
+                          <div style={{ fontSize: 10, color: '#65A7C2' }}>{item.time}</div>
                         </div>
                       </div>
-                      <span style={{ fontSize: 11, fontWeight: 800, color: '#216A85' }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: '#65A7C2' }}>
                         {item.delta}
                       </span>
                     </div>
@@ -770,7 +787,7 @@ export default function FieldTrackSaasPlatformDemo() {
                     val: `${s.completedVisits}`,
                     total: 'of 70 planned',
                     badgeBg: '#216A85',
-                    ring: '#216A85',
+                    ring: '#65A7C2',
                   },
                   {
                     title: 'Audit Compliance',
@@ -778,8 +795,8 @@ export default function FieldTrackSaasPlatformDemo() {
                     pct: 92,
                     val: '92%',
                     total: 'of 100% benchmark',
-                    badgeBg: '#021D24',
-                    ring: '#042933',
+                    badgeBg: '#093F52',
+                    ring: '#C7E5F2',
                   },
                   {
                     title: 'Geofence Accuracy',
@@ -788,7 +805,7 @@ export default function FieldTrackSaasPlatformDemo() {
                     val: '142',
                     total: 'of 148 doors mapped',
                     badgeBg: '#216A85',
-                    ring: '#216A85',
+                    ring: '#65A7C2',
                   },
                   {
                     title: 'Approval Queue',
@@ -796,21 +813,21 @@ export default function FieldTrackSaasPlatformDemo() {
                     pct: 84,
                     val: '1.4h',
                     total: '3 pending review',
-                    badgeBg: '#021D24',
-                    ring: '#042933',
+                    badgeBg: '#093F52',
+                    ring: '#C7E5F2',
                   },
                 ].map((card) => (
                   <div
                     key={card.title}
                     style={{
-                      background: '#FFFFFF',
+                      background: 'linear-gradient(145deg, #063442 0%, #042933 65%, #021D24 100%)',
                       borderRadius: 22,
                       padding: 16,
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
                       gap: 10,
-                      border: '1px solid #D8EAF2',
+                      border: '1px solid rgba(101, 167, 194, 0.28)',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -820,7 +837,7 @@ export default function FieldTrackSaasPlatformDemo() {
                           height: 32,
                           borderRadius: '50%',
                           background: card.badgeBg,
-                          color: '#FFFFFF',
+                          color: '#C7E5F2',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -831,20 +848,20 @@ export default function FieldTrackSaasPlatformDemo() {
                         ✓
                       </div>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 800, color: '#021D24' }}>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#C7E5F2' }}>
                           {card.title}
                         </div>
-                        <div style={{ fontSize: 10, color: '#456B7C' }}>{card.sub}</div>
+                        <div style={{ fontSize: 10, color: '#65A7C2' }}>{card.sub}</div>
                       </div>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <RingGauge pct={card.pct} color={card.ring} />
                       <div>
-                        <div style={{ fontSize: 20, fontWeight: 800, color: '#021D24' }}>
+                        <div style={{ fontSize: 20, fontWeight: 800, color: '#C7E5F2' }}>
                           {card.val}
                         </div>
-                        <div style={{ fontSize: 11, color: '#456B7C' }}>{card.total}</div>
+                        <div style={{ fontSize: 11, color: '#65A7C2' }}>{card.total}</div>
                       </div>
                     </div>
 
@@ -859,7 +876,7 @@ export default function FieldTrackSaasPlatformDemo() {
                       <div
                         style={{
                           width: `${100 - card.pct}%`,
-                          background: '#65A7C2',
+                          background: '#093F52',
                           borderRadius: 999,
                         }}
                       />
@@ -874,4 +891,3 @@ export default function FieldTrackSaasPlatformDemo() {
     </Stage>
   )
 }
-

@@ -98,18 +98,18 @@ const styles = StyleSheet.create({
     marginVertical: 6,
   },
   bannerActive: {
-    backgroundColor: "#ECFDF5",
-    borderColor: "#A7F3D0",
+    backgroundColor: "#093F52",
+    borderColor: "#65A7C2",
     borderWidth: 1,
   },
   bannerWarning: {
-    backgroundColor: "#FFFBEB",
-    borderColor: "#FDE68A",
+    backgroundColor: "#063442",
+    borderColor: "#65A7C2",
     borderWidth: 1,
   },
   bannerInactive: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#D8EAF2",
+    backgroundColor: "#063442",
+    borderColor: "#093F52",
     borderWidth: 1,
   },
   textContainer: {
@@ -119,18 +119,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#021D24",
+    color: "#C7E5F2",
     marginBottom: 2,
   },
   textActive: {
-    color: "#065F46",
+    color: "#C7E5F2",
   },
   textWarning: {
-    color: "#92400E",
+    color: "#C7E5F2",
   },
   description: {
     fontSize: 11,
-    color: "#093F52",
+    color: "#65A7C2",
     lineHeight: 15,
   },
   actionButton: {
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   buttonWarning: {
-    backgroundColor: "#D97706",
+    backgroundColor: "#216A85",
   },
   actionButtonText: {
     color: "#ffffff",
@@ -150,13 +150,13 @@ const styles = StyleSheet.create({
   revokeButton: {
     borderColor: "#65A7C2",
     borderWidth: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#021D24",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
   },
   revokeButtonText: {
-    color: "#dc2626",
+    color: "#C7E5F2",
     fontSize: 11,
     fontWeight: "700",
   },
