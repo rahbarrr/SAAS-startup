@@ -617,11 +617,11 @@ const styles = StyleSheet.create({
   },
   onboardingCard: {
     marginTop: 10,
-    backgroundColor: "#063442",
+    backgroundColor: "#ffffff",
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: "#216A85",
+    borderColor: "#fde68a",
   },
   onboardingTitle: {
     fontSize: 12,
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   onboardingInput: {
-    backgroundColor: "#042933",
+    backgroundColor: "#f8fafc",
     borderWidth: 1,
     borderColor: MOBILE_THEME.colors.borderStrong,
     borderRadius: 10,
@@ -698,7 +698,7 @@ const styles = StyleSheet.create({
     color: MOBILE_THEME.colors.electricBlue,
   },
   infoBanner: {
-    backgroundColor: "#063442",
+    backgroundColor: "#ffffff",
     borderColor: MOBILE_THEME.colors.borderSubtle,
     borderWidth: 1,
     borderRadius: 14,

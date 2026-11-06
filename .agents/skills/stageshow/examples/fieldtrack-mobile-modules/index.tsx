@@ -116,8 +116,7 @@ export default function FieldTrackMobileModulesSuite() {
             padding: '24px 32px',
             boxSizing: 'border-box',
             fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif",
-            background: 'linear-gradient(155deg, #216A85 0%, #093F52 38%, #042933 74%, #021D24 100%)',
-            color: '#C7E5F2',
+            color: '#021D24',
             display: 'flex',
             flexDirection: 'column',
             gap: 18,
@@ -128,31 +127,31 @@ export default function FieldTrackMobileModulesSuite() {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              background: 'linear-gradient(145deg, #063442 0%, #042933 65%, #021D24 100%)',
+              background: '#FFFFFF',
               padding: '14px 20px',
               borderRadius: 18,
-              border: '1px solid rgba(101, 167, 194, 0.3)',
+              border: '1px solid #D8EAF2',
             }}
           >
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#65A7C2' }}>
-                FieldTrack Abyss Ocean Teal Gradient Design System • All Modules Verified
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#216A85' }}>
+                FieldTrack Abyss Ocean Teal Design System • All Modules Verified
               </div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#C7E5F2' }}>
+              <div style={{ fontSize: 20, fontWeight: 800 }}>
                 Dashboard · Trips · Reports · Store Visits · Live Tracking · Approvals &amp; Team
               </div>
             </div>
             <span
               style={{
-                background: 'linear-gradient(135deg, #65A7C2 0%, #C7E5F2 100%)',
-                color: '#021D24',
+                background: '#021D24',
+                color: '#C7E5F2',
                 fontSize: 11,
-                fontWeight: 800,
+                fontWeight: 700,
                 padding: '6px 14px',
                 borderRadius: 999,
               }}
             >
-              Abyss Gradient Theme (#021D24–#C7E5F2) • Mobile &amp; Desktop
+              Abyss Theme (#021D24–#C7E5F2) • Mobile &amp; Desktop
             </span>
           </div>
 
@@ -168,10 +167,10 @@ export default function FieldTrackMobileModulesSuite() {
               <div
                 key={m.name}
                 style={{
-                  background: 'linear-gradient(145deg, #063442 0%, #042933 65%, #021D24 100%)',
+                  background: '#FFFFFF',
                   borderRadius: 20,
                   padding: 14,
-                  border: '1px solid rgba(101, 167, 194, 0.28)',
+                  border: '1px solid #D8EAF2',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -179,13 +178,13 @@ export default function FieldTrackMobileModulesSuite() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 800, color: '#C7E5F2' }}>{m.name}</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 800, color: '#021D24' }}>{m.name}</span>
                   <span
                     style={{
                       fontSize: 10,
                       fontWeight: 700,
-                      color: '#021D24',
-                      background: '#C7E5F2',
+                      color: '#065F46',
+                      background: '#ECFDF5',
                       padding: '2px 8px',
                       borderRadius: 999,
                     }}
@@ -197,20 +196,19 @@ export default function FieldTrackMobileModulesSuite() {
                 <div
                   style={{
                     flex: 1,
-                    background: 'linear-gradient(165deg, #093F52 0%, #063442 52%, #042933 100%)',
+                    background: '#F1F7FA',
                     borderRadius: 16,
                     padding: 12,
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    border: '1px solid rgba(101, 167, 194, 0.32)',
+                    border: '1px solid #D8EAF2',
                   }}
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div
                       style={{
-                        background: 'linear-gradient(145deg, #042933 0%, #021D24 100%)',
-                        border: '1px solid rgba(101, 167, 194, 0.26)',
+                        background: '#FFFFFF',
                         borderRadius: 12,
                         padding: '8px 10px',
                         display: 'flex',
@@ -218,12 +216,12 @@ export default function FieldTrackMobileModulesSuite() {
                         alignItems: 'center',
                       }}
                     >
-                      <span style={{ fontSize: 10.5, fontWeight: 700, color: '#C7E5F2' }}>{m.eyebrow}</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, color: '#093F52' }}>{m.eyebrow}</span>
                       <span
                         style={{
                           fontSize: 9.5,
                           fontWeight: 700,
-                          color: '#021D24',
+                          color: '#042933',
                           background: '#C7E5F2',
                           padding: '2px 7px',
                           borderRadius: 999,
@@ -239,8 +237,7 @@ export default function FieldTrackMobileModulesSuite() {
                         <div
                           key={k.l}
                           style={{
-                            background: 'linear-gradient(145deg, #063442 0%, #042933 65%, #021D24 100%)',
-                            border: '1px solid rgba(101, 167, 194, 0.26)',
+                            background: '#FFFFFF',
                             borderRadius: 12,
                             padding: '8px 9px',
                             display: 'flex',
@@ -253,13 +250,12 @@ export default function FieldTrackMobileModulesSuite() {
                               width: 24,
                               height: 24,
                               borderRadius: 999,
-                              border: `2.5px solid ${i % 2 === 0 ? '#65A7C2' : '#C7E5F2'}`,
+                              border: `2.5px solid ${i % 2 === 0 ? '#216A85' : '#042933'}`,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               fontSize: 7.5,
                               fontWeight: 800,
-                              color: '#C7E5F2',
                               flexShrink: 0,
                             }}
                           >
@@ -270,7 +266,7 @@ export default function FieldTrackMobileModulesSuite() {
                               style={{
                                 fontSize: 9.5,
                                 fontWeight: 700,
-                                color: '#65A7C2',
+                                color: '#093F52',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
@@ -278,7 +274,7 @@ export default function FieldTrackMobileModulesSuite() {
                             >
                               {k.l}
                             </div>
-                            <div style={{ fontSize: 12.5, fontWeight: 800, color: '#C7E5F2' }}>{k.v}</div>
+                            <div style={{ fontSize: 12.5, fontWeight: 800, color: '#021D24' }}>{k.v}</div>
                           </div>
                         </div>
                       ))}
@@ -287,20 +283,18 @@ export default function FieldTrackMobileModulesSuite() {
                     {/* Primary Module Card */}
                     <div
                       style={{
-                        background: m.dark
-                          ? 'linear-gradient(135deg, #021D24 0%, #093F52 55%, #216A85 100%)'
-                          : 'linear-gradient(145deg, #042933 0%, #021D24 100%)',
-                        color: '#C7E5F2',
+                        background: m.dark ? 'linear-gradient(145deg, #021D24 0%, #042933 60%, #063442 100%)' : '#FFFFFF',
+                        color: m.dark ? '#FFFFFF' : '#021D24',
                         borderRadius: 14,
                         padding: '10px 12px',
-                        border: '1px solid rgba(199, 229, 242, 0.26)',
+                        border: m.dark ? 'none' : '1px solid #D8EAF2',
                       }}
                     >
-                      <div style={{ fontSize: 12, fontWeight: 800, color: '#C7E5F2' }}>{m.cardTitle}</div>
+                      <div style={{ fontSize: 12, fontWeight: 800 }}>{m.cardTitle}</div>
                       <div
                         style={{
                           fontSize: 10,
-                          color: '#65A7C2',
+                          color: m.dark ? '#C7E5F2' : '#093F52',
                           marginTop: 3,
                         }}
                       >
@@ -312,12 +306,12 @@ export default function FieldTrackMobileModulesSuite() {
                   {/* Bottom Nav */}
                   <div
                     style={{
-                      background: 'linear-gradient(90deg, #021D24 0%, #042933 100%)',
+                      background: '#FFFFFF',
                       borderRadius: 999,
                       padding: '6px 10px',
                       display: 'flex',
                       justifyContent: 'space-around',
-                      border: '1px solid rgba(101, 167, 194, 0.3)',
+                      border: '1px solid #D8EAF2',
                       fontSize: 9,
                       fontWeight: 700,
                     }}
@@ -325,7 +319,7 @@ export default function FieldTrackMobileModulesSuite() {
                     {['Overview', 'Live Map', 'Trips', 'Visits', 'Team'].map((nav, idx) => (
                       <span
                         key={nav}
-                        style={{ color: idx === m.activeNav ? '#C7E5F2' : '#65A7C2' }}
+                        style={{ color: idx === m.activeNav ? '#216A85' : '#456B7C' }}
                       >
                         {nav}
                       </span>
@@ -340,3 +334,4 @@ export default function FieldTrackMobileModulesSuite() {
     </Stage>
   )
 }
+
