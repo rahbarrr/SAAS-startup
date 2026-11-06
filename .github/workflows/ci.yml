@@ -30,8 +30,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Markdown product/design docs are prose artifacts, not source files. Keep
-      # Prettier enforcement on changed code and configuration files.
+      # Markdown product/design docs and bundled agent skills are not application
+      # source. Keep Prettier enforcement on changed product code/configuration.
       - name: Format check (changed source files; respect existing baseline)
         shell: bash
         run: |
@@ -70,6 +70,15 @@ jobs:
 
           checked=()
           for file in "${changed_files[@]}"; do
+            # This directory is a vendored design/agent skill with its own
+            # upstream formatting; it is not shipped application source.
+            case "$file" in
+              .agents/skills/stageshow/*)
+                echo "::notice file=$file::Bundled Stageshow skill asset; excluded from application formatting."
+                continue
+                ;;
+            esac
+
             if [[ -n "$base_ref" ]] && git cat-file -e "$base_ref:$file" 2>/dev/null; then
               baseline_tmp="$(mktemp --suffix=.${file##*.})"
               git show "$base_ref:$file" > "$baseline_tmp"
@@ -89,8 +98,8 @@ jobs:
             exit 0
           fi
 
-          printf 'Checking changed files with a clean baseline:\n'
-          printf ' - %s\n' "${checked[@]}"
+          printf 'Checking changed files with a clean baseline:\\n'
+          printf ' - %s\\n' "${checked[@]}"
           npx prettier --check "${checked[@]}"
 
       - name: Lint
