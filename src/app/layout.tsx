@@ -13,7 +13,7 @@ import { resolveActiveWorkspaceForUser } from "@/modules/tenancy/service";
 import "./globals.css";
 
 export const viewport: Viewport = {
-  themeColor: "#2563eb",
+  themeColor: "#042933",
   width: "device-width",
   initialScale: 1,
 };
