@@ -12,12 +12,13 @@ describe("Mobile-first Responsive Design & Accessibility Verification", () => {
       expect(cssContent).toContain("--touch-target-min: 2.75rem;");
     });
 
-    it("enforces brand palette tokens: Royal Blue, Violet, Electric Cyan, Soft White", () => {
-      expect(cssContent).toContain("--brand-royal: #293f91;");
-      expect(cssContent).toContain("--brand-violet: #8875f7;");
-      expect(cssContent).toContain("--brand-cyan: #38d9d6;");
-      expect(cssContent).toContain("--bg-canvas: #f5f6fa;");
+    it("enforces the Ocean Depths brand palette and accessible surface tokens", () => {
+      expect(cssContent).toContain("--tactical-black: #021d24;");
+      expect(cssContent).toContain("--brand-primary: #216a85;");
+      expect(cssContent).toContain("--brand-accent: #65a7c2;");
+      expect(cssContent).toContain("--bg-canvas: #eff7fa;");
       expect(cssContent).toContain("--bg-surface: #ffffff;");
+      expect(cssContent).toContain("--bg-subtle: #c7e5f2;");
     });
 
     it("provides neumorphic surfaces and subtle gradient tokens", () => {
