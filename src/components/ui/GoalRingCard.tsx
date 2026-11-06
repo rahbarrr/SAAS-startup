@@ -137,20 +137,22 @@ export function GoalRingCard({
 
   return (
     <article className="kpi-card bento-ring-card">
-      {/* Top Header: Icon Circle + Title/Subtitle + Badge */}
+      {/* Top Header: Icon Circle + Badge on top row; Title & Subtitle on second row */}
       <div className="bento-ring-header">
-        <div
-          className="bento-ring-icon"
-          style={{ background: palette.iconBg, color: palette.iconFg }}
-          aria-hidden="true"
-        >
-          {icon ?? defaultIcon}
+        <div className="bento-ring-header-top">
+          <div
+            className="bento-ring-icon"
+            style={{ background: palette.iconBg, color: palette.iconFg }}
+            aria-hidden="true"
+          >
+            {icon ?? defaultIcon}
+          </div>
+          {badge ? <div className="bento-ring-badge">{badge}</div> : null}
         </div>
         <div className="bento-ring-titles">
           <h2 className="bento-ring-title kpi-label">{title}</h2>
           <p className="bento-ring-subtitle kpi-subtitle">{subtitle}</p>
         </div>
-        {badge ? <div className="bento-ring-badge">{badge}</div> : null}
       </div>
 
       {/* Middle Row: Circular Progress Gauge + Primary Value */}

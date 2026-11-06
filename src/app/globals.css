@@ -10302,8 +10302,17 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
 
 .bento-ring-header {
   display: flex;
-  align-items: flex-start;
-  gap: 0.625rem;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.bento-ring-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.5rem;
 }
 
 .bento-ring-icon {
@@ -10317,12 +10326,18 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   font-size: 0.875rem;
 }
 
+.bento-ring-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+}
+
 .bento-ring-titles {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.15rem;
   min-width: 0;
-  flex: 1;
+  width: 100%;
 }
 
 .bento-ring-title {
@@ -10331,12 +10346,19 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   font-weight: 700 !important;
   color: var(--text-primary) !important;
   line-height: 1.25;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
 }
 
 .bento-ring-subtitle {
   margin: 0;
   font-size: 0.71875rem !important;
   color: var(--text-muted) !important;
+  line-height: 1.3;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
 }
 
 .bento-ring-body {
@@ -10768,9 +10790,18 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
   }
 
   .bento-ring-header {
-    gap: 0.45rem !important;
-    align-items: flex-start !important;
-    flex-wrap: wrap;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.375rem !important;
+    width: 100% !important;
+  }
+
+  .bento-ring-header-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 0.35rem !important;
   }
 
   .bento-ring-icon {
@@ -10784,22 +10815,41 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
     height: 13px !important;
   }
 
+  .bento-ring-titles {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
   .bento-ring-title {
-    font-size: 0.875rem !important; /* 14px card heading */
-    font-weight: 600 !important;
+    font-size: 0.8125rem !important; /* 13px card heading */
+    font-weight: 700 !important;
     line-height: 1.25 !important;
-    overflow-wrap: break-word;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    hyphens: none !important;
+    white-space: normal !important;
   }
 
   .bento-ring-subtitle {
     font-size: 0.6875rem !important; /* 11px secondary text */
     line-height: 1.3 !important;
     letter-spacing: 0 !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    hyphens: none !important;
+    white-space: normal !important;
   }
 
   .bento-ring-badge {
-    font-size: 0.625rem !important;
-    padding: 0.125rem 0.4rem !important;
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  .bento-ring-badge .status-badge {
+    font-size: 0.6875rem !important;
+    padding: 0.125rem 0.375rem !important;
+    gap: 0.25rem !important;
+    line-height: 1.2 !important;
   }
 
   .bento-ring-body {
@@ -11156,6 +11206,12 @@ html[data-theme="dark"] .top-pill-link[aria-current="page"] {
 }
 
 @media (max-width: 359px) {
+  .kpi-grid,
+  .kpi-grid--four,
+  .kpi-grid--three {
+    grid-template-columns: 1fr !important;
+  }
+
   .app-content {
     padding: 0.75rem 0.75rem calc(5.25rem + env(safe-area-inset-bottom, 0px)) !important;
   }
@@ -11749,8 +11805,18 @@ html[data-theme="dark"] .state-panel {
   }
 
   .bento-ring-header {
-    gap: 0.45rem !important;
-    flex-wrap: wrap;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.375rem !important;
+    width: 100% !important;
+  }
+
+  .bento-ring-header-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 0.35rem !important;
   }
 
   .bento-ring-icon {
@@ -11760,14 +11826,40 @@ html[data-theme="dark"] .state-panel {
     border-radius: 8px;
   }
 
+  .bento-ring-titles {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
   .bento-ring-title {
-    font-size: 0.875rem !important;
-    line-height: 1.25;
+    font-size: 0.8125rem !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    hyphens: none !important;
+    white-space: normal !important;
   }
 
   .bento-ring-subtitle {
     font-size: 0.6875rem !important;
-    line-height: 1.3;
+    line-height: 1.3 !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    hyphens: none !important;
+    white-space: normal !important;
+  }
+
+  .bento-ring-badge {
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  .bento-ring-badge .status-badge {
+    font-size: 0.6875rem !important;
+    padding: 0.125rem 0.375rem !important;
+    gap: 0.25rem !important;
+    line-height: 1.2 !important;
   }
 
   .bento-ring-body {
@@ -11883,6 +11975,12 @@ html[data-theme="dark"] .state-panel {
 }
 
 @media (max-width: 359px) {
+  .kpi-grid,
+  .kpi-grid--four,
+  .kpi-grid--three {
+    grid-template-columns: 1fr !important;
+  }
+
   .app-content {
     padding-inline: 0.75rem !important;
   }
