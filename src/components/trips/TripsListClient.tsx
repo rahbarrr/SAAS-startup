@@ -371,8 +371,11 @@ export function TripsListClient({
               >
                 <div>
                   <strong>{trip.title}</strong>
-                  <div className="card-meta" style={{ marginTop: "0.25rem" }}>
-                    📅 {trip.startDate} → {trip.endDate} • {trip.ownerUserId}
+                  <div className="card-meta" style={{ marginTop: "0.25rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                    <Calendar size={13} strokeWidth={2} aria-hidden="true" style={{ color: "var(--text-muted)" }} />
+                    <span>
+                      {trip.startDate} → {trip.endDate} • {trip.ownerUserId}
+                    </span>
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Sparkles, Check, AlertTriangle, Info, Pencil } from "lucide-react";
 
 export function AIReportingSection(): ReactNode {
   return (
@@ -21,7 +22,10 @@ export function AIReportingSection(): ReactNode {
         <div className="ai-demonstration-card">
           {/* Top Banner explaining the Human-in-the-Loop Principle */}
           <div className="ai-demo-banner">
-            <span className="ai-sparkle-pill">✨ AI Synthesis Feature</span>
+            <span className="ai-sparkle-pill inline-flex items-center gap-1.5">
+              <Sparkles size={13} className="text-[#216A85]" aria-hidden="true" />
+              <span>AI Synthesis Feature</span>
+            </span>
             <span className="ai-banner-note">
               <strong>Human-in-the-Loop Safeguard:</strong> The AI never independently
               verifies physical visits. It drafts summaries to accelerate reporting; human
@@ -57,9 +61,9 @@ export function AIReportingSection(): ReactNode {
                     Checklist Responses:
                   </span>
                   <ul className="input-checks-list">
-                    <li>✓ Planogram Display: 100% compliant</li>
-                    <li>⚠️ Cooler Temperature: 12.0°C (Variance Flagged)</li>
-                    <li>✓ Stockout Count: 0 missing SKUs</li>
+                    <li className="flex items-center gap-1.5"><Check size={13} className="text-emerald-600 shrink-0" aria-hidden="true" /> Planogram Display: 100% compliant</li>
+                    <li className="flex items-center gap-1.5"><AlertTriangle size={13} className="text-amber-600 shrink-0" aria-hidden="true" /> Cooler Temperature: 12.0°C (Variance Flagged)</li>
+                    <li className="flex items-center gap-1.5"><Check size={13} className="text-emerald-600 shrink-0" aria-hidden="true" /> Stockout Count: 0 missing SKUs</li>
                   </ul>
                 </div>
               </div>
@@ -90,12 +94,17 @@ export function AIReportingSection(): ReactNode {
                   <div className="ai-tags-section">
                     <span className="ai-tag-title">Detected Key Observations:</span>
                     <div className="ai-tags-row">
-                      <span className="ai-tag tag-success">✓ Planogram Compliant</span>
-                      <span className="ai-tag tag-danger">
-                        ⚠️ Cooler Temp Variance (12°C)
+                      <span className="ai-tag tag-success inline-flex items-center gap-1">
+                        <Check size={12} aria-hidden="true" />
+                        <span>Planogram Compliant</span>
                       </span>
-                      <span className="ai-tag tag-info">
-                        ℹ️ Competitor Discount (-20%)
+                      <span className="ai-tag tag-danger inline-flex items-center gap-1">
+                        <AlertTriangle size={12} aria-hidden="true" />
+                        <span>Cooler Temp Variance (12°C)</span>
+                      </span>
+                      <span className="ai-tag tag-info inline-flex items-center gap-1">
+                        <Info size={12} aria-hidden="true" />
+                        <span>Competitor Discount (-20%)</span>
                       </span>
                     </div>
                   </div>
@@ -113,11 +122,13 @@ export function AIReportingSection(): ReactNode {
 
                 {/* Human Review & Accept Buttons */}
                 <div className="ai-action-bar">
-                  <button type="button" className="btn btn-primary btn-sm" disabled>
-                    <span>✓ Review &amp; Accept Draft</span>
+                  <button type="button" className="btn btn-primary btn-sm inline-flex items-center gap-1.5" disabled>
+                    <Check size={14} aria-hidden="true" />
+                    <span>Review &amp; Accept Draft</span>
                   </button>
-                  <button type="button" className="btn btn-secondary btn-sm" disabled>
-                    <span>✎ Edit Notes Before Saving</span>
+                  <button type="button" className="btn btn-secondary btn-sm inline-flex items-center gap-1.5" disabled>
+                    <Pencil size={14} aria-hidden="true" />
+                    <span>Edit Notes Before Saving</span>
                   </button>
                 </div>
               </div>

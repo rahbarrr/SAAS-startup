@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef } from "react";
+import { MapPin } from "lucide-react";
 import { useGoogleMaps } from "./useGoogleMaps";
 
 export interface PlaceSelectionResult {
@@ -148,10 +149,14 @@ export function PlacesAutocompleteInput({
             fontSize: "0.75rem",
             color: "var(--text-muted)",
             pointerEvents: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.25rem",
           }}
           title="Powered by Google Places"
         >
-          📍 Places
+          <MapPin size={12} className="text-[#216A85]" aria-hidden="true" />
+          <span>Places</span>
         </span>
       ) : null}
     </div>

@@ -106,7 +106,10 @@ export function LiveManagerMap({
         if (infoWindowRef.current) {
           infoWindowRef.current.setContent(`
             <div style="font-family: system-ui, sans-serif; font-size: 13px; color: #0f172a; padding: 4px;">
-              <strong style="color: #0284c7;">🏪 ${store.name}</strong>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/></svg>
+                <strong style="color: #0284c7;">${store.name}</strong>
+              </div>
               <div style="color: #64748b; margin-top: 2px;">${store.addressLine1 || ""}${store.city ? `, ${store.city}` : ""}</div>
               <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Radius: ${store.radiusM ?? 150}m</div>
             </div>
@@ -179,13 +182,16 @@ export function LiveManagerMap({
           if (infoWindowRef.current) {
             infoWindowRef.current.setContent(`
               <div style="font-family: system-ui, sans-serif; font-size: 13px; color: #0f172a; padding: 4px; min-width: 180px;">
-                <strong>👤 ${emp.employeeName ?? "Field Rep"}</strong>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#216A85" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <strong>${emp.employeeName ?? "Field Rep"}</strong>
+                </div>
                 <div style="color: #64748b; font-size: 11px;">${emp.employeeEmail ?? ""}</div>
                 <div style="margin-top: 6px; font-size: 12px;"><strong>Trip:</strong> ${emp.tripTitle ?? "Active Trip"}</div>
                 <div style="font-size: 11px; color: ${markerColor}; font-weight: 600; margin-top: 2px;">
                   Status: ${freshness.toUpperCase()} ${emp.accuracyM ? `(±${Math.round(emp.accuracyM)}m)` : ""}
                 </div>
-                ${emp.freshness.warningNote ? `<div style="font-size: 10px; color: #d97706; margin-top: 2px;">⚠️ ${emp.freshness.warningNote}</div>` : ""}
+                ${emp.freshness.warningNote ? `<div style="font-size: 10px; color: #d97706; margin-top: 2px;">Warning: ${emp.freshness.warningNote}</div>` : ""}
               </div>
             `);
             infoWindowRef.current.open(map, marker);

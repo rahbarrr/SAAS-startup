@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, type ReactNode, useState, useTransition } from "react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { updatePasswordAction } from "@/modules/auth/actions";
 
@@ -52,15 +53,15 @@ export default function ResetPasswordPage(): ReactNode {
         </div>
 
         {error ? (
-          <div role="alert" className="alert alert--error">
-            <span aria-hidden="true">⚠️</span>
+          <div role="alert" className="alert alert--error flex items-center gap-2">
+            <AlertTriangle size={16} className="shrink-0" aria-hidden="true" />
             <span>{error}</span>
           </div>
         ) : null}
 
         {message ? (
-          <div role="status" aria-live="polite" className="alert alert--success">
-            <span aria-hidden="true">✓</span>
+          <div role="status" aria-live="polite" className="alert alert--success flex items-center gap-2">
+            <CheckCircle2 size={16} className="shrink-0" aria-hidden="true" />
             <span>{message}</span>
           </div>
         ) : null}

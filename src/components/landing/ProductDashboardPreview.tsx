@@ -8,6 +8,7 @@ import {
   BarChart3,
   Camera,
   AlertTriangle,
+  Check,
 } from "lucide-react";
 
 export function ProductDashboardPreview(): ReactNode {
@@ -350,19 +351,19 @@ export function ProductDashboardPreview(): ReactNode {
                 <ul className="mobile-check-list">
                   <li className="check-item-done">
                     <span className="check-box-icon" aria-hidden="true">
-                      ✓
+                      <Check size={12} strokeWidth={2.5} />
                     </span>
                     <span>Facing &amp; Planogram compliance verified</span>
                   </li>
                   <li className="check-item-done">
                     <span className="check-box-icon" aria-hidden="true">
-                      ✓
+                      <Check size={12} strokeWidth={2.5} />
                     </span>
                     <span>Cooler temperature recorded (3.8°C)</span>
                   </li>
                   <li className="check-item-done">
                     <span className="check-box-icon" aria-hidden="true">
-                      ✓
+                      <Check size={12} strokeWidth={2.5} />
                     </span>
                     <span>Endcap promo photo captured &amp; signed</span>
                   </li>

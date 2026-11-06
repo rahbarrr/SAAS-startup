@@ -8,6 +8,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import { CheckCircle2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { sanitizeRedirectPath } from "@/modules/auth/schemas";
@@ -98,8 +99,8 @@ export default function LoginPage(): ReactNode {
         ) : null}
 
         {message ? (
-          <div role="status" aria-live="polite" className="alert alert--success">
-            <span aria-hidden="true">✓</span>
+          <div role="status" aria-live="polite" className="alert alert--success flex items-center gap-2">
+            <CheckCircle2 size={16} className="shrink-0" aria-hidden="true" />
             <span>{message}</span>
           </div>
         ) : null}

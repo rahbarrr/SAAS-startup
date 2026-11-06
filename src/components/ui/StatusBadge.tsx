@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Check, Clock, RotateCcw, X, Play, Shield, Sparkles, WifiOff, FileText } from "lucide-react";
 
 export type SyncState = "synced" | "pending_sync" | "offline" | "sync_error";
 export type ApprovalState =
@@ -38,7 +39,7 @@ const SYNC_DESCRIPTORS: Readonly<Record<SyncState, StatusDescriptor>> = {
   },
   offline: {
     label: "Offline Mode",
-    symbol: "⚡",
+    symbol: "—",
     tone: "neutral",
     ariaLabel: "Sync status: Device offline, saving locally",
   },
@@ -53,13 +54,13 @@ const SYNC_DESCRIPTORS: Readonly<Record<SyncState, StatusDescriptor>> = {
 const APPROVAL_DESCRIPTORS: Readonly<Record<ApprovalState, StatusDescriptor>> = {
   draft: {
     label: "Draft",
-    symbol: "✎",
+    symbol: "•",
     tone: "neutral",
     ariaLabel: "Approval status: Draft",
   },
   submitted: {
     label: "Pending Approval",
-    symbol: "⏳",
+    symbol: "•",
     tone: "warning",
     ariaLabel: "Approval status: Pending manager approval",
   },
@@ -110,7 +111,7 @@ const PROVENANCE_DESCRIPTORS: Readonly<Record<ProvenanceState, StatusDescriptor>
   },
   generated_draft: {
     label: "Generated Draft — Review Required",
-    symbol: "✦",
+    symbol: "•",
     tone: "info",
     ariaLabel:
       "Record provenance: Automatically generated summary, requires human verification",
@@ -120,19 +121,19 @@ const PROVENANCE_DESCRIPTORS: Readonly<Record<ProvenanceState, StatusDescriptor>
 const ORG_ROLE_DESCRIPTORS: Readonly<Record<OrgRoleState, StatusDescriptor>> = {
   admin: {
     label: "Admin",
-    symbol: "★",
+    symbol: "•",
     tone: "info",
     ariaLabel: "Role: Organization Admin",
   },
   manager: {
     label: "Manager",
-    symbol: "✦",
+    symbol: "•",
     tone: "success",
     ariaLabel: "Role: Operations Manager",
   },
   field_employee: {
     label: "Field Employee",
-    symbol: "●",
+    symbol: "•",
     tone: "neutral",
     ariaLabel: "Role: Field Employee",
   },
@@ -149,7 +150,7 @@ const MEMBERSHIP_STATUS_DESCRIPTORS: Readonly<
   },
   invited: {
     label: "Invited",
-    symbol: "✉",
+    symbol: "•",
     tone: "warning",
     ariaLabel: "Membership status: Invited",
   },
@@ -183,6 +184,39 @@ export function getMembershipStatusDescriptor(
   return MEMBERSHIP_STATUS_DESCRIPTORS[status] ?? MEMBERSHIP_STATUS_DESCRIPTORS.active;
 }
 
+function renderDescriptorIcon(descriptor: StatusDescriptor): ReactNode {
+  switch (descriptor.tone) {
+    case "success":
+      return <Check size={11} strokeWidth={2.5} className="shrink-0" />;
+    case "warning":
+      if (
+        descriptor.label.toLowerCase().includes("pending") ||
+        descriptor.label.toLowerCase().includes("invited")
+      ) {
+        return <Clock size={11} strokeWidth={2.5} className="shrink-0" />;
+      }
+      return <RotateCcw size={11} strokeWidth={2.5} className="shrink-0" />;
+    case "danger":
+      return <X size={11} strokeWidth={2.5} className="shrink-0" />;
+    case "info":
+      if (
+        descriptor.label.toLowerCase().includes("field") ||
+        descriptor.label.toLowerCase().includes("progress")
+      ) {
+        return <Play size={10} strokeWidth={2.5} className="shrink-0 fill-current" />;
+      }
+      if (descriptor.label.toLowerCase().includes("admin")) {
+        return <Shield size={11} strokeWidth={2.5} className="shrink-0" />;
+      }
+      return <Sparkles size={11} strokeWidth={2.5} className="shrink-0" />;
+    default:
+      if (descriptor.label.toLowerCase().includes("offline")) {
+        return <WifiOff size={11} strokeWidth={2.5} className="shrink-0" />;
+      }
+      return <FileText size={11} strokeWidth={2.5} className="shrink-0" />;
+  }
+}
+
 export function StatusBadge({
   descriptor,
   liveRegion = false,
@@ -197,7 +231,9 @@ export function StatusBadge({
       role={liveRegion ? "status" : undefined}
       aria-live={liveRegion ? "polite" : undefined}
     >
-      <span aria-hidden="true">{descriptor.symbol}</span>
+      <span aria-hidden="true" className="inline-flex items-center justify-center shrink-0">
+        {renderDescriptorIcon(descriptor)}
+      </span>
       <span>{descriptor.label}</span>
     </span>
   );

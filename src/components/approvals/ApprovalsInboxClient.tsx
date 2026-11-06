@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, type ReactNode, useState } from "react";
-import { Search } from "lucide-react";
+import { AlertTriangle, Check, Search } from "lucide-react";
 import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/States";
@@ -428,10 +428,17 @@ export function ApprovalsInboxClient({
                         <button
                           type="button"
                           className="btn btn-sm btn-primary"
-                          style={{ minHeight: "44px", padding: "0.5rem 0.875rem" }}
+                          style={{
+                            minHeight: "44px",
+                            padding: "0.5rem 0.875rem",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "0.35rem",
+                          }}
                           onClick={() => openDecisionDialog(trip, "approved")}
                         >
-                          ✓ Approve Trip
+                          <Check size={14} strokeWidth={2.5} aria-hidden="true" />
+                          <span>Approve Trip</span>
                         </button>
                       </div>
                     )
@@ -572,7 +579,15 @@ export function ApprovalsInboxClient({
               </span>
             </div>
 
-            {error ? <div className="form-error">⚠️ {error}</div> : null}
+            {error ? (
+              <div
+                className="form-error"
+                style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}
+              >
+                <AlertTriangle size={14} aria-hidden="true" />
+                <span>{error}</span>
+              </div>
+            ) : null}
 
             <div className="form-group">
               <label htmlFor="decision-note-input" className="form-label">

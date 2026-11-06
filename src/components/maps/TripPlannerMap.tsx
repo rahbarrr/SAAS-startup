@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef } from "react";
+import { Map, AlertTriangle } from "lucide-react";
 import { MapsUnavailableNotice } from "./MapsUnavailableNotice";
 import { useGoogleMaps } from "./useGoogleMaps";
 
@@ -192,8 +193,9 @@ export function TripPlannerMap({
           fontSize: "0.8125rem",
         }}
       >
-        <span style={{ fontWeight: 600 }}>
-          🗺️ {title} ({validStops.length} mapped / {stops.length} total)
+        <span style={{ fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+          <Map size={14} className="text-[#216A85] shrink-0" aria-hidden="true" />
+          <span>{title} ({validStops.length} mapped / {stops.length} total)</span>
         </span>
         <span className="card-meta" style={{ fontSize: "0.75rem" }}>
           Click markers for stop details
@@ -218,14 +220,20 @@ export function TripPlannerMap({
             borderTop: "1px solid var(--status-warning-border, #fef3c7)",
             fontSize: "0.75rem",
             color: "var(--status-warning-text, #92400e)",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "0.35rem",
           }}
         >
-          ⚠️ <strong>{stopsMissingCoords.length} stop(s) lack coordinates</strong> and
-          cannot be rendered on the map:{" "}
-          {stopsMissingCoords
-            .map((s) => `Stop #${s.sequenceNumber} (${s.storeName})`)
-            .join(", ")}
-          .
+          <AlertTriangle size={14} className="shrink-0 mt-0.5 text-amber-700" aria-hidden="true" />
+          <div>
+            <strong>{stopsMissingCoords.length} stop(s) lack coordinates</strong> and
+            cannot be rendered on the map:{" "}
+            {stopsMissingCoords
+              .map((s) => `Stop #${s.sequenceNumber} (${s.storeName})`)
+              .join(", ")}
+            .
+          </div>
         </div>
       ) : null}
     </div>

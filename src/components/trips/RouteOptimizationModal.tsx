@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
+import { AlertTriangle, Info } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import type { RouteOptimizationProposal } from "@/modules/routing/domain";
 
@@ -246,8 +247,11 @@ export function RouteOptimizationModal({
                   : "Haversine (Geodesic Straight-Line)"}
             </span>
           </div>
-          <div>
-            ⚠️ <strong>Measurement Notice:</strong> {proposal.distanceDisclaimer}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.35rem" }}>
+            <AlertTriangle size={13} style={{ color: "#b45309", flexShrink: 0, marginTop: "2px" }} aria-hidden="true" />
+            <span>
+              <strong>Measurement Notice:</strong> {proposal.distanceDisclaimer}
+            </span>
           </div>
         </div>
 
@@ -259,11 +263,17 @@ export function RouteOptimizationModal({
               backgroundColor: "#fef3c7",
               padding: "0.5rem 0.75rem",
               borderRadius: "var(--radius-sm)",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "0.35rem",
             }}
           >
-            ℹ️ <strong>Approval Notice:</strong> This trip is currently approved.
-            Re-ordering stops will reset its status to draft and require manager
-            re-approval.
+            <Info size={14} style={{ color: "#b45309", flexShrink: 0, marginTop: "1px" }} aria-hidden="true" />
+            <span>
+              <strong>Approval Notice:</strong> This trip is currently approved.
+              Re-ordering stops will reset its status to draft and require manager
+              re-approval.
+            </span>
           </div>
         ) : null}
 

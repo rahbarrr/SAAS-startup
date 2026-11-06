@@ -1,4 +1,4 @@
-import { Stage, type Act } from '../../kit'
+import { Stage, type Act, type Layout } from '../../kit'
 
 type ModuleTab = 'Dashboard' | 'Analytics' | 'Field Trips' | 'Store Visits' | 'Live Radar' | 'Approvals'
 
@@ -94,11 +94,325 @@ export default function FieldTrackSaasPlatformDemo() {
     <Stage
       width={1280}
       height={780}
+      compact={{ below: 768, width: 375, height: 740 }}
       initial={INITIAL}
       poster={POSTER}
       script={script}
     >
-      {(s) => (
+      {(s, _rect, layout: Layout) => {
+        if (layout === 'compact') {
+          return (
+            <div
+              style={{
+                width: 375,
+                height: 740,
+                background: '#FFFFFF',
+                fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif",
+                color: '#021D24',
+                display: 'flex',
+                flexDirection: 'column',
+                boxSizing: 'border-box',
+                overflow: 'hidden',
+                position: 'relative',
+              }}
+            >
+              {/* Phone Chrome: Status bar with Dynamic Island */}
+              <div
+                style={{
+                  height: 44,
+                  padding: '0 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#021D24',
+                  flexShrink: 0,
+                }}
+              >
+                <span>9:41</span>
+                <div style={{ width: 106, height: 26, background: '#021D24', borderRadius: 20 }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700 }}>
+                  <span>5G</span>
+                  <span>100%</span>
+                </div>
+              </div>
+
+              {/* Mobile Header: Brand + Greeting + Tenant Pill */}
+              <div
+                style={{
+                  padding: '8px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderBottom: '1px solid #E8ECF4',
+                  flexShrink: 0,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 8,
+                      background: 'linear-gradient(135deg, #216A85 0%, #093F52 100%)',
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: 13,
+                    }}
+                  >
+                    F
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 800, lineHeight: 1.2 }}>Operations Dashboard</div>
+                    <div style={{ fontSize: 11, color: '#456B7C' }}>Aarav Sharma • 150m Geofence</div>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    background: '#F1F7FA',
+                    border: '1px solid #D8EAF2',
+                    borderRadius: 999,
+                    padding: '4px 10px',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: '#216A85',
+                  }}
+                >
+                  Patna HQ
+                </div>
+              </div>
+
+              {/* Scrollable Mobile Body */}
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  padding: '12px 14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                }}
+              >
+                {/* Compact 2-Column KPI Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+                  <div
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1px solid #D8EAF2',
+                      borderRadius: 16,
+                      padding: 12,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      boxShadow: '0 2px 8px rgba(2, 29, 36, 0.04)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#456B7C' }}>Active Trips</span>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <RingGauge pct={80} color="#216A85" />
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: '#021D24' }}>4</div>
+                        <div style={{ fontSize: 10, color: '#456B7C' }}>of 5 active</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1px solid #D8EAF2',
+                      borderRadius: 16,
+                      padding: 12,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      boxShadow: '0 2px 8px rgba(2, 29, 36, 0.04)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#456B7C' }}>Store Visits</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#216A85', background: '#F1F7FA', padding: '1px 6px', borderRadius: 999 }}>{s.activePct}%</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <RingGauge pct={s.activePct} color="#042933" />
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: '#021D24' }}>{s.completedVisits}</div>
+                        <div style={{ fontSize: 10, color: '#456B7C' }}>of 70 planned</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1px solid #D8EAF2',
+                      borderRadius: 16,
+                      padding: 12,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      boxShadow: '0 2px 8px rgba(2, 29, 36, 0.04)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#456B7C' }}>Pending Approvals</span>
+                      <span style={{ fontSize: 10, fontWeight: 800, color: '#F59E0B' }}>SLA 2h</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <RingGauge pct={40} color="#216A85" />
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: '#021D24' }}>2</div>
+                        <div style={{ fontSize: 10, color: '#456B7C' }}>awaiting</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1px solid #D8EAF2',
+                      borderRadius: 16,
+                      padding: 12,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      boxShadow: '0 2px 8px rgba(2, 29, 36, 0.04)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#456B7C' }}>GPS Distance</span>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#216A85' }} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <RingGauge pct={92} color="#042933" />
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: '#021D24' }}>{s.distanceKm}</div>
+                        <div style={{ fontSize: 10, color: '#456B7C' }}>60s sync</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compact Obsidian Dark Card */}
+                <div
+                  style={{
+                    background: 'linear-gradient(145deg, #021D24 0%, #042933 60%, #063442 100%)',
+                    borderRadius: 18,
+                    padding: 14,
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 10,
+                    boxShadow: '0 8px 24px rgba(2, 29, 36, 0.25)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10B981' }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#C7E5F2', letterSpacing: '0.04em' }}>FLEET PROGRESS • PATNA HQ</span>
+                    </div>
+                    <span style={{ fontSize: 10, color: '#65A7C2', fontWeight: 600 }}>• 60s GPS Live</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: '#FFFFFF' }}>{s.completedVisits} / 70 Store Visits</div>
+                    <div style={{ fontSize: 11, color: '#C7E5F2', marginTop: 2 }}>
+                      {s.activePct}% completion index • 150m verified radius
+                    </div>
+                  </div>
+                  {/* Progress Split Bar */}
+                  <div style={{ height: 6, background: '#021D24', borderRadius: 999, display: 'flex', overflow: 'hidden' }}>
+                    <div style={{ width: `${s.activePct}%`, background: 'linear-gradient(90deg, #216A85 0%, #65A7C2 100%)' }} />
+                    <div style={{ width: `${100 - s.activePct}%`, background: '#093F52' }} />
+                  </div>
+                </div>
+
+                {/* Recent Activity Card */}
+                <div
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: 18,
+                    padding: 14,
+                    border: '1px solid #D8EAF2',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: '#021D24' }}>Recent Live Activity</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#10B981' }}>● Live</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #F1F7FA' }}>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#021D24' }}>Mithila Super Bazaar</div>
+                      <div style={{ fontSize: 10, color: '#456B7C' }}>Rajesh C. • Verified 118m</div>
+                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#10B981', background: '#ECFDF5', padding: '2px 8px', borderRadius: 999 }}>+Verified</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0' }}>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#021D24' }}>Bailey Rd Retail Hub</div>
+                      <div style={{ fontSize: 10, color: '#456B7C' }}>Priya K. • 4 photos synced</div>
+                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#216A85', background: '#F1F7FA', padding: '2px 8px', borderRadius: 999 }}>+Synced</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Bottom Navigation Bar (56px height) */}
+              <div
+                style={{
+                  height: 56,
+                  background: 'rgba(255, 255, 255, 0.96)',
+                  backdropFilter: 'blur(12px)',
+                  borderTop: '1px solid #E8ECF4',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(5, 1fr)',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                {[
+                  { label: 'Overview', icon: '⊞', active: s.activeTab === 'Dashboard' },
+                  { label: 'Radar', icon: '◎', active: s.activeTab === 'Live Radar' },
+                  { label: 'Trips', icon: '↗', active: false },
+                  { label: 'Visits', icon: '✓', active: false },
+                  { label: 'Team', icon: '👥', active: false },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 2,
+                      color: item.active ? '#216A85' : '#456B7C',
+                      fontSize: 10,
+                      fontWeight: item.active ? 800 : 600,
+                    }}
+                  >
+                    <span style={{ fontSize: 15 }}>{item.icon}</span>
+                    <span>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        }
+
+        return (
         <div
           style={{
             width: '100%',
@@ -869,7 +1183,8 @@ export default function FieldTrackSaasPlatformDemo() {
             </div>
           </div>
         </div>
-      )}
+        )
+      }}
     </Stage>
   )
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Map } from "lucide-react";
 import type { GoogleMapsStatus } from "./useGoogleMaps";
 
 export interface MapsUnavailableNoticeProps {
@@ -93,7 +94,7 @@ export function MapsUnavailableNotice({
           marginBottom: "0.25rem",
         }}
       >
-        <span style={{ fontSize: "1rem" }}>🗺️</span>
+        <Map size={16} className="text-[#216A85] shrink-0" aria-hidden="true" />
         <strong>{featureName} is unconfigured</strong>
       </div>
       <p

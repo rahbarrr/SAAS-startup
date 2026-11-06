@@ -15,6 +15,7 @@ import {
   onboardOrganizationAction,
   signOutAction,
 } from "@/modules/auth/actions";
+import { Check, Lock } from "lucide-react";
 import { createInFlightActionGuard } from "@/lib/ux/formatting-and-resilience";
 
 function OnboardingContent(): ReactNode {
@@ -467,10 +468,16 @@ function OnboardingContent(): ReactNode {
                     border: "1px solid var(--border-subtle)",
                     fontSize: "0.75rem",
                     color: "var(--text-secondary)",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "0.5rem",
                   }}
                 >
-                  ✓ <strong>Admin Privileges:</strong> Full control over trip approvals,
-                  checklist templates, store directories, and team member invitations.
+                  <Check size={14} className="text-[#216A85] shrink-0 mt-0.5" aria-hidden="true" />
+                  <span>
+                    <strong>Admin Privileges:</strong> Full control over trip approvals,
+                    checklist templates, store directories, and team member invitations.
+                  </span>
                 </div>
 
                 <button
@@ -590,11 +597,17 @@ function OnboardingContent(): ReactNode {
                   border: "1px solid var(--border-subtle)",
                   fontSize: "0.75rem",
                   color: "var(--text-secondary)",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "0.5rem",
                 }}
               >
-                🔒 <strong>Cryptographic Verification:</strong> Role and organization
-                access are validated server-side. Form tampering cannot elevate
-                privileges.
+                <Lock size={14} className="text-[#216A85] shrink-0 mt-0.5" aria-hidden="true" />
+                <span>
+                  <strong>Cryptographic Verification:</strong> Role and organization
+                  access are validated server-side. Form tampering cannot elevate
+                  privileges.
+                </span>
               </div>
 
               <button

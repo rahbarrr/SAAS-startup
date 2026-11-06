@@ -8,7 +8,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { Camera, UploadCloud } from "lucide-react";
+import { Camera, UploadCloud, Radio, FileText } from "lucide-react";
 import { ErrorState } from "@/components/ui/States";
 import {
   loadLocalVisitDraft,
@@ -569,9 +569,21 @@ export function VisitExecutionClient({
           border: "1px solid var(--brand-cyan-border)",
         }}
       >
-        <span style={{ fontSize: "1.25rem" }} aria-hidden="true">
-          🛰️
-        </span>
+        <div
+          style={{
+            width: "2.25rem",
+            height: "2.25rem",
+            borderRadius: "50%",
+            backgroundColor: "rgba(33, 106, 133, 0.12)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+          aria-hidden="true"
+        >
+          <Radio size={18} className="text-[#216A85]" />
+        </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.15rem" }}>
           <strong style={{ fontSize: "0.875rem", color: "var(--brand-dark)" }}>
             GPS Point-in-Time Verification Ready
@@ -1008,10 +1020,10 @@ export function VisitExecutionClient({
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: "2rem",
+                        color: "var(--text-muted)",
                       }}
                     >
-                      📄
+                      <FileText size={32} aria-hidden="true" />
                     </div>
                   )}
 

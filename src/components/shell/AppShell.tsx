@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import { X } from "lucide-react";
 import { PwaOfflineSyncIndicator } from "@/components/pwa/PwaOfflineSyncIndicator";
 import { RoleProvider, useCurrentRole } from "@/components/ui/RoleContext";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -500,9 +501,12 @@ function InnerShell({
                 minWidth: "var(--touch-target-min)",
                 minHeight: "var(--touch-target-min)",
                 padding: 0,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              ✕
+              <X size={20} aria-hidden="true" />
             </button>
           </div>
           <div className="sidebar-content">

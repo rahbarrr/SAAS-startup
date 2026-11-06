@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Check } from "lucide-react";
 import { ThemeToggle } from "@/components/theme";
 
 export interface AuthLayoutProps {
@@ -43,19 +44,19 @@ export function AuthLayout({ children }: AuthLayoutProps): ReactNode {
           <ul className="auth-feature-list">
             <li className="auth-feature-item">
               <span className="auth-feature-icon" aria-hidden="true">
-                ✓
+                <Check size={14} strokeWidth={2.5} />
               </span>
               <span>Multi-stop trip planning with hierarchical manager approvals</span>
             </li>
             <li className="auth-feature-item">
               <span className="auth-feature-icon" aria-hidden="true">
-                ✓
+                <Check size={14} strokeWidth={2.5} />
               </span>
               <span>Point-in-time GPS check-ins and structured store checklists</span>
             </li>
             <li className="auth-feature-item">
               <span className="auth-feature-icon" aria-hidden="true">
-                ✓
+                <Check size={14} strokeWidth={2.5} />
               </span>
               <span>Strict organization isolation enforced with Row-Level Security</span>
             </li>

@@ -126,10 +126,10 @@ export function GeofenceConsentModal({
                   Operating System Permissions
                 </Text>
                 <Text style={styles.permissionStatusText}>
-                  Foreground Access: {fgStatus ? "✓ Granted" : "Not Granted"}
+                  Foreground Access: {fgStatus ? "Granted" : "Not Granted"}
                 </Text>
                 <Text style={styles.permissionStatusText}>
-                  Background Access: {bgStatus ? "✓ Granted" : "Not Granted"}
+                  Background Access: {bgStatus ? "Granted" : "Not Granted"}
                 </Text>
 
                 <TouchableOpacity

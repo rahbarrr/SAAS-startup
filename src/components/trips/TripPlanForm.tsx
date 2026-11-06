@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, type ReactNode, useState } from "react";
-import { MapPin } from "lucide-react";
+import { AlertTriangle, Check, MapPin, Trash2 } from "lucide-react";
 import { TripPlannerMap } from "@/components/maps";
 import { ErrorState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
@@ -658,11 +658,15 @@ export function TripPlanForm({
                               fontWeight: 600,
                               color: "var(--color-success-text, #166534)",
                               backgroundColor: "var(--color-success-subtle, #ecfdf5)",
-                              padding: "0.1rem 0.4rem",
+                              padding: "0.125rem 0.45rem",
                               borderRadius: "9999px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "0.25rem",
                             }}
                           >
-                            ✓ ({lat.toFixed(4)}, {lng.toFixed(4)})
+                            <Check size={11} strokeWidth={2.5} aria-hidden="true" />
+                            <span>({lat.toFixed(4)}, {lng.toFixed(4)})</span>
                           </span>
                         ) : (
                           <span
@@ -672,11 +676,15 @@ export function TripPlanForm({
                               color: "var(--status-warning-text, #92400e)",
                               backgroundColor: "var(--status-warning-bg, #fffbeb)",
                               border: "1px solid var(--status-warning-border, #fef3c7)",
-                              padding: "0.1rem 0.4rem",
+                              padding: "0.125rem 0.45rem",
                               borderRadius: "9999px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "0.25rem",
                             }}
                           >
-                            ⚠️ Missing Coordinates
+                            <AlertTriangle size={11} strokeWidth={2.5} aria-hidden="true" />
+                            <span>Missing Coordinates</span>
                           </span>
                         )}
                       </div>
@@ -744,7 +752,7 @@ export function TripPlanForm({
                           justifyContent: "center",
                         }}
                       >
-                        ✕
+                        <Trash2 size={16} aria-hidden="true" />
                       </button>
                     </div>
                   </li>

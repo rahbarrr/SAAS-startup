@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AlertTriangle, Lightbulb, MapPin, Sparkles } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { ErrorState } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
@@ -137,7 +138,7 @@ export function AiTripPlanningModal({
             gap: "0.75rem",
           }}
         >
-          <span style={{ fontSize: "1.25rem", lineHeight: 1 }}>✨</span>
+          <Sparkles size={20} style={{ color: "var(--brand-primary)", marginTop: "2px", flexShrink: 0 }} aria-hidden="true" />
           <div style={{ flex: 1 }}>
             <div
               style={{
@@ -316,9 +317,17 @@ export function AiTripPlanningModal({
             {summary.conflicts.length > 0 && (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 <h4
-                  style={{ margin: 0, fontSize: "0.875rem", color: "var(--brand-dark)" }}
+                  style={{
+                    margin: 0,
+                    fontSize: "0.875rem",
+                    color: "var(--brand-dark)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
+                  }}
                 >
-                  ⚠️ Potential Scheduling & Workload Issues
+                  <AlertTriangle size={15} style={{ color: "var(--status-warning-text, #d97706)" }} aria-hidden="true" />
+                  <span>Potential Scheduling & Workload Issues</span>
                 </h4>
                 {summary.conflicts.map((conflict) => (
                   <div
@@ -363,9 +372,17 @@ export function AiTripPlanningModal({
                 }}
               >
                 <h4
-                  style={{ margin: 0, fontSize: "0.875rem", color: "var(--brand-dark)" }}
+                  style={{
+                    margin: 0,
+                    fontSize: "0.875rem",
+                    color: "var(--brand-dark)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
+                  }}
                 >
-                  📍 Suggested Visit Sequence (Traveling Salesperson Analysis)
+                  <MapPin size={15} style={{ color: "var(--brand-primary)" }} aria-hidden="true" />
+                  <span>Suggested Visit Sequence (Traveling Salesperson Analysis)</span>
                 </h4>
                 <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                   {summary.suggestedSequence.confidenceExplanation}
@@ -415,9 +432,17 @@ export function AiTripPlanningModal({
             {summary.recommendations.length > 0 && (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 <h4
-                  style={{ margin: 0, fontSize: "0.875rem", color: "var(--brand-dark)" }}
+                  style={{
+                    margin: 0,
+                    fontSize: "0.875rem",
+                    color: "var(--brand-dark)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
+                  }}
                 >
-                  💡 Manager Guidance
+                  <Lightbulb size={15} style={{ color: "var(--brand-primary)" }} aria-hidden="true" />
+                  <span>Manager Guidance</span>
                 </h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                   {summary.recommendations.map((rec) => (

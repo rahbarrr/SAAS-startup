@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { Check, Lock, MapPin, Camera, Shield, Download } from "lucide-react";
 
 type ShowcaseTab =
   "dashboard" | "planning" | "approvals" | "visits" | "location" | "reports";
@@ -180,7 +181,7 @@ export function ProductShowcase(): ReactNode {
                 {currentTab.bulletPoints.map((point) => (
                   <li key={point}>
                     <span className="point-check" aria-hidden="true">
-                      ✓
+                      <Check size={12} strokeWidth={2.5} />
                     </span>
                     <span>{point}</span>
                   </li>
@@ -443,8 +444,8 @@ export function ProductShowcase(): ReactNode {
 
                       <div className="approval-actions-box">
                         <div className="anti-tamper-notice">
-                          <span className="shield-tiny" aria-hidden="true">
-                            🔒
+                          <span className="shield-tiny inline-flex items-center" aria-hidden="true">
+                            <Lock size={12} className="text-[#216A85]" />
                           </span>
                           <span>
                             Logged in as Sarah Chen (Area Lead). Self-approval prevented
@@ -468,10 +469,11 @@ export function ProductShowcase(): ReactNode {
                           </button>
                           <button
                             type="button"
-                            className="btn btn-primary text-xs"
+                            className="btn btn-primary text-xs inline-flex items-center gap-1"
                             disabled
                           >
-                            ✓ Approve Route
+                            <Check size={13} aria-hidden="true" />
+                            <span>Approve Route</span>
                           </button>
                         </div>
                       </div>
@@ -498,8 +500,8 @@ export function ProductShowcase(): ReactNode {
                   <div className="showcase-mockup-body">
                     <div className="visit-active-banner">
                       <div className="geofence-status verified">
-                        <span className="geo-icon" aria-hidden="true">
-                          📍
+                        <span className="geo-icon inline-flex items-center" aria-hidden="true">
+                          <MapPin size={14} className="text-[#216A85]" />
                         </span>
                         <div>
                           <strong>GPS Check-in Verified</strong>
@@ -523,19 +525,19 @@ export function ProductShowcase(): ReactNode {
                       <div className="checklist-items">
                         <div className="check-item done">
                           <span className="check-box" aria-hidden="true">
-                            ✓
+                            <Check size={12} strokeWidth={2.5} />
                           </span>
                           <span>Front Entrance Promotional Display Verified</span>
                         </div>
                         <div className="check-item done">
                           <span className="check-box" aria-hidden="true">
-                            ✓
+                            <Check size={12} strokeWidth={2.5} />
                           </span>
                           <span>Endcap Facing & Pricing Label Audit</span>
                         </div>
                         <div className="check-item done">
                           <span className="check-box" aria-hidden="true">
-                            ✓
+                            <Check size={12} strokeWidth={2.5} />
                           </span>
                           <span>2 Display Photos Captured & Encrypted</span>
                         </div>
@@ -548,11 +550,17 @@ export function ProductShowcase(): ReactNode {
 
                     <div className="visit-evidence-preview">
                       <div className="evidence-thumb">
-                        <div className="thumb-placeholder">📷 Display Photo #1</div>
+                        <div className="thumb-placeholder inline-flex items-center justify-center gap-1.5">
+                          <Camera size={14} aria-hidden="true" />
+                          <span>Display Photo #1</span>
+                        </div>
                         <span className="text-xs text-muted">Endcap View • 11:28 AM</span>
                       </div>
                       <div className="evidence-thumb">
-                        <div className="thumb-placeholder">📷 Display Photo #2</div>
+                        <div className="thumb-placeholder inline-flex items-center justify-center gap-1.5">
+                          <Camera size={14} aria-hidden="true" />
+                          <span>Display Photo #2</span>
+                        </div>
                         <span className="text-xs text-muted">
                           Cooler Facing • 11:34 AM
                         </span>
@@ -585,7 +593,10 @@ export function ProductShowcase(): ReactNode {
                           className="map-pin pin-done"
                           style={{ top: "25%", left: "20%" }}
                         >
-                          <div className="pin-bubble">Kroger #302 ✓</div>
+                          <div className="pin-bubble inline-flex items-center gap-1">
+                            <span>Kroger #302</span>
+                            <Check size={10} strokeWidth={2.5} aria-hidden="true" />
+                          </div>
                           <div className="pin-point" />
                         </div>
 
@@ -627,8 +638,8 @@ export function ProductShowcase(): ReactNode {
 
                       <div className="map-privacy-overlay">
                         <div className="privacy-badge">
-                          <span className="privacy-icon" aria-hidden="true">
-                            🛡️
+                          <span className="privacy-icon inline-flex items-center" aria-hidden="true">
+                            <Shield size={16} className="text-[#216A85]" />
                           </span>
                           <div>
                             <strong>Point-in-Time GPS Verification Only</strong>
@@ -740,10 +751,11 @@ export function ProductShowcase(): ReactNode {
                       </div>
                       <button
                         type="button"
-                        className="btn btn-secondary text-xs"
+                        className="btn btn-secondary text-xs inline-flex items-center gap-1.5"
                         disabled
                       >
-                        📥 Export CSV
+                        <Download size={13} aria-hidden="true" />
+                        <span>Export CSV</span>
                       </button>
                     </div>
                   </div>

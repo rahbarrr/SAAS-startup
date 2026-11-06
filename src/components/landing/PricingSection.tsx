@@ -332,9 +332,9 @@ export function PricingSection(): ReactNode {
                 </tr>
                 <tr>
                   <th scope="row">GPS Geofencing Verification</th>
-                  <td>✓ Point-in-time check-in</td>
-                  <td>✓ Radius-verified geofencing</td>
-                  <td>✓ Precision threshold tuning</td>
+                  <td><span className="inline-flex items-center gap-1"><Check size={13} className="text-[#216A85] shrink-0" aria-hidden="true" /> Point-in-time check-in</span></td>
+                  <td><span className="inline-flex items-center gap-1"><Check size={13} className="text-[#216A85] shrink-0" aria-hidden="true" /> Radius-verified geofencing</span></td>
+                  <td><span className="inline-flex items-center gap-1"><Check size={13} className="text-[#216A85] shrink-0" aria-hidden="true" /> Precision threshold tuning</span></td>
                 </tr>
                 <tr>
                   <th scope="row">Route Optimization</th>
@@ -345,8 +345,8 @@ export function PricingSection(): ReactNode {
                 <tr>
                   <th scope="row">Manager Approval Inboxes</th>
                   <td>Basic single queue</td>
-                  <td>✓ Hierarchical + anti-tamper</td>
-                  <td>✓ Multi-level governance</td>
+                  <td><span className="inline-flex items-center gap-1"><Check size={13} className="text-[#216A85] shrink-0" aria-hidden="true" /> Hierarchical + anti-tamper</span></td>
+                  <td><span className="inline-flex items-center gap-1"><Check size={13} className="text-[#216A85] shrink-0" aria-hidden="true" /> Multi-level governance</span></td>
                 </tr>
                 <tr>
                   <th scope="row">Photo Evidence Storage</th>
@@ -357,8 +357,8 @@ export function PricingSection(): ReactNode {
                 <tr>
                   <th scope="row">Data Export Security</th>
                   <td>Basic CSV</td>
-                  <td>✓ Formula-injection safe CSV</td>
-                  <td>✓ Sanitized CSV + audit logs</td>
+                  <td><span className="inline-flex items-center gap-1"><Check size={13} className="text-[#216A85] shrink-0" aria-hidden="true" /> Formula-injection safe CSV</span></td>
+                  <td><span className="inline-flex items-center gap-1"><Check size={13} className="text-[#216A85] shrink-0" aria-hidden="true" /> Sanitized CSV + audit logs</span></td>
                 </tr>
               </tbody>
             </table>

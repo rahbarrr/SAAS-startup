@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { Radio, AlertTriangle, RefreshCw, CheckCircle2 } from "lucide-react";
 import type { QueuedOfflineOperation } from "@/lib/offline/sync-queue";
 
 export function PwaOfflineSyncIndicator(): ReactNode {
@@ -147,7 +148,7 @@ export function PwaOfflineSyncIndicator(): ReactNode {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <span aria-hidden="true">📡</span>
+          <Radio size={16} className="shrink-0" aria-hidden="true" />
           <span>
             <strong>Offline Mode:</strong> Network disconnected. Checklist answers and
             captured evidence are saved locally on device.
@@ -194,7 +195,7 @@ export function PwaOfflineSyncIndicator(): ReactNode {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <span aria-hidden="true">⚠️</span>
+          <AlertTriangle size={16} className="shrink-0 text-red-600" aria-hidden="true" />
           <span>
             <strong>Sync Conflict Detected:</strong> {conflictCount} queued record(s) were
             modified concurrently on the server. Please review before overwriting.
@@ -231,7 +232,7 @@ export function PwaOfflineSyncIndicator(): ReactNode {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <span aria-hidden="true">🔄</span>
+          <RefreshCw size={16} className={`shrink-0 ${isSyncing ? "animate-spin" : ""}`} aria-hidden="true" />
           <span>
             <strong>Pending Synchronization:</strong> You have {pendingCount} offline
             change{pendingCount === 1 ? "" : "s"} waiting to sync to the server.
@@ -267,7 +268,7 @@ export function PwaOfflineSyncIndicator(): ReactNode {
           gap: "0.5rem",
         }}
       >
-        <span aria-hidden="true">✓</span>
+        <CheckCircle2 size={16} className="shrink-0 text-emerald-600" aria-hidden="true" />
         <span>
           <strong>Back Online:</strong> Internet connection restored. Ready to sync with
           server.

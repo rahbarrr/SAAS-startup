@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { PlusCircle, Map, ClipboardList, Info } from "lucide-react";
+import { PlusCircle, Map, ClipboardList, Info, Check } from "lucide-react";
 import { ManagerDashboardClient } from "@/components/dashboard/ManagerDashboardClient";
 import { GoalRingCard } from "@/components/ui/GoalRingCard";
 import { EmptyState, ErrorState } from "@/components/ui/States";
@@ -345,7 +345,9 @@ export default async function DashboardPage(
               <span className="hero-avatar-circle hero-avatar-circle--secondary">
                 {activeOrg.name.slice(0, 2).toUpperCase()}
               </span>
-              <span className="hero-avatar-badge">✓</span>
+              <span className="hero-avatar-badge" aria-hidden="true">
+                <Check size={10} strokeWidth={3} />
+              </span>
             </div>
             <div className="hero-obsidian-meta">
               <strong className="hero-obsidian-org">{activeOrg.name} Fleet</strong>

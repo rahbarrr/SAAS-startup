@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
+import { X } from "lucide-react";
 
 export interface ModalProps {
   isOpen: boolean;
@@ -63,9 +64,12 @@ export function Modal({
               minHeight: "var(--touch-target-min, 2.75rem)",
               minWidth: "var(--touch-target-min, 2.75rem)",
               padding: 0,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            ✕
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 

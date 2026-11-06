@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef } from "react";
+import { MapPin } from "lucide-react";
 import { MapsUnavailableNotice } from "./MapsUnavailableNotice";
 import { useGoogleMaps } from "./useGoogleMaps";
 
@@ -142,13 +143,17 @@ export function LocationPickerMap({
       >
         <div>
           {hasCoords ? (
-            <span style={{ color: "var(--color-success-text, #166534)" }}>
-              📍 <strong>Selected Coordinates:</strong> {latitude.toFixed(6)},{" "}
-              {longitude.toFixed(6)}
+            <span style={{ color: "var(--color-success-text, #166534)", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+              <MapPin size={14} className="shrink-0" aria-hidden="true" />
+              <span>
+                <strong>Selected Coordinates:</strong> {latitude.toFixed(6)},{" "}
+                {longitude.toFixed(6)}
+              </span>
             </span>
           ) : (
-            <span style={{ color: "var(--text-muted, #64748b)" }}>
-              📍 <em>Click map or search place above to set pin location</em>
+            <span style={{ color: "var(--text-muted, #64748b)", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+              <MapPin size={14} className="shrink-0" aria-hidden="true" />
+              <span><em>Click map or search place above to set pin location</em></span>
             </span>
           )}
         </div>

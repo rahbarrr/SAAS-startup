@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
+import { X } from "lucide-react";
 import { useCurrentRole } from "@/components/ui/RoleContext";
 import { ThemeToggle } from "@/components/theme";
 
@@ -190,7 +191,7 @@ export function LandingHeader(): ReactNode {
             onClick={closeMenu}
             aria-label="Close menu"
           >
-            ✕
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 

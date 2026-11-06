@@ -3,6 +3,15 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useState } from "react";
+import {
+  AlertTriangle,
+  Calendar,
+  Check,
+  MapPin,
+  Radio,
+  Sparkles,
+  Zap,
+} from "lucide-react";
 import { TripPlannerMap } from "@/components/maps";
 import { ErrorState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
@@ -368,9 +377,11 @@ export function TripDetailClient({
           <h1 id="trip-detail-heading" className="page-title">
             {trip.title}
           </h1>
-          <p className="page-subtitle">
-            📅 <strong>{trip.startDate}</strong> to <strong>{trip.endDate}</strong> • Trip
-            ID: <code>{trip.id}</code>
+          <p className="page-subtitle" style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+            <Calendar size={14} style={{ color: "var(--text-muted)" }} aria-hidden="true" />
+            <span>
+              <strong>{trip.startDate}</strong> to <strong>{trip.endDate}</strong> • Trip ID: <code>{trip.id}</code>
+            </span>
           </p>
         </div>
         <div className="page-actions">
@@ -388,7 +399,7 @@ export function TripDetailClient({
 
       {confirmation ? (
         <div role="status" aria-live="polite" className="alert alert--success">
-          <span aria-hidden="true">✓</span>
+          <Check size={16} aria-hidden="true" style={{ marginRight: "0.35rem" }} />
           <span>{confirmation}</span>
         </div>
       ) : null}
@@ -486,9 +497,13 @@ export function TripDetailClient({
                     borderColor: "#C7D2FE",
                     color: "var(--brand-primary)",
                     fontWeight: 600,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
                   }}
                 >
-                  ✨ AI Planning Assistant
+                  <Sparkles size={14} aria-hidden="true" />
+                  <span>AI Planning Assistant</span>
                 </button>
                 {isOwner &&
                 (trip.status === "draft" ||
@@ -501,9 +516,10 @@ export function TripDetailClient({
                         onClick={handleOpenRouteOptimizer}
                         disabled={isOptimizing}
                         className="btn btn-secondary"
-                        style={{ fontSize: "0.8125rem" }}
+                        style={{ fontSize: "0.8125rem", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
                       >
-                        {isOptimizing ? "Optimizing…" : "⚡ Optimize Route"}
+                        <Zap size={14} aria-hidden="true" />
+                        <span>{isOptimizing ? "Optimizing…" : "Optimize Route"}</span>
                       </button>
                     ) : null}
                     <Link
@@ -613,11 +629,15 @@ export function TripDetailClient({
                                 fontWeight: 600,
                                 color: "var(--color-success-text, #166534)",
                                 backgroundColor: "var(--color-success-subtle, #ecfdf5)",
-                                padding: "0.1rem 0.4rem",
+                                padding: "0.125rem 0.45rem",
                                 borderRadius: "9999px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "0.25rem",
                               }}
                             >
-                              ✓ ({lat.toFixed(4)}, {lng.toFixed(4)})
+                              <Check size={11} strokeWidth={2.5} aria-hidden="true" />
+                              <span>({lat.toFixed(4)}, {lng.toFixed(4)})</span>
                             </span>
                           ) : (
                             <span
@@ -627,11 +647,15 @@ export function TripDetailClient({
                                 color: "var(--status-warning-text, #92400e)",
                                 backgroundColor: "var(--status-warning-bg, #fffbeb)",
                                 border: "1px solid var(--status-warning-border, #fef3c7)",
-                                padding: "0.1rem 0.4rem",
+                                padding: "0.125rem 0.45rem",
                                 borderRadius: "9999px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "0.25rem",
                               }}
                             >
-                              ⚠️ Missing Coordinates
+                              <AlertTriangle size={11} strokeWidth={2.5} aria-hidden="true" />
+                              <span>Missing Coordinates</span>
                             </span>
                           )}
                         </div>
@@ -899,9 +923,10 @@ export function TripDetailClient({
               >
                 <h2
                   id="location-tracking-heading"
-                  style={{ margin: 0, fontSize: "1.125rem" }}
+                  style={{ margin: 0, fontSize: "1.125rem", display: "flex", alignItems: "center", gap: "0.375rem" }}
                 >
-                  📍 Active Trip Tracking
+                  <MapPin size={18} style={{ color: "var(--brand-primary)" }} aria-hidden="true" />
+                  <span>Active Trip Tracking</span>
                 </h2>
                 {isTrackingActive ? (
                   <span
@@ -911,9 +936,13 @@ export function TripDetailClient({
                       color: "var(--success-green, #059669)",
                       border: "1px solid rgba(5, 150, 105, 0.25)",
                       fontSize: "0.75rem",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.35rem",
                     }}
                   >
-                    🟢 Tracking Active
+                    <Radio size={12} strokeWidth={2.5} aria-hidden="true" />
+                    <span>Tracking Active</span>
                   </span>
                 ) : (
                   <span
@@ -1001,9 +1030,10 @@ export function TripDetailClient({
                       onClick={() => void handleRecordBreadcrumb()}
                       disabled={isRecordingLocation}
                       className="btn btn-secondary"
-                      style={{ width: "100%", fontSize: "0.8125rem" }}
+                      style={{ width: "100%", fontSize: "0.8125rem", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.35rem" }}
                     >
-                      {isRecordingLocation ? "Recording…" : "📍 Record Checkpoint Now"}
+                      <MapPin size={14} aria-hidden="true" />
+                      <span>{isRecordingLocation ? "Recording…" : "Record Checkpoint Now"}</span>
                     </button>
                     <button
                       type="button"
@@ -1027,11 +1057,17 @@ export function TripDetailClient({
                   fontSize: "0.6875rem",
                   color: "var(--text-muted)",
                   lineHeight: 1.4,
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "0.375rem",
                 }}
               >
-                ⚠️ <strong>Web Browser Limitation:</strong> Background GPS tracking when
-                the browser is closed or suspended is not supported on iOS Safari /
-                Android browsers without a future native application.
+                <AlertTriangle size={14} style={{ color: "var(--status-warning-text, #d97706)", flexShrink: 0, marginTop: "1px" }} aria-hidden="true" />
+                <span>
+                  <strong>Web Browser Limitation:</strong> Background GPS tracking when
+                  the browser is closed or suspended is not supported on iOS Safari /
+                  Android browsers without a future native application.
+                </span>
               </div>
             </section>
           ) : null}

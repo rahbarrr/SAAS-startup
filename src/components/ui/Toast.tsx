@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import { CheckCircle2, XCircle, AlertTriangle, Info, X } from "lucide-react";
 
 export type ToastType = "success" | "error" | "info" | "warning";
 
@@ -38,11 +39,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div className="toast-container" aria-live="polite" aria-atomic="true">
         {toasts.map((toast) => (
           <div key={toast.id} className={`toast toast--${toast.type}`} role="alert">
-            <span>
-              {toast.type === "success" && "✓"}
-              {toast.type === "error" && "✕"}
-              {toast.type === "warning" && "⚠"}
-              {toast.type === "info" && "ℹ"}
+            <span className="inline-flex items-center justify-center shrink-0" aria-hidden="true">
+              {toast.type === "success" && <CheckCircle2 size={16} className="text-emerald-500" />}
+              {toast.type === "error" && <XCircle size={16} className="text-rose-500" />}
+              {toast.type === "warning" && <AlertTriangle size={16} className="text-amber-500" />}
+              {toast.type === "info" && <Info size={16} className="text-[#216A85]" />}
             </span>
             <span style={{ flex: 1 }}>{toast.message}</span>
             <button
@@ -54,7 +55,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 cursor: "pointer",
                 padding: "0.25rem",
                 color: "var(--text-muted)",
-                fontSize: "1.25rem",
                 minWidth: "var(--touch-target-min, 2.75rem)",
                 minHeight: "var(--touch-target-min, 2.75rem)",
                 display: "inline-flex",
@@ -63,7 +63,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               }}
               aria-label="Close notification"
             >
-              ×
+              <X size={16} aria-hidden="true" />
             </button>
           </div>
         ))}

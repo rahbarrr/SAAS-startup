@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Radio } from "lucide-react";
 import { LiveTrackingDashboardClient } from "@/components/dashboard/LiveTrackingDashboardClient";
 import { requireActiveWorkspace } from "@/lib/auth/workspace-context";
 import { SupabaseLocationRepository } from "@/modules/location/repository";
@@ -63,9 +64,13 @@ export default async function LiveTrackingPage(): Promise<ReactNode> {
             fontWeight: 700,
             margin: "0 0 0.25rem",
             color: "#0f172a",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.625rem",
           }}
         >
-          📡 Live Location Tracking
+          <Radio size={24} style={{ color: "var(--brand-primary, #216a85)" }} aria-hidden="true" />
+          <span>Live Location Tracking</span>
         </h1>
         <p style={{ margin: 0, color: "#64748b", fontSize: "0.875rem" }}>
           Real-time GPS tracking of field employees on authorized active work trips. Stale

@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, Sparkles } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  Pencil,
+  RefreshCw,
+  Sparkles,
+  Users,
+  Zap,
+} from "lucide-react";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
 import type { ManagerDailyBriefing } from "@/modules/ai-intelligence/domain";
@@ -437,9 +445,16 @@ export function AiInsightsClient({
               type="button"
               className="btn btn-secondary"
               onClick={() => setIsEditingSummary(true)}
-              style={{ fontSize: "0.75rem", padding: "0.3rem 0.6rem" }}
+              style={{
+                fontSize: "0.75rem",
+                padding: "0.3rem 0.6rem",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.35rem",
+              }}
             >
-              ✏️ Edit Summary
+              <Pencil size={13} aria-hidden="true" />
+              <span>Edit Summary</span>
             </button>
           ) : (
             <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -518,9 +533,13 @@ export function AiInsightsClient({
               margin: "0 0 1rem",
               fontSize: "1.0625rem",
               color: "var(--brand-dark)",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
             }}
           >
-            🚨 Critical Operational Exceptions ({briefing.criticalExceptions.length})
+            <AlertTriangle size={18} style={{ color: "#dc2626" }} aria-hidden="true" />
+            <span>Critical Operational Exceptions ({briefing.criticalExceptions.length})</span>
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
             {briefing.criticalExceptions.map((exc) => (
@@ -591,9 +610,13 @@ export function AiInsightsClient({
               margin: "0 0 1rem",
               fontSize: "1.0625rem",
               color: "var(--brand-dark)",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
             }}
           >
-            ⚡ Recommended Manager Actions ({briefing.recommendedActions.length})
+            <Zap size={18} style={{ color: "var(--brand-primary)" }} aria-hidden="true" />
+            <span>Recommended Manager Actions ({briefing.recommendedActions.length})</span>
           </h3>
           <div
             style={{
@@ -694,9 +717,14 @@ export function AiInsightsClient({
                           fontSize: "0.75rem",
                           padding: "0.35rem 0.65rem",
                           flex: 1,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "0.35rem",
                         }}
                       >
-                        ✓ Accept Action
+                        <Check size={13} strokeWidth={2.5} aria-hidden="true" />
+                        <span>Accept Action</span>
                       </button>
                       <button
                         type="button"
@@ -735,9 +763,13 @@ export function AiInsightsClient({
               margin: "0 0 1rem",
               fontSize: "1.0625rem",
               color: "var(--brand-dark)",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
             }}
           >
-            👥 Representative Workload Distribution
+            <Users size={18} style={{ color: "var(--brand-primary)" }} aria-hidden="true" />
+            <span>Representative Workload Distribution</span>
           </h3>
           <div style={{ overflowX: "auto" }}>
             <table

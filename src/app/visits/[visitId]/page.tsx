@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AlertTriangle, CheckCircle2, Radio, User } from "lucide-react";
 import { ErrorState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
 import { AiVisitReportDraftPanel } from "@/components/visits/AiVisitReportDraftPanel";
@@ -185,11 +186,22 @@ export default async function VisitDetailPage(
                       ? "#065F46"
                       : "var(--text-secondary)",
                   fontWeight: 600,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.35rem",
                 }}
               >
-                {visit.checkInSource === "automatic_geofence"
-                  ? "📡 Auto Geofence"
-                  : "👤 Manual"}
+                {visit.checkInSource === "automatic_geofence" ? (
+                  <>
+                    <Radio size={12} strokeWidth={2.2} aria-hidden="true" />
+                    <span>Auto Geofence</span>
+                  </>
+                ) : (
+                  <>
+                    <User size={12} strokeWidth={2.2} aria-hidden="true" />
+                    <span>Manual</span>
+                  </>
+                )}
               </span>
             </dd>
             <dt style={{ color: "var(--text-secondary)" }}>Actual Check-Out:</dt>
@@ -213,11 +225,22 @@ export default async function VisitDetailPage(
                         ? "#065F46"
                         : "var(--text-secondary)",
                     fontWeight: 600,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
                   }}
                 >
-                  {visit.checkOutSource === "automatic_geofence"
-                    ? "📡 Auto Geofence"
-                    : "👤 Manual"}
+                  {visit.checkOutSource === "automatic_geofence" ? (
+                    <>
+                      <Radio size={12} strokeWidth={2.2} aria-hidden="true" />
+                      <span>Auto Geofence</span>
+                    </>
+                  ) : (
+                    <>
+                      <User size={12} strokeWidth={2.2} aria-hidden="true" />
+                      <span>Manual</span>
+                    </>
+                  )}
                 </span>
               ) : null}
             </dd>
@@ -234,6 +257,9 @@ export default async function VisitDetailPage(
                   padding: "0.125rem 0.5rem",
                   borderRadius: "var(--radius-sm)",
                   fontWeight: 600,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.35rem",
                   background:
                     visit.verificationStatus === "pending_review" ? "#FEF3C7" : "#F0FDF4",
                   color:
@@ -244,9 +270,17 @@ export default async function VisitDetailPage(
                       : "1px solid #BBF7D0",
                 }}
               >
-                {visit.verificationStatus === "pending_review"
-                  ? "⚠️ Pending Review"
-                  : "✓ Verified"}
+                {visit.verificationStatus === "pending_review" ? (
+                  <>
+                    <AlertTriangle size={12} strokeWidth={2.2} aria-hidden="true" />
+                    <span>Pending Review</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={12} strokeWidth={2.2} aria-hidden="true" />
+                    <span>Verified</span>
+                  </>
+                )}
               </span>
               {visit.verificationNotes ? (
                 <span

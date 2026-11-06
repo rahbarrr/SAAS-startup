@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type ReactNode, useRef, useState } from "react";
+import { CheckCheck } from "lucide-react";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { getApprovalStatusDescriptor, StatusBadge } from "@/components/ui/StatusBadge";
 import {
@@ -329,8 +330,9 @@ export function InAppNotificationsList({
                   </Link>
 
                   {item.isRead ? (
-                    <span className="card-meta" aria-label="Notification read status">
-                      ✓ Read {item.readAt ? `(${item.readAt.slice(0, 16)} UTC)` : ""}
+                    <span className="card-meta inline-flex items-center gap-1.5" aria-label="Notification read status">
+                      <CheckCheck size={14} className="text-[#216A85]" aria-hidden="true" />
+                      <span>Read {item.readAt ? `(${item.readAt.slice(0, 16)} UTC)` : ""}</span>
                     </span>
                   ) : (
                     <button
