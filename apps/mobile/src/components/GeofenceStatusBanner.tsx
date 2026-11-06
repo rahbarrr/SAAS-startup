@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   bannerInactive: {
     backgroundColor: "#FFFFFF",
-    borderColor: "#E8EAF0",
+    borderColor: "#D8EAF2",
     borderWidth: 1,
   },
   textContainer: {
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#11141D",
+    color: "#021D24",
     marginBottom: 2,
   },
   textActive: {
@@ -130,11 +130,11 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 11,
-    color: "#5A6275",
+    color: "#093F52",
     lineHeight: 15,
   },
   actionButton: {
-    backgroundColor: "#2558FF",
+    backgroundColor: "#216A85",
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 999,
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   revokeButton: {
-    borderColor: "#D5D9E4",
+    borderColor: "#65A7C2",
     borderWidth: 1,
     backgroundColor: "#ffffff",
     paddingHorizontal: 12,

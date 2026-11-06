@@ -69,12 +69,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   barActive: {
-    backgroundColor: "#EEF3FF",
-    borderColor: "#8BA8FF",
+    backgroundColor: "#C7E5F2",
+    borderColor: "#65A7C2",
   },
   barInactive: {
     backgroundColor: "#FFFFFF",
-    borderColor: "#E8EAF0",
+    borderColor: "#D8EAF2",
   },
   left: {
     flexDirection: "row",
@@ -92,16 +92,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#10B981",
   },
   dotInactive: {
-    backgroundColor: "#8C94A6",
+    backgroundColor: "#65A7C2",
   },
   statusTitle: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#11141D",
+    color: "#021D24",
   },
   statusSubtitle: {
     fontSize: 11,
-    color: "#5A6275",
+    color: "#093F52",
     marginTop: 2,
   },
   button: {
@@ -111,8 +111,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   buttonStart: {
-    backgroundColor: "#2558FF",
-    borderColor: "#2558FF",
+    backgroundColor: "#216A85",
+    borderColor: "#216A85",
   },
   buttonStartText: {
     color: "#ffffff",

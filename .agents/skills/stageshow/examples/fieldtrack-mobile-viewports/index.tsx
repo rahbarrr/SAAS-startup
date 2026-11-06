@@ -29,7 +29,6 @@ export default function FieldTrackMobileViewportMatrix() {
       initial={INITIAL}
       poster={POSTER}
       script={script}
-      bg="#F3F4F8"
     >
       {() => (
         <div
@@ -39,7 +38,7 @@ export default function FieldTrackMobileViewportMatrix() {
             padding: '24px 32px',
             boxSizing: 'border-box',
             fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif",
-            color: '#11141D',
+            color: '#021D24',
             display: 'flex',
             flexDirection: 'column',
             gap: 18,
@@ -54,14 +53,14 @@ export default function FieldTrackMobileViewportMatrix() {
               background: '#FFFFFF',
               padding: '14px 20px',
               borderRadius: 18,
-              border: '1px solid #E8EAF0',
+              border: '1px solid #D8EAF2',
             }}
           >
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#2558FF' }}>
-                FieldTrack Unslop Mobile Design System • Responsive Viewport Matrix
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#216A85' }}>
+                FieldTrack Abyss Ocean Teal Design System • Responsive Viewport Matrix
               </div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#11141D' }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#021D24' }}>
                 320px · 360px · 375px · 390px · 414px · 430px Smartphone Verification
               </div>
             </div>
@@ -81,15 +80,15 @@ export default function FieldTrackMobileViewportMatrix() {
               </span>
               <span
                 style={{
-                  background: '#EEF3FF',
-                  color: '#2558FF',
+                  background: '#C7E5F2',
+                  color: '#021D24',
                   fontSize: 11,
                   fontWeight: 700,
                   padding: '6px 12px',
                   borderRadius: 999,
                 }}
               >
-                2-Column Compact KPI Grid
+                Abyss 7-Tone Palette (#021D24–#C7E5F2)
               </span>
             </div>
           </div>
@@ -110,7 +109,7 @@ export default function FieldTrackMobileViewportMatrix() {
                   background: '#FFFFFF',
                   borderRadius: 20,
                   padding: 14,
-                  border: '1px solid #E8EAF0',
+                  border: '1px solid #D8EAF2',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -125,13 +124,13 @@ export default function FieldTrackMobileViewportMatrix() {
                     alignItems: 'center',
                   }}
                 >
-                  <span style={{ fontSize: 12, fontWeight: 800, color: '#11141D' }}>{vp.label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: '#021D24' }}>{vp.label}</span>
                   <span
                     style={{
                       fontSize: 10,
                       fontWeight: 700,
-                      color: '#2558FF',
-                      background: '#EEF3FF',
+                      color: '#042933',
+                      background: '#C7E5F2',
                       padding: '2px 8px',
                       borderRadius: 999,
                     }}
@@ -145,14 +144,14 @@ export default function FieldTrackMobileViewportMatrix() {
                   style={{
                     width: Math.min(vp.width, 396),
                     flex: 1,
-                    background: '#F3F4F8',
+                    background: '#F1F7FA',
                     borderRadius: 16,
                     padding: vp.width <= 320 ? '10px 10px 8px' : '12px 14px 10px',
                     boxSizing: 'border-box',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    border: '1px solid #D5D9E4',
+                    border: '1px solid #65A7C2',
                     overflow: 'hidden',
                   }}
                 >
@@ -175,8 +174,8 @@ export default function FieldTrackMobileViewportMatrix() {
                         style={{
                           fontSize: 9.5,
                           fontWeight: 700,
-                          color: '#2558FF',
-                          background: '#EEF3FF',
+                          color: '#042933',
+                          background: '#C7E5F2',
                           padding: '2px 7px',
                           borderRadius: 999,
                         }}
@@ -192,25 +191,25 @@ export default function FieldTrackMobileViewportMatrix() {
                           t: idx % 2 === 0 ? 'Active Trips' : 'Planned Trips',
                           v: idx % 2 === 0 ? '4' : '12',
                           p: '80%',
-                          c: '#2558FF',
+                          c: '#216A85',
                         },
                         {
                           t: idx % 2 === 0 ? 'Visits Done' : 'In Progress',
                           v: idx % 2 === 0 ? '5/6' : '4',
                           p: '83%',
-                          c: '#10B981',
+                          c: '#65A7C2',
                         },
                         {
                           t: 'Approvals',
                           v: '2',
                           p: '40%',
-                          c: '#12151E',
+                          c: '#042933',
                         },
                         {
                           t: idx % 2 === 0 ? 'Distance' : 'Geofence',
                           v: idx % 2 === 0 ? '64.2 km' : '150m',
                           p: '100%',
-                          c: '#2558FF',
+                          c: '#216A85',
                         },
                       ].map((k) => (
                         <div
@@ -245,7 +244,7 @@ export default function FieldTrackMobileViewportMatrix() {
                               style={{
                                 fontSize: 9.5,
                                 fontWeight: 700,
-                                color: '#5A6275',
+                                color: '#093F52',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
@@ -253,23 +252,23 @@ export default function FieldTrackMobileViewportMatrix() {
                             >
                               {k.t}
                             </div>
-                            <div style={{ fontSize: 12.5, fontWeight: 800, color: '#11141D' }}>{k.v}</div>
+                            <div style={{ fontSize: 12.5, fontWeight: 800, color: '#021D24' }}>{k.v}</div>
                           </div>
                         </div>
                       ))}
                     </div>
 
-                    {/* Section 3: Compact Fleet Obsidian Card or Compact Filter + Trip Card */}
+                    {/* Section 3: Compact Fleet Abyss Card or Compact Filter + Trip Card */}
                     {idx % 2 === 0 ? (
                       <div
                         style={{
-                          background: '#10121A',
+                          background: 'linear-gradient(145deg, #021D24 0%, #042933 60%, #063442 100%)',
                           borderRadius: 14,
                           padding: '10px 12px',
                           color: '#FFFFFF',
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#8BA8FF', fontWeight: 700 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#C7E5F2', fontWeight: 700 }}>
                           <span>FLEET PROGRESS</span>
                           <span style={{ color: '#10B981' }}>● 60s GPS</span>
                         </div>
@@ -277,8 +276,8 @@ export default function FieldTrackMobileViewportMatrix() {
                           5 / 6 Store Visits Verified
                         </div>
                         <div style={{ display: 'flex', gap: 4, height: 5, marginTop: 4 }}>
-                          <div style={{ width: '83%', background: '#2558FF', borderRadius: 999 }} />
-                          <div style={{ flex: 1, background: '#8BA8FF', borderRadius: 999 }} />
+                          <div style={{ width: '83%', background: '#216A85', borderRadius: 999 }} />
+                          <div style={{ flex: 1, background: '#65A7C2', borderRadius: 999 }} />
                         </div>
                       </div>
                     ) : (
@@ -287,7 +286,7 @@ export default function FieldTrackMobileViewportMatrix() {
                           background: '#FFFFFF',
                           borderRadius: 12,
                           padding: '9px 10px',
-                          border: '1px solid #E8EAF0',
+                          border: '1px solid #D8EAF2',
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -296,8 +295,8 @@ export default function FieldTrackMobileViewportMatrix() {
                             style={{
                               fontSize: 8.5,
                               fontWeight: 700,
-                              background: '#EEF3FF',
-                              color: '#2558FF',
+                              background: '#C7E5F2',
+                              color: '#042933',
                               padding: '2px 6px',
                               borderRadius: 999,
                             }}
@@ -305,7 +304,7 @@ export default function FieldTrackMobileViewportMatrix() {
                             IN PROGRESS
                           </span>
                         </div>
-                        <div style={{ fontSize: 9.5, color: '#5A6275', marginTop: 3 }}>
+                        <div style={{ fontSize: 9.5, color: '#093F52', marginTop: 3 }}>
                           📅 2026-11-06 • Aarav Sharma • 4 stops (150m)
                         </div>
                       </div>
@@ -320,16 +319,16 @@ export default function FieldTrackMobileViewportMatrix() {
                       padding: '6px 10px',
                       display: 'flex',
                       justifyContent: 'space-around',
-                      border: '1px solid #E8EAF0',
+                      border: '1px solid #D8EAF2',
                       fontSize: 9,
                       fontWeight: 700,
                     }}
                   >
-                    <span style={{ color: idx % 2 === 0 ? '#2558FF' : '#8C94A6' }}>Overview</span>
-                    <span style={{ color: '#8C94A6' }}>Live Map</span>
-                    <span style={{ color: idx % 2 === 1 ? '#2558FF' : '#8C94A6' }}>Trips</span>
-                    <span style={{ color: '#8C94A6' }}>Visits</span>
-                    <span style={{ color: '#8C94A6' }}>Team</span>
+                    <span style={{ color: idx % 2 === 0 ? '#216A85' : '#456B7C' }}>Overview</span>
+                    <span style={{ color: '#456B7C' }}>Live Map</span>
+                    <span style={{ color: idx % 2 === 1 ? '#216A85' : '#456B7C' }}>Trips</span>
+                    <span style={{ color: '#456B7C' }}>Visits</span>
+                    <span style={{ color: '#456B7C' }}>Team</span>
                   </div>
                 </div>
               </div>

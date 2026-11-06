@@ -150,7 +150,7 @@ export function CheckInModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(16, 18, 26, 0.65)",
+    backgroundColor: "rgba(2, 29, 36, 0.68)",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 22,
     padding: 22,
-    shadowColor: "#000",
+    shadowColor: "#021D24",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
     shadowRadius: 16,
@@ -170,25 +170,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 19,
     fontWeight: "800",
-    color: "#11141D",
+    color: "#021D24",
     marginBottom: 4,
   },
   storeName: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#2558FF",
+    color: "#216A85",
   },
   storeAddress: {
     fontSize: 13,
-    color: "#5A6275",
+    color: "#093F52",
     marginBottom: 16,
   },
   statusBox: {
-    backgroundColor: "#F3F4F8",
+    backgroundColor: "#F1F7FA",
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#E8EAF0",
+    borderColor: "#D8EAF2",
     marginBottom: 14,
   },
   row: {
@@ -198,12 +198,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    color: "#5A6275",
+    color: "#093F52",
   },
   value: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#11141D",
+    color: "#021D24",
   },
   successText: {
     color: "#10B981",
@@ -236,12 +236,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#D5D9E4",
+    borderColor: "#65A7C2",
   },
   retryBtnText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#11141D",
+    color: "#021D24",
   },
   cancelBtn: {
     paddingVertical: 10,
@@ -250,10 +250,10 @@ const styles = StyleSheet.create({
   cancelBtnText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#5A6275",
+    color: "#093F52",
   },
   confirmBtn: {
-    backgroundColor: "#2558FF",
+    backgroundColor: "#216A85",
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 999,

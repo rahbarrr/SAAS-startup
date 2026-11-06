@@ -1,7 +1,7 @@
 "use client";
 
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { COLORS } from "@/lib/design-system/tokens";
+import { SAAS_REFERENCE_TOKENS } from "@/lib/design-system/tokens";
 
 export interface PerformanceDataPoint {
   date: string;
@@ -26,12 +26,12 @@ export function PerformanceAreaChart({
         <AreaChart data={data} margin={{ top: 12, right: 12, left: -20, bottom: 4 }}>
           <defs>
             <linearGradient id="gradientCompleted" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={COLORS.brand.royal} stopOpacity={0.35} />
-              <stop offset="95%" stopColor={COLORS.brand.royal} stopOpacity={0} />
+              <stop offset="5%" stopColor="#216A85" stopOpacity={0.38} />
+              <stop offset="95%" stopColor="#216A85" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="gradientScheduled" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={COLORS.brand.cyan} stopOpacity={0.35} />
-              <stop offset="95%" stopColor={COLORS.brand.cyan} stopOpacity={0} />
+              <stop offset="5%" stopColor="#65A7C2" stopOpacity={0.38} />
+              <stop offset="95%" stopColor="#65A7C2" stopOpacity={0} />
             </linearGradient>
           </defs>
           <XAxis
@@ -89,7 +89,7 @@ export function PerformanceAreaChart({
           <Area
             type="monotone"
             dataKey="completed"
-            stroke={COLORS.brand.royal}
+            stroke={SAAS_REFERENCE_TOKENS.palette.abyss600}
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#gradientCompleted)"
@@ -97,7 +97,7 @@ export function PerformanceAreaChart({
           <Area
             type="monotone"
             dataKey="scheduled"
-            stroke={COLORS.brand.cyanStrong}
+            stroke={SAAS_REFERENCE_TOKENS.palette.abyss400}
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#gradientScheduled)"

@@ -26,12 +26,12 @@ export interface StatusDistributionChartProps {
 
 const DEFAULT_STATUS_COLORS: Record<string, string> = {
   submitted: COLORS.status.warning,
-  approved: COLORS.brand.royal,
-  in_progress: COLORS.brand.cyanStrong,
+  approved: "#216A85",
+  in_progress: "#65A7C2",
   completed: COLORS.status.success,
   changes_requested: "#EA580C",
   rejected: COLORS.status.danger,
-  draft: "#64748B",
+  draft: "#093F52",
 };
 
 export function StatusDistributionChart({
@@ -89,7 +89,7 @@ export function StatusDistributionChart({
               <Cell
                 key={`cell-${entry.status}`}
                 fill={
-                  entry.color ?? DEFAULT_STATUS_COLORS[entry.status] ?? COLORS.brand.royal
+                  entry.color ?? DEFAULT_STATUS_COLORS[entry.status] ?? "#216A85"
                 }
               />
             ))}

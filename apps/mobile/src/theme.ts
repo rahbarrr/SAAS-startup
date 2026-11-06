@@ -1,25 +1,33 @@
 /**
  * FieldTrack Native Mobile Design Tokens (iOS & Android)
- * Unified with the FieldTrack Web Reference SaaS Design System:
- * - Outer Shell: #FFFFFF
- * - Rounded Canvas: #F3F4F8
- * - Dark Obsidian Hero Card: #10121A
- * - Electric Royal Blue Primary: #2558FF
- * - Periwinkle Secondary: #8BA8FF
- * - Live Emerald Indicator: #10B981
+ * Unified with the FieldTrack Abyss Ocean Teal ("Бездна") Design System:
+ * - Abyss 950 Ink / Hero Base: #021D24
+ * - Abyss 900 Deep Slate: #042933
+ * - Abyss 800 Midnight Ocean: #063442
+ * - Abyss 700 Petrol Teal: #093F52
+ * - Abyss 600 Cerulean Teal Primary: #216A85
+ * - Abyss 400 Glacier Secondary: #65A7C2
+ * - Abyss 100 Ice Mist Soft Tint: #C7E5F2
  */
 
 export const MOBILE_THEME = {
   colors: {
+    abyss950: "#021D24",
+    abyss900: "#042933",
+    abyss800: "#063442",
+    abyss700: "#093F52",
+    abyss600: "#216A85",
+    abyss400: "#65A7C2",
+    abyss100: "#C7E5F2",
     shellBg: "#FFFFFF",
-    canvasBg: "#F3F4F8",
+    canvasBg: "#F1F7FA",
     surfaceCard: "#FFFFFF",
-    obsidianHero: "#10121A",
-    obsidianSurface: "#141720",
-    electricBlue: "#2558FF",
-    electricBlueHover: "#1B44D8",
-    electricBlueSoft: "#EEF3FF",
-    periwinkle: "#8BA8FF",
+    obsidianHero: "#021D24",
+    obsidianSurface: "#042933",
+    electricBlue: "#216A85",
+    electricBlueHover: "#093F52",
+    electricBlueSoft: "#C7E5F2",
+    periwinkle: "#65A7C2",
     emeraldLive: "#10B981",
     emeraldSoft: "#ECFDF5",
     emeraldText: "#065F46",
@@ -29,11 +37,11 @@ export const MOBILE_THEME = {
     dangerRed: "#EF4444",
     dangerSoft: "#FEF2F2",
     dangerText: "#991B1B",
-    textPrimary: "#11141D",
-    textSecondary: "#5A6275",
-    textMuted: "#8C94A6",
-    borderSubtle: "#E8EAF0",
-    borderStrong: "#D5D9E4",
+    textPrimary: "#021D24",
+    textSecondary: "#093F52",
+    textMuted: "#456B7C",
+    borderSubtle: "#D8EAF2",
+    borderStrong: "#65A7C2",
   },
   radii: {
     card: 16,

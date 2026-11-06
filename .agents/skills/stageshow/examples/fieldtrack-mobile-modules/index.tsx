@@ -107,7 +107,6 @@ export default function FieldTrackMobileModulesSuite() {
       initial={INITIAL}
       poster={POSTER}
       script={script}
-      bg="#F3F4F8"
     >
       {() => (
         <div
@@ -117,7 +116,7 @@ export default function FieldTrackMobileModulesSuite() {
             padding: '24px 32px',
             boxSizing: 'border-box',
             fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif",
-            color: '#11141D',
+            color: '#021D24',
             display: 'flex',
             flexDirection: 'column',
             gap: 18,
@@ -131,12 +130,12 @@ export default function FieldTrackMobileModulesSuite() {
               background: '#FFFFFF',
               padding: '14px 20px',
               borderRadius: 18,
-              border: '1px solid #E8EAF0',
+              border: '1px solid #D8EAF2',
             }}
           >
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#2558FF' }}>
-                FieldTrack Unslop Mobile Design System • All Modules Verified
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#216A85' }}>
+                FieldTrack Abyss Ocean Teal Design System • All Modules Verified
               </div>
               <div style={{ fontSize: 20, fontWeight: 800 }}>
                 Dashboard · Trips · Reports · Store Visits · Live Tracking · Approvals &amp; Team
@@ -144,15 +143,15 @@ export default function FieldTrackMobileModulesSuite() {
             </div>
             <span
               style={{
-                background: '#10121A',
-                color: '#FFFFFF',
+                background: '#021D24',
+                color: '#C7E5F2',
                 fontSize: 11,
                 fontWeight: 700,
                 padding: '6px 14px',
                 borderRadius: 999,
               }}
             >
-              Desktop (&gt;= 1024px) Protected • Mobile Optimized
+              Abyss Theme (#021D24–#C7E5F2) • Mobile &amp; Desktop
             </span>
           </div>
 
@@ -171,7 +170,7 @@ export default function FieldTrackMobileModulesSuite() {
                   background: '#FFFFFF',
                   borderRadius: 20,
                   padding: 14,
-                  border: '1px solid #E8EAF0',
+                  border: '1px solid #D8EAF2',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -179,7 +178,7 @@ export default function FieldTrackMobileModulesSuite() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 800, color: '#11141D' }}>{m.name}</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 800, color: '#021D24' }}>{m.name}</span>
                   <span
                     style={{
                       fontSize: 10,
@@ -197,13 +196,13 @@ export default function FieldTrackMobileModulesSuite() {
                 <div
                   style={{
                     flex: 1,
-                    background: '#F3F4F8',
+                    background: '#F1F7FA',
                     borderRadius: 16,
                     padding: 12,
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    border: '1px solid #E8EAF0',
+                    border: '1px solid #D8EAF2',
                   }}
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -217,13 +216,13 @@ export default function FieldTrackMobileModulesSuite() {
                         alignItems: 'center',
                       }}
                     >
-                      <span style={{ fontSize: 10.5, fontWeight: 700, color: '#5A6275' }}>{m.eyebrow}</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, color: '#093F52' }}>{m.eyebrow}</span>
                       <span
                         style={{
                           fontSize: 9.5,
                           fontWeight: 700,
-                          color: '#2558FF',
-                          background: '#EEF3FF',
+                          color: '#042933',
+                          background: '#C7E5F2',
                           padding: '2px 7px',
                           borderRadius: 999,
                         }}
@@ -251,7 +250,7 @@ export default function FieldTrackMobileModulesSuite() {
                               width: 24,
                               height: 24,
                               borderRadius: 999,
-                              border: `2.5px solid ${i % 2 === 0 ? '#2558FF' : '#10121A'}`,
+                              border: `2.5px solid ${i % 2 === 0 ? '#216A85' : '#042933'}`,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -267,7 +266,7 @@ export default function FieldTrackMobileModulesSuite() {
                               style={{
                                 fontSize: 9.5,
                                 fontWeight: 700,
-                                color: '#5A6275',
+                                color: '#093F52',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
@@ -275,7 +274,7 @@ export default function FieldTrackMobileModulesSuite() {
                             >
                               {k.l}
                             </div>
-                            <div style={{ fontSize: 12.5, fontWeight: 800, color: '#11141D' }}>{k.v}</div>
+                            <div style={{ fontSize: 12.5, fontWeight: 800, color: '#021D24' }}>{k.v}</div>
                           </div>
                         </div>
                       ))}
@@ -284,18 +283,18 @@ export default function FieldTrackMobileModulesSuite() {
                     {/* Primary Module Card */}
                     <div
                       style={{
-                        background: m.dark ? '#10121A' : '#FFFFFF',
-                        color: m.dark ? '#FFFFFF' : '#11141D',
+                        background: m.dark ? 'linear-gradient(145deg, #021D24 0%, #042933 60%, #063442 100%)' : '#FFFFFF',
+                        color: m.dark ? '#FFFFFF' : '#021D24',
                         borderRadius: 14,
                         padding: '10px 12px',
-                        border: m.dark ? 'none' : '1px solid #E8EAF0',
+                        border: m.dark ? 'none' : '1px solid #D8EAF2',
                       }}
                     >
                       <div style={{ fontSize: 12, fontWeight: 800 }}>{m.cardTitle}</div>
                       <div
                         style={{
                           fontSize: 10,
-                          color: m.dark ? 'rgba(255,255,255,0.72)' : '#5A6275',
+                          color: m.dark ? '#C7E5F2' : '#093F52',
                           marginTop: 3,
                         }}
                       >
@@ -312,7 +311,7 @@ export default function FieldTrackMobileModulesSuite() {
                       padding: '6px 10px',
                       display: 'flex',
                       justifyContent: 'space-around',
-                      border: '1px solid #E8EAF0',
+                      border: '1px solid #D8EAF2',
                       fontSize: 9,
                       fontWeight: 700,
                     }}
@@ -320,7 +319,7 @@ export default function FieldTrackMobileModulesSuite() {
                     {['Overview', 'Live Map', 'Trips', 'Visits', 'Team'].map((nav, idx) => (
                       <span
                         key={nav}
-                        style={{ color: idx === m.activeNav ? '#2558FF' : '#8C94A6' }}
+                        style={{ color: idx === m.activeNav ? '#216A85' : '#456B7C' }}
                       >
                         {nav}
                       </span>

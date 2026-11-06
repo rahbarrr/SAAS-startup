@@ -359,7 +359,7 @@ export function ManagerDashboardClient({
                         width: "0.5rem",
                         height: "0.5rem",
                         borderRadius: "50%",
-                        background: index === 0 ? "#10b981" : "#2558ff",
+                        background: index === 0 ? "#10b981" : "#216a85",
                         boxShadow:
                           index === 0 ? "0 0 8px rgba(16, 185, 129, 0.55)" : "none",
                         marginTop: "0.35rem",
