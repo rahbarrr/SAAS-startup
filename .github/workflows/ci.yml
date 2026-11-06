@@ -98,8 +98,8 @@ jobs:
             exit 0
           fi
 
-          printf 'Checking changed files with a clean baseline:\\n'
-          printf ' - %s\\n' "${checked[@]}"
+          printf 'Checking changed files with a clean baseline:\n'
+          printf ' - %s\n' "${checked[@]}"
           npx prettier --check "${checked[@]}"
 
       - name: Lint
