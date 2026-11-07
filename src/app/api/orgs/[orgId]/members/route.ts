@@ -3,7 +3,11 @@ import { getAuthenticatedUser } from "@/lib/auth/session";
 import { AppError, jsonError, jsonSuccess } from "@/lib/http/envelope";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
-import { addMemberToOrg, listMembersForOrg } from "@/modules/tenancy/service";
+import {
+  addMemberToOrg,
+  listMembersForOrg,
+  updateMemberForOrg,
+} from "@/modules/tenancy/service";
 
 interface RouteContext {
   params: Promise<{ orgId: string }>;
@@ -32,11 +36,42 @@ export async function GET(
       candidateOrgId: orgId,
       rawQuery,
       repository,
+      scopeToAssignedTeam: searchParams.get("scope") === "team",
     });
 
     return jsonSuccess(result.items, 200, {
       pagination: result.pagination,
     });
+  } catch (error) {
+    return jsonError(error);
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  context: RouteContext
+): Promise<Response> {
+  try {
+    const { orgId } = await context.params;
+    const supabase = await createUserServerSupabaseClient();
+    const user = await getAuthenticatedUser(supabase);
+    const repository = new SupabaseTenancyRepository(supabase);
+
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      throw new AppError("VALIDATION_ERROR", "Request body must be valid JSON", 400);
+    }
+
+    const updated = await updateMemberForOrg({
+      user,
+      candidateOrgId: orgId,
+      rawInput: body,
+      repository,
+    });
+
+    return jsonSuccess(updated, 200);
   } catch (error) {
     return jsonError(error);
   }

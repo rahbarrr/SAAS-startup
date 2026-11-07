@@ -29,6 +29,7 @@ export async function GET(
       rawQuery: searchParams,
       tenancyRepository,
       auditRepository,
+      requireAdminAuditPermission: true,
     });
 
     return jsonSuccess(result, 200);

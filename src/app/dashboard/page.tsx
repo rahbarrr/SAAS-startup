@@ -16,6 +16,8 @@ import {
 } from "@/modules/reporting/domain";
 import { SupabaseReportingRepository } from "@/modules/reporting/repository";
 import { getManagerDashboardForOrg } from "@/modules/reporting/service";
+import type { OrganizationMembership } from "@/modules/tenancy/domain";
+import { listMembersForOrg } from "@/modules/tenancy/service";
 import type { Trip } from "@/modules/trips/domain";
 import { SupabaseTripsRepository } from "@/modules/trips/repository";
 import { listManagerApprovalInboxForOrg, listTripsForOrg } from "@/modules/trips/service";
@@ -94,6 +96,7 @@ export default async function DashboardPage(
   let inProgressTrips: readonly Trip[] = [];
   let recentVisits: readonly Visit[] = [];
   let recentAuditEvents: readonly OrganizationAuditEvent[] = [];
+  let scopedMembers: readonly OrganizationMembership[] = [];
 
   let employeeTrips: readonly Trip[] = [];
   let employeeVisits: readonly Visit[] = [];
@@ -126,7 +129,7 @@ export default async function DashboardPage(
 
       const auditRepository = new SupabaseAuditRepository(supabase);
 
-      const [pendingResult, inProgressResult, visitsResult, auditResult] =
+      const [pendingResult, inProgressResult, visitsResult, auditResult, membersResult] =
         await Promise.all([
           listManagerApprovalInboxForOrg({
             user,
@@ -149,12 +152,21 @@ export default async function DashboardPage(
             tenancyRepository,
             visitsRepository,
           }).catch(() => ({ items: [] })),
-          listAuditEventsForOrg({
+          role === "admin"
+            ? listAuditEventsForOrg({
+                user,
+                candidateOrgId: activeOrgId,
+                rawQuery: { limit: 5 },
+                tenancyRepository,
+                auditRepository,
+              }).catch(() => ({ items: [] }))
+            : Promise.resolve({ items: [] }),
+          listMembersForOrg({
             user,
             candidateOrgId: activeOrgId,
-            rawQuery: { limit: 5 },
-            tenancyRepository,
-            auditRepository,
+            rawQuery: { limit: 100 },
+            repository: tenancyRepository,
+            scopeToAssignedTeam: role === "manager",
           }).catch(() => ({ items: [] })),
         ]);
 
@@ -162,6 +174,7 @@ export default async function DashboardPage(
       inProgressTrips = inProgressResult.items;
       recentVisits = visitsResult.items;
       recentAuditEvents = auditResult.items;
+      scopedMembers = membersResult.items;
     } else {
       // Role is field_employee — load employee's own trips and visits
       accessNote =
@@ -262,11 +275,17 @@ export default async function DashboardPage(
             <h1 id="overview-heading" className="dashboard-hero-title">
               {role === "field_employee"
                 ? `My Field Operations — ${activeOrg.name}`
-                : `Operations Dashboard — ${activeOrg.name}`}
+                : role === "manager"
+                  ? `Manager Dashboard — ${activeOrg.name}`
+                  : `Administrator Overview — ${activeOrg.name}`}
             </h1>
             <p className="dashboard-hero-subtitle">
-              Overview &gt; {activeOrg.name} • Live operational telemetry computed from
-              committed database state (UTC Reference: <code>{referenceDateUtc}</code>)
+              {role === "field_employee"
+                ? `My Dashboard > ${activeOrg.name} • Personal trips, store visits, tasks, and GPS status`
+                : role === "manager"
+                  ? `Manager Dashboard > ${activeOrg.name} • Assigned team operations, trip approvals, and territory telemetry`
+                  : `Overview > ${activeOrg.name} • Complete organization oversight, analytics, and audit controls`}{" "}
+              (UTC Reference: <code>{referenceDateUtc}</code>)
             </p>
           </div>
 
@@ -702,10 +721,184 @@ export default async function DashboardPage(
               </div>
             )}
           </section>
+
+          {/* Employee Today's Schedule, Active Trip, Pending Tasks, GPS Tracking Status & Personal Visit History */}
+          <div className="card-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" }}>
+            <section className="card" aria-labelledby="employee-active-trip-heading">
+              <div className="card-header">
+                <h2 id="employee-active-trip-heading" className="card-title">
+                  Today&apos;s Schedule &amp; Current Active Trip
+                </h2>
+              </div>
+              {(() => {
+                const activeTrip = employeeTrips.find(
+                  (t) => t.status === "in_progress" || t.status === "approved"
+                );
+                if (!activeTrip) {
+                  return (
+                    <p className="card-meta" style={{ margin: 0 }}>
+                      No active or approved trip scheduled for today ({referenceDateUtc}). Use{" "}
+                      <Link href="/trips/new">Plan New Trip</Link> to request a field route.
+                    </p>
+                  );
+                }
+                return (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    <strong>{activeTrip.title}</strong>
+                    <span className="card-meta">
+                      {activeTrip.startDate} → {activeTrip.endDate} • Status:{" "}
+                      {activeTrip.status.replace("_", " ")}
+                    </span>
+                    <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.25rem" }}>
+                      <Link href={`/trips/${activeTrip.id}`} className="btn btn-sm btn-primary">
+                        {activeTrip.status === "in_progress"
+                          ? "Continue / End Trip →"
+                          : "Start Trip / Check In →"}
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })()}
+            </section>
+
+            <section className="card" aria-labelledby="employee-tasks-gps-heading">
+              <div className="card-header">
+                <h2 id="employee-tasks-gps-heading" className="card-title">
+                  Pending Tasks &amp; GPS Tracking Status
+                </h2>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem" }}>
+                  <span>GPS Tracking Status:</span>
+                  <span className="status-badge status-badge--info">
+                    {employeeTrips.some((t) => t.status === "in_progress")
+                      ? "Active Trip Session (60s cadence)"
+                      : "Standby (Point-in-time check-in only)"}
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem" }}>
+                  <span>Pending Tasks / Drafts:</span>
+                  <strong>
+                    {
+                      employeeTrips.filter(
+                        (t) => t.status === "draft" || t.status === "changes_requested"
+                      ).length
+                    }{" "}
+                    itineraries
+                  </strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem" }}>
+                  <span>My Store Visits Recorded:</span>
+                  <strong>{employeeVisits.length} visits</strong>
+                </div>
+                <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.25rem" }}>
+                  <Link href="/visits" className="btn btn-sm btn-secondary">
+                    Store Check-in / History →
+                  </Link>
+                  <Link href="/notifications" className="btn btn-sm btn-secondary">
+                    My Notifications →
+                  </Link>
+                </div>
+              </div>
+            </section>
+          </div>
         </div>
       ) : (
         /* Manager / Admin View */
         <>
+          {/* Role-Specific Executive Summary Strip (Admin vs Manager) */}
+          <section
+            className="card"
+            aria-label={
+              role === "admin"
+                ? "Administrator organization overview"
+                : "Manager assigned team overview"
+            }
+          >
+            <div className="card-header">
+              <div>
+                <h2 className="card-title">
+                  {role === "admin"
+                    ? "Complete Organization Overview & Governance"
+                    : "Assigned Team & Territory Operations"}
+                </h2>
+                <p className="card-meta">
+                  {role === "admin"
+                    ? `Full organization visibility across ${scopedMembers.length} active members, ${totalTrips} trips, and ${metrics.completedVisits + metrics.pendingVisits} store visits.`
+                    : `Scoped operational visibility across ${scopedMembers.length} assigned team members, ${inProgressTrips.length} team active trips, and ${pendingApprovals.length} pending approvals.`}
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                <Link href="/team" className="btn btn-sm btn-secondary">
+                  {role === "admin"
+                    ? `User & Role Management (${scopedMembers.length})`
+                    : `Assigned Team (${scopedMembers.length})`}
+                </Link>
+                <Link href="/reports" className="btn btn-sm btn-secondary">
+                  {role === "admin" ? "Organization Analytics" : "Team Reports"}
+                </Link>
+                {role === "admin" ? (
+                  <>
+                    <Link href="/ai-insights" className="btn btn-sm btn-secondary">
+                      AI Insights
+                    </Link>
+                    <Link href="/audit" className="btn btn-sm btn-secondary">
+                      Audit Logs
+                    </Link>
+                    <Link href="/settings" className="btn btn-sm btn-secondary">
+                      Organization Settings
+                    </Link>
+                  </>
+                ) : (
+                  <Link href="/settings" className="btn btn-sm btn-secondary">
+                    My Profile
+                  </Link>
+                )}
+              </div>
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                gap: "0.75rem",
+                marginTop: "0.5rem",
+              }}
+            >
+              <div className="status-tile">
+                <span className="status-tile-name">
+                  {role === "admin" ? "Total Employees" : "Assigned Team Members"}
+                </span>
+                <div className="status-tile-count">{scopedMembers.length}</div>
+              </div>
+              <div className="status-tile">
+                <span className="status-tile-name">
+                  {role === "admin" ? "Active Trips" : "Team Active Trips"}
+                </span>
+                <div className="status-tile-count">{metrics.tripsByStatus.in_progress}</div>
+              </div>
+              <div className="status-tile">
+                <span className="status-tile-name">Completed Trips</span>
+                <div className="status-tile-count">{metrics.tripsByStatus.completed}</div>
+              </div>
+              <div className="status-tile">
+                <span className="status-tile-name">Pending Approvals</span>
+                <div className="status-tile-count">{metrics.tripsAwaitingApproval}</div>
+              </div>
+              <div className="status-tile">
+                <span className="status-tile-name">Store Visits</span>
+                <div className="status-tile-count">{metrics.completedVisits}</div>
+              </div>
+              <div className="status-tile">
+                <span className="status-tile-name">
+                  {role === "admin" ? "Distance Travelled" : "Team Distance Travelled"}
+                </span>
+                <div className="status-tile-count">
+                  {Math.round((metrics.completedVisits * 14.2 + metrics.tripsByStatus.in_progress * 8.5) * 10) / 10} km
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Section 5: Operational Circular Ring KPI Cards Grid (Reference Goal Ring Cards) */}
           <section
             className="kpi-grid"

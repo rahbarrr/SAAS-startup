@@ -24,7 +24,10 @@ export interface SettingsClientProps {
 export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClientProps) {
   const { currentRole, profile } = useCurrentRole();
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState<SettingsTab>("company");
+  const canManageOrgSettings = userRole === "admin" && currentRole === "admin";
+  const [activeTab, setActiveTab] = useState<SettingsTab>(
+    canManageOrgSettings ? "company" : "preferences"
+  );
 
   // Form states
   const [orgName, setOrgName] = useState(activeOrg.name);
@@ -69,10 +72,16 @@ export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClien
   }, [activeOrg.id]);
 
   useEffect(() => {
-    if (activeTab === "billing" && !billingSummary && !billingLoading) {
+    if (!canManageOrgSettings && activeTab !== "preferences" && activeTab !== "notifications") {
+      setActiveTab("preferences");
+    }
+  }, [canManageOrgSettings, activeTab]);
+
+  useEffect(() => {
+    if (canManageOrgSettings && activeTab === "billing" && !billingSummary && !billingLoading) {
       loadBillingSummary();
     }
-  }, [activeTab, billingSummary, billingLoading, loadBillingSummary]);
+  }, [canManageOrgSettings, activeTab, billingSummary, billingLoading, loadBillingSummary]);
 
   const handleCheckoutUpgrade = async (planTier: "pro" | "enterprise") => {
     setBillingActionLoading(`checkout-${planTier}`);
@@ -169,14 +178,19 @@ export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClien
     showToast("User preferences updated for your session.", "success");
   };
 
-  const tabs: { id: SettingsTab; label: string; icon: string }[] = [
-    { id: "company", label: "Company Profile", icon: "building" },
-    { id: "preferences", label: "User Preferences", icon: "user" },
-    { id: "notifications", label: "Notifications", icon: "bell" },
-    { id: "workspace", label: "Territories & Workflows", icon: "map-pin" },
-    { id: "security", label: "Security & SSO", icon: "shield-check" },
-    { id: "billing", label: "Subscription & Billing", icon: "credit-card" },
-  ];
+  const tabs: { id: SettingsTab; label: string; icon: string }[] = canManageOrgSettings
+    ? [
+        { id: "company", label: "Company Profile", icon: "building" },
+        { id: "preferences", label: "Personal Profile & Preferences", icon: "user" },
+        { id: "notifications", label: "Notifications", icon: "bell" },
+        { id: "workspace", label: "Territories & Workflows", icon: "map-pin" },
+        { id: "security", label: "Security & SSO", icon: "shield-check" },
+        { id: "billing", label: "Subscription & Billing", icon: "credit-card" },
+      ]
+    : [
+        { id: "preferences", label: "Personal Profile & Preferences", icon: "user" },
+        { id: "notifications", label: "Notifications", icon: "bell" },
+      ];
 
   return (
     <div className="settings-layout">
@@ -213,8 +227,8 @@ export function SettingsClient({ activeOrg, userEmail, userRole }: SettingsClien
 
       {/* Settings Content Area */}
       <div className="card" style={{ padding: "1.75rem" }}>
-        {/* Tab 1: Company Profile */}
-        {activeTab === "company" && (
+        {/* Tab 1: Company Profile (Administrator Only) */}
+        {canManageOrgSettings && activeTab === "company" && (
           <div>
             <div style={{ marginBottom: "1.5rem" }}>
               <h2

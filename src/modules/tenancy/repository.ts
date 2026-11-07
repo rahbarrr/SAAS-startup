@@ -27,6 +27,7 @@ import type {
   AddOrgMemberInput,
   CreateOrganizationInput,
   ListOrgMembersQuery,
+  UpdateOrgMemberInput,
 } from "./schemas";
 
 export interface PaginatedMembersResult {
@@ -59,6 +60,11 @@ export interface TenancyRepository {
     query: ListOrgMembersQuery
   ): Promise<PaginatedMembersResult>;
   addOrgMember(orgId: string, input: AddOrgMemberInput): Promise<OrganizationMembership>;
+  updateOrgMember?(
+    orgId: string,
+    input: UpdateOrgMemberInput,
+    actorUserId?: string
+  ): Promise<OrganizationMembership>;
   createOrgInvitation(
     input: CreateInvitationRecordInput
   ): Promise<OrganizationInvitation>;
@@ -527,6 +533,72 @@ export class SupabaseTenancyRepository implements TenancyRepository {
         userId: membership.userId,
         role: membership.role,
         status: membership.status,
+      },
+    });
+    return membership;
+  }
+
+  async updateOrgMember(
+    orgId: string,
+    input: UpdateOrgMemberInput,
+    actorUserId?: string
+  ): Promise<OrganizationMembership> {
+    const updatePatch: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (input.role !== undefined) {
+      updatePatch.role = input.role;
+    }
+    if (input.status !== undefined) {
+      updatePatch.status = input.status;
+    }
+    if (input.managerUserId !== undefined) {
+      updatePatch.manager_user_id = input.managerUserId;
+    }
+
+    const { data, error } = await this.supabase
+      .from("organization_members")
+      .update(updatePatch)
+      .eq("organization_id", orgId)
+      .eq("user_id", input.userId)
+      .select(
+        "id, organization_id, user_id, role, status, manager_user_id, created_at, updated_at"
+      )
+      .maybeSingle<DbOrganizationMemberRow>();
+
+    if (error) {
+      const msg = error.message ?? "";
+      if (error.code === "42501" || msg.includes("cannot modify their own role")) {
+        throw new AppError(
+          "FORBIDDEN_INSUFFICIENT_ROLE",
+          "You are not permitted to modify this member's role or status.",
+          403
+        );
+      }
+      throw new AppError("INTERNAL_ERROR", "Failed to update organization member", 500);
+    }
+
+    if (!data) {
+      throw new AppError(
+        "NOT_FOUND",
+        "Member was not found in this organization",
+        404
+      );
+    }
+
+    const membership = mapMembershipRow(data);
+    await this.tryRecordAuditEvent({
+      orgId,
+      actorUserId: actorUserId ?? null,
+      actorRole: "admin",
+      actionType: input.role !== undefined ? "member.role_changed" : "member.updated",
+      entityType: "member",
+      entityId: membership.id,
+      metadata: {
+        userId: membership.userId,
+        role: membership.role,
+        status: membership.status,
+        managerUserId: membership.managerUserId,
       },
     });
     return membership;

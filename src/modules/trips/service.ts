@@ -2,7 +2,9 @@ import "server-only";
 import { AppError } from "@/lib/http/envelope";
 import type { StoresRepository } from "@/modules/stores/repository";
 import {
+  assertManagerTeamAccess,
   assertTenantResourceOwnership,
+  isUserInAuthorizedScope,
   requireOrgPermission,
   resolveTenantContext,
 } from "@/modules/tenancy/authorization";
@@ -87,13 +89,45 @@ export async function listTripsForOrg(params: {
 
   const parsedQuery = listTripsQuerySchema.parse(params.rawQuery);
 
-  // Field employees can only list their own trips; managers and admins can view all trips in their active org
+  // Field employees can only list their own trips; managers are scoped to their assigned team; admins view all org trips
+  if (
+    context.role === "manager" &&
+    parsedQuery.ownerUserId &&
+    parsedQuery.ownerUserId !== context.user.id
+  ) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: parsedQuery.ownerUserId,
+      repository: params.tenancyRepository,
+    });
+  }
+
   const effectiveQuery =
     context.role === "field_employee"
       ? { ...parsedQuery, ownerUserId: context.user.id }
       : parsedQuery;
 
-  return params.tripsRepository.listTrips(context.orgId, effectiveQuery);
+  const result = await params.tripsRepository.listTrips(context.orgId, effectiveQuery);
+
+  if (context.role === "manager") {
+    const scopedItems = [];
+    for (const trip of result.items) {
+      const inScope = await isUserInAuthorizedScope({
+        context,
+        targetUserId: trip.ownerUserId,
+        repository: params.tenancyRepository,
+      });
+      if (inScope) {
+        scopedItems.push(trip);
+      }
+    }
+    return {
+      items: scopedItems,
+      pagination: result.pagination,
+    };
+  }
+
+  return result;
 }
 
 /**
@@ -119,7 +153,19 @@ export async function listManagerApprovalInboxForOrg(params: {
 
   const parsed = listManagerApprovalInboxQuerySchema.parse(params.rawQuery ?? {});
 
-  return params.tripsRepository.listTrips(context.orgId, {
+  if (
+    context.role === "manager" &&
+    parsed.ownerUserId &&
+    parsed.ownerUserId !== context.user.id
+  ) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: parsed.ownerUserId,
+      repository: params.tenancyRepository,
+    });
+  }
+
+  const result = await params.tripsRepository.listTrips(context.orgId, {
     limit: parsed.limit,
     cursor: parsed.cursor,
     status: parsed.status === "all" ? undefined : parsed.status,
@@ -129,6 +175,26 @@ export async function listManagerApprovalInboxForOrg(params: {
     startDateTo: parsed.startDateTo,
     search: parsed.search,
   });
+
+  if (context.role === "manager") {
+    const scopedItems = [];
+    for (const trip of result.items) {
+      const inScope = await isUserInAuthorizedScope({
+        context,
+        targetUserId: trip.ownerUserId,
+        repository: params.tenancyRepository,
+      });
+      if (inScope) {
+        scopedItems.push(trip);
+      }
+    }
+    return {
+      items: scopedItems,
+      pagination: result.pagination,
+    };
+  }
+
+  return result;
 }
 
 export async function getTripDetailForOrg(params: {
@@ -164,6 +230,14 @@ export async function getTripDetailForOrg(params: {
       "The requested trip was not found in your active organization",
       404
     );
+  }
+
+  if (context.role === "manager" && detail.trip.ownerUserId !== context.user.id) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: detail.trip.ownerUserId,
+      repository: params.tenancyRepository,
+    });
   }
 
   return detail;
@@ -406,6 +480,14 @@ export async function decideTripForOrg(params: {
       "Self-approval is forbidden: you cannot approve or decide your own trip",
       403
     );
+  }
+
+  if (context.role === "manager") {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: verifiedTrip.ownerUserId,
+      repository: params.tenancyRepository,
+    });
   }
 
   if (verifiedTrip.status !== "submitted") {

@@ -5,8 +5,11 @@ import {
   assertValidManagerInOrg,
   generateRawInvitationToken,
   hashInvitationToken,
+  hasPermission,
   requireAnyOrgRole,
+  requireAnyPermission,
   requireOrgPermission,
+  requirePermission,
   resolveTenantContext,
 } from "./authorization";
 import type {
@@ -25,6 +28,7 @@ import {
   createOrgInvitationInputSchema,
   listOrgMembersQuerySchema,
   switchActiveOrgInputSchema,
+  updateOrgMemberInputSchema,
 } from "./schemas";
 
 export async function listUserOrganizationsForCaller(params: {
@@ -142,8 +146,9 @@ export async function createOrganizationForCaller(params: {
 export async function listMembersForOrg(params: {
   user: AuthenticatedUser | null;
   candidateOrgId: unknown;
-  rawQuery: unknown;
+  rawQuery?: unknown;
   repository: TenancyRepository;
+  scopeToAssignedTeam?: boolean;
 }): Promise<PaginatedMembersResult> {
   const tenantContext = await resolveTenantContext({
     user: params.user,
@@ -151,10 +156,106 @@ export async function listMembersForOrg(params: {
     repository: params.repository,
   });
 
-  requireOrgPermission(tenantContext, "members:read");
+  requireAnyPermission(tenantContext, ["team.view.organization", "team.view.assigned"]);
 
-  const query = listOrgMembersQuerySchema.parse(params.rawQuery);
-  return params.repository.listOrgMembers(tenantContext.orgId, query);
+  const query = listOrgMembersQuerySchema.parse(params.rawQuery ?? {});
+  const result = await params.repository.listOrgMembers(tenantContext.orgId, query);
+
+  if (
+    params.scopeToAssignedTeam &&
+    !hasPermission(tenantContext.role, "team.view.organization")
+  ) {
+    const filteredItems = result.items.filter(
+      (member) =>
+        member.managerUserId === tenantContext.user.id ||
+        member.userId === tenantContext.user.id
+    );
+    return {
+      items: filteredItems,
+      pagination: {
+        ...result.pagination,
+        hasMore: false,
+        nextCursor: null,
+      },
+    };
+  }
+
+  return result;
+}
+
+export async function updateMemberForOrg(params: {
+  user: AuthenticatedUser | null;
+  candidateOrgId: unknown;
+  rawInput: unknown;
+  repository: TenancyRepository;
+}): Promise<OrganizationMembership> {
+  const tenantContext = await resolveTenantContext({
+    user: params.user,
+    candidateOrgId: params.candidateOrgId,
+    repository: params.repository,
+  });
+
+  requirePermission(tenantContext, "users.manage");
+
+  const input = updateOrgMemberInputSchema.parse(params.rawInput);
+
+  if (input.role !== undefined) {
+    requirePermission(tenantContext, "roles.manage");
+  }
+
+  const targetMembership = await params.repository.getMembershipByUserAndOrg(
+    input.userId,
+    tenantContext.orgId
+  );
+
+  if (!targetMembership) {
+    throw new AppError(
+      "NOT_FOUND",
+      "The specified member was not found in your organization",
+      404
+    );
+  }
+
+  // Never allow users to change their own role or deactivate their own membership
+  if (targetMembership.userId === tenantContext.user.id) {
+    if (input.role !== undefined && input.role !== targetMembership.role) {
+      throw new AppError(
+        "FORBIDDEN_INSUFFICIENT_ROLE",
+        "Users are not permitted to change their own role",
+        403
+      );
+    }
+    if (input.status !== undefined && input.status !== targetMembership.status) {
+      throw new AppError(
+        "FORBIDDEN_INSUFFICIENT_ROLE",
+        "Users are not permitted to modify their own membership status",
+        403
+      );
+    }
+  }
+
+  if (input.managerUserId !== undefined) {
+    await assertValidManagerInOrg({
+      orgId: tenantContext.orgId,
+      memberUserId: input.userId,
+      managerUserId: input.managerUserId,
+      repository: params.repository,
+    });
+  }
+
+  if (!params.repository.updateOrgMember) {
+    throw new AppError(
+      "INTERNAL_ERROR",
+      "Member update is not supported by the active repository",
+      500
+    );
+  }
+
+  return params.repository.updateOrgMember(
+    tenantContext.orgId,
+    input,
+    tenantContext.user.id
+  );
 }
 
 export async function addMemberToOrg(params: {

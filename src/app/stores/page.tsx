@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { StoresDirectoryClient } from "@/components/stores/StoresDirectoryClient";
 import { ErrorState } from "@/components/ui/States";
 import { requireActiveWorkspace } from "@/lib/auth/workspace-context";
+import { hasPermission } from "@/modules/tenancy/authorization";
 import type { Store } from "@/modules/stores/domain";
 import { SupabaseStoresRepository } from "@/modules/stores/repository";
 import { listStoresForOrg } from "@/modules/stores/service";
@@ -10,7 +11,7 @@ export default async function StoresPage(): Promise<ReactNode> {
   const context = await requireActiveWorkspace();
   const { user, activeOrgId, role, tenancyRepository, supabase } = context;
 
-  const canWrite = role === "admin" || role === "manager";
+  const canWrite = hasPermission(role, "stores.manage");
   let stores: readonly Store[] = [];
   let errorMessage: string | null = null;
 

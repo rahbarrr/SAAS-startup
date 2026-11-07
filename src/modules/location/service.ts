@@ -2,7 +2,9 @@ import "server-only";
 import { AppError } from "@/lib/http/envelope";
 import type { AuditRepository } from "@/modules/audit/repository";
 import {
+  assertManagerTeamAccess,
   assertTenantResourceOwnership,
+  isUserInAuthorizedScope,
   requireAnyOrgRole,
   requireOrgPermission,
   resolveTenantContext,
@@ -108,6 +110,14 @@ export async function listTripBreadcrumbs(params: {
     requireOwnership: true,
     allowManagerOverride: true,
   });
+
+  if (context.role === "manager" && detail.trip.ownerUserId !== context.user.id) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: detail.trip.ownerUserId,
+      repository: params.tenancyRepository,
+    });
+  }
 
   const query = listBreadcrumbsQuerySchema.parse(params.rawQuery ?? {});
 
@@ -372,7 +382,22 @@ export async function listManagerLiveTracking(params: {
     context.orgId
   );
 
-  return locations.map((loc) => {
+  const visibleLocations = [];
+  for (const loc of locations) {
+    if (context.role === "manager") {
+      const inScope = await isUserInAuthorizedScope({
+        context,
+        targetUserId: loc.employeeId,
+        repository: params.tenancyRepository,
+      });
+      if (!inScope) {
+        continue;
+      }
+    }
+    visibleLocations.push(loc);
+  }
+
+  return visibleLocations.map((loc) => {
     const freshness = assessLocationFreshness(loc.recordedAt, loc.accuracyM);
     return {
       ...loc,

@@ -3,8 +3,10 @@ import {
   TeamDirectoryClient,
   type TeamMemberDisplay,
 } from "@/components/team/TeamDirectoryClient";
+import { PermissionDeniedState } from "@/components/ui/PermissionDeniedState";
 import { ErrorState } from "@/components/ui/States";
 import { requireActiveWorkspace } from "@/lib/auth/workspace-context";
+import { hasAnyPermission, hasPermission } from "@/modules/tenancy/authorization";
 import type { OrganizationMembership } from "@/modules/tenancy/domain";
 import { listMembersForOrg } from "@/modules/tenancy/service";
 
@@ -12,7 +14,18 @@ export default async function TeamPage(): Promise<ReactNode> {
   const context = await requireActiveWorkspace();
   const { user, activeOrgId, activeOrg, role, tenancyRepository } = context;
 
-  const isAdmin = role === "admin";
+  if (!hasAnyPermission(role, ["team.view.organization", "team.view.assigned"])) {
+    return (
+      <PermissionDeniedState
+        title="Team Directory Restricted to Managers & Administrators"
+        message="Employees are not permitted to view other employees' private information or organization directory records."
+        currentRole={role}
+        requiredPermission="team.view.assigned"
+      />
+    );
+  }
+
+  const isAdmin = hasPermission(role, "team.view.organization");
   let members: TeamMemberDisplay[] = [];
   let errorMessage: string | null = null;
 
@@ -22,6 +35,7 @@ export default async function TeamPage(): Promise<ReactNode> {
       candidateOrgId: activeOrgId,
       rawQuery: { limit: 100 },
       repository: tenancyRepository,
+      scopeToAssignedTeam: !isAdmin,
     });
 
     const userIds = membersResult.items.map((m: OrganizationMembership) => m.userId);
@@ -80,6 +94,7 @@ export default async function TeamPage(): Promise<ReactNode> {
       activeOrgId={activeOrgId}
       activeOrgName={activeOrg.name}
       isAdmin={isAdmin}
+      currentUserId={user.id}
       initialMembers={members}
     />
   );

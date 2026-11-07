@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
 import { Radio } from "lucide-react";
 import { LiveTrackingDashboardClient } from "@/components/dashboard/LiveTrackingDashboardClient";
+import { PermissionDeniedState } from "@/components/ui/PermissionDeniedState";
 import { requireActiveWorkspace } from "@/lib/auth/workspace-context";
 import { SupabaseLocationRepository } from "@/modules/location/repository";
 import { listManagerLiveTracking } from "@/modules/location/service";
 import { SupabaseStoresRepository } from "@/modules/stores/repository";
+import { hasAnyPermission, hasPermission } from "@/modules/tenancy/authorization";
 
 export const metadata = {
   title: "Live Location Tracking | FieldTrack",
@@ -15,19 +17,22 @@ export default async function LiveTrackingPage(): Promise<ReactNode> {
   const context = await requireActiveWorkspace();
   const { user, activeOrgId, role, tenancyRepository, supabase } = context;
 
-  if (role !== "manager" && role !== "admin") {
+  const canTrack = hasAnyPermission(role, [
+    "tracking.view.organization",
+    "tracking.view.team",
+  ]);
+  if (!canTrack) {
     return (
-      <div className="page-container">
-        <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
-          <h2>Access Restricted</h2>
-          <p style={{ color: "#64748b" }}>
-            The Live Manager Map is restricted to organization managers and
-            administrators.
-          </p>
-        </div>
-      </div>
+      <PermissionDeniedState
+        title="Live Map Restricted to Managers & Administrators"
+        message="Employees can only view their own GPS tracking status on their personal dashboard and active trip view."
+        currentRole={role}
+        requiredPermission="tracking.view.team"
+      />
     );
   }
+
+  const isOrgWideTracking = hasPermission(role, "tracking.view.organization");
 
   const locationRepository = new SupabaseLocationRepository(supabase);
   const storesRepository = new SupabaseStoresRepository(supabase);
@@ -70,11 +75,16 @@ export default async function LiveTrackingPage(): Promise<ReactNode> {
           }}
         >
           <Radio size={24} style={{ color: "var(--brand-primary, #216a85)" }} aria-hidden="true" />
-          <span>Live Location Tracking</span>
+          <span>
+            {isOrgWideTracking
+              ? "Live Location Tracking — Organization Overview"
+              : "Live Location Tracking — Assigned Team Only"}
+          </span>
         </h1>
         <p style={{ margin: 0, color: "#64748b", fontSize: "0.875rem" }}>
-          Real-time GPS tracking of field employees on authorized active work trips. Stale
-          & delayed location warnings applied automatically.
+          {isOrgWideTracking
+            ? "Organization-wide real-time GPS tracking of all field employees on active work trips and store geofences."
+            : "Assigned team real-time GPS tracking of your direct reports on authorized active work trips."}
         </p>
       </div>
 

@@ -3,7 +3,7 @@ import { AppError } from "@/lib/http/envelope";
 import { logger } from "@/lib/observability/logger";
 import {
   requireAnyOrgRole,
-  requireOrgPermission,
+  requirePermission,
   resolveTenantContext,
 } from "@/modules/tenancy/authorization";
 import type { AuthenticatedUser } from "@/modules/tenancy/domain";
@@ -85,6 +85,7 @@ export async function listAuditEventsForOrg(params: {
   rawQuery: unknown;
   tenancyRepository: TenancyRepository;
   auditRepository: AuditRepository;
+  requireAdminAuditPermission?: boolean;
 }): Promise<PaginatedAuditEventsResult> {
   const context = await resolveTenantContext({
     user: params.user,
@@ -92,8 +93,11 @@ export async function listAuditEventsForOrg(params: {
     repository: params.tenancyRepository,
   });
 
-  // Managers and Admins can view audit logs
-  requireOrgPermission(context, "members:read");
+  if (params.requireAdminAuditPermission) {
+    requirePermission(context, "audit.view");
+  } else {
+    requireAnyOrgRole(context, ["admin", "manager"]);
+  }
 
   const query = listAuditLogsQuerySchema.parse(params.rawQuery ?? {});
 

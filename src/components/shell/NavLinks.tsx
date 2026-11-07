@@ -4,7 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useCurrentRole } from "@/components/ui/RoleContext";
-import type { OrgRole } from "@/modules/tenancy/domain";
+import {
+  normalizeOrgRole,
+  type OrgRole,
+  type Permission,
+  type UserRole,
+} from "@/modules/tenancy/domain";
 
 export interface NavItem {
   href: string;
@@ -15,6 +20,7 @@ export interface DetailedNavItem extends NavItem {
   icon: string;
   badge?: string;
   allowedRoles?: OrgRole[];
+  requiredPermission?: Permission;
 }
 
 export interface NavSection {
@@ -33,36 +39,77 @@ export const PRIMARY_NAV_ITEMS: readonly NavItem[] = [
   { href: "/team", label: "Organization Team" },
 ];
 
-export const SIDEBAR_NAV_SECTIONS: NavSection[] = [
+export const ADMIN_NAV_SECTIONS: NavSection[] = [
   {
     title: "Field Operations",
     items: [
-      { href: "/dashboard", label: "Overview", icon: "grid" },
+      {
+        href: "/dashboard",
+        label: "Overview",
+        icon: "grid",
+        requiredPermission: "dashboard.organization",
+      },
       {
         href: "/dashboard/live-tracking",
         label: "Live Map",
         icon: "radar",
         badge: "LIVE",
-        allowedRoles: ["admin", "manager"],
+        requiredPermission: "tracking.view.organization",
       },
-      { href: "/trips", label: "Trips", icon: "map-pin" },
+      {
+        href: "/trips",
+        label: "Trips",
+        icon: "map-pin",
+        requiredPermission: "trips.view.organization",
+      },
       {
         href: "/approvals",
         label: "Approvals",
         icon: "check-circle",
-        allowedRoles: ["admin", "manager"],
+        requiredPermission: "approvals.view",
       },
-      { href: "/visits", label: "Store Visits", icon: "clipboard-list" },
-      { href: "/stores", label: "Stores & Territories", icon: "building" },
+      {
+        href: "/visits",
+        label: "Store Visits",
+        icon: "clipboard-list",
+        requiredPermission: "visits.view.organization",
+      },
+      {
+        href: "/stores",
+        label: "Stores & Territories",
+        icon: "building",
+        requiredPermission: "stores.view.organization",
+      },
     ],
   },
   {
     title: "Intelligence & Team",
     items: [
-      { href: "/team", label: "Team Directory", icon: "users" },
-      { href: "/reports", label: "Reports & Analytics", icon: "bar-chart" },
-      { href: "/ai-insights", label: "AI Insights", icon: "sparkles", badge: "AI" },
-      { href: "/notifications", label: "Notifications", icon: "bell" },
+      {
+        href: "/team",
+        label: "Team Directory",
+        icon: "users",
+        requiredPermission: "team.view.organization",
+      },
+      {
+        href: "/reports",
+        label: "Reports & Analytics",
+        icon: "bar-chart",
+        requiredPermission: "reports.view.organization",
+      },
+      {
+        href: "/ai-insights",
+        label: "AI Insights",
+        icon: "sparkles",
+        badge: "AI",
+        requiredPermission: "ai.insights",
+      },
+      {
+        href: "/notifications",
+        label: "Notifications",
+        icon: "bell",
+        requiredPermission: "notifications.view",
+      },
     ],
   },
   {
@@ -72,13 +119,214 @@ export const SIDEBAR_NAV_SECTIONS: NavSection[] = [
         href: "/audit",
         label: "Audit Logs",
         icon: "shield",
-        allowedRoles: ["admin", "manager"],
+        requiredPermission: "audit.view",
       },
-      { href: "/settings", label: "Settings", icon: "settings" },
-      { href: "/", label: "Public Landing Page", icon: "external-link" },
+      {
+        href: "/settings",
+        label: "Settings",
+        icon: "settings",
+        requiredPermission: "settings.organization",
+      },
     ],
   },
 ];
+
+export const MANAGER_NAV_SECTIONS: NavSection[] = [
+  {
+    title: "Team Operations",
+    items: [
+      {
+        href: "/dashboard",
+        label: "Manager Dashboard",
+        icon: "grid",
+        requiredPermission: "dashboard.team",
+      },
+      {
+        href: "/dashboard/live-tracking",
+        label: "Live Map",
+        icon: "radar",
+        badge: "TEAM",
+        requiredPermission: "tracking.view.team",
+      },
+      {
+        href: "/trips",
+        label: "Team Trips",
+        icon: "map-pin",
+        requiredPermission: "trips.view.team",
+      },
+      {
+        href: "/approvals",
+        label: "Approvals",
+        icon: "check-circle",
+        requiredPermission: "approvals.review",
+      },
+      {
+        href: "/visits",
+        label: "Store Visits",
+        icon: "clipboard-list",
+        requiredPermission: "visits.view.team",
+      },
+      {
+        href: "/stores",
+        label: "Assigned Stores",
+        icon: "building",
+        requiredPermission: "stores.view.assigned",
+      },
+    ],
+  },
+  {
+    title: "Team & Analytics",
+    items: [
+      {
+        href: "/team",
+        label: "Team Directory",
+        icon: "users",
+        requiredPermission: "team.view.assigned",
+      },
+      {
+        href: "/reports",
+        label: "Team Reports",
+        icon: "bar-chart",
+        requiredPermission: "reports.view.team",
+      },
+      {
+        href: "/notifications",
+        label: "Notifications",
+        icon: "bell",
+        requiredPermission: "notifications.view",
+      },
+      {
+        href: "/settings",
+        label: "Profile",
+        icon: "settings",
+        requiredPermission: "profile.view",
+      },
+    ],
+  },
+];
+
+export const EMPLOYEE_NAV_SECTIONS: NavSection[] = [
+  {
+    title: "My Field Workspace",
+    items: [
+      {
+        href: "/dashboard",
+        label: "My Dashboard",
+        icon: "grid",
+        requiredPermission: "dashboard.personal",
+      },
+      {
+        href: "/trips",
+        label: "My Trips",
+        icon: "map-pin",
+        requiredPermission: "trips.view.self",
+      },
+      {
+        href: "/visits",
+        label: "My Visits",
+        icon: "clipboard-list",
+        requiredPermission: "visits.view.self",
+      },
+      {
+        href: "/stores",
+        label: "Assigned Stores",
+        icon: "building",
+        requiredPermission: "stores.view.assigned",
+      },
+      {
+        href: "/reports",
+        label: "My Activity",
+        icon: "bar-chart",
+        requiredPermission: "reports.view.self",
+      },
+      {
+        href: "/notifications",
+        label: "Notifications",
+        icon: "bell",
+        requiredPermission: "notifications.view",
+      },
+      {
+        href: "/settings",
+        label: "Profile",
+        icon: "settings",
+        requiredPermission: "profile.view",
+      },
+    ],
+  },
+];
+
+export const SIDEBAR_NAV_SECTIONS: NavSection[] = ADMIN_NAV_SECTIONS;
+
+export function getRoleNavigationSections(role: UserRole): NavSection[] {
+  const normalized = normalizeOrgRole(role);
+  if (normalized === "admin") {
+    return ADMIN_NAV_SECTIONS;
+  }
+  if (normalized === "manager") {
+    return MANAGER_NAV_SECTIONS;
+  }
+  return EMPLOYEE_NAV_SECTIONS;
+}
+
+export function getRoleTopPillNav(role: UserRole): readonly NavItem[] {
+  const normalized = normalizeOrgRole(role);
+  if (normalized === "admin") {
+    return [
+      { href: "/dashboard", label: "Overview" },
+      { href: "/dashboard/live-tracking", label: "Live Map" },
+      { href: "/trips", label: "Trips" },
+      { href: "/approvals", label: "Approvals" },
+      { href: "/reports", label: "Reports & Analytics" },
+    ];
+  }
+  if (normalized === "manager") {
+    return [
+      { href: "/dashboard", label: "Manager Dashboard" },
+      { href: "/dashboard/live-tracking", label: "Live Map" },
+      { href: "/trips", label: "Team Trips" },
+      { href: "/approvals", label: "Approvals" },
+      { href: "/reports", label: "Team Reports" },
+    ];
+  }
+  return [
+    { href: "/dashboard", label: "My Dashboard" },
+    { href: "/trips", label: "My Trips" },
+    { href: "/visits", label: "My Visits" },
+    { href: "/stores", label: "Assigned Stores" },
+    { href: "/reports", label: "My Activity" },
+  ];
+}
+
+export function getRoleMobileBottomNav(
+  role: UserRole
+): readonly { href: string; label: string; icon: string }[] {
+  const normalized = normalizeOrgRole(role);
+  if (normalized === "admin") {
+    return [
+      { href: "/dashboard", label: "Overview", icon: "grid" },
+      { href: "/dashboard/live-tracking", label: "Live Map", icon: "radar" },
+      { href: "/trips", label: "Trips", icon: "map-pin" },
+      { href: "/approvals", label: "Approvals", icon: "check-circle" },
+      { href: "/settings", label: "Settings", icon: "settings" },
+    ];
+  }
+  if (normalized === "manager") {
+    return [
+      { href: "/dashboard", label: "Dashboard", icon: "grid" },
+      { href: "/dashboard/live-tracking", label: "Live Map", icon: "radar" },
+      { href: "/trips", label: "Team Trips", icon: "map-pin" },
+      { href: "/approvals", label: "Approvals", icon: "check-circle" },
+      { href: "/settings", label: "Profile", icon: "settings" },
+    ];
+  }
+  return [
+    { href: "/dashboard", label: "My Dashboard", icon: "grid" },
+    { href: "/trips", label: "My Trips", icon: "map-pin" },
+    { href: "/visits", label: "My Visits", icon: "clipboard-list" },
+    { href: "/stores", label: "Assigned Stores", icon: "building" },
+    { href: "/settings", label: "Profile", icon: "settings" },
+  ];
+}
 
 function NavIcon({ name }: { name: string }) {
   switch (name) {
@@ -309,10 +557,11 @@ function NavIcon({ name }: { name: string }) {
 export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
   const pathname = usePathname();
   const { currentRole } = useCurrentRole();
+  const sections = getRoleNavigationSections(currentRole);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-      {SIDEBAR_NAV_SECTIONS.map((section, sectionIdx) => {
+      {sections.map((section, sectionIdx) => {
         const visibleItems = section.items.filter(
           (item) => !item.allowedRoles || item.allowedRoles.includes(currentRole)
         );
@@ -388,34 +637,10 @@ export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
   );
 }
 
-const TOP_PILL_ITEMS: readonly {
-  href: string;
-  label: string;
-  allowedRoles?: OrgRole[];
-}[] = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/reports", label: "Analytics" },
-  { href: "/trips", label: "Field Trips" },
-  { href: "/visits", label: "Store Visits" },
-  {
-    href: "/dashboard/live-tracking",
-    label: "Live Radar",
-    allowedRoles: ["admin", "manager"],
-  },
-  {
-    href: "/approvals",
-    label: "Approvals",
-    allowedRoles: ["admin", "manager"],
-  },
-];
-
 export function TopPillNav(): ReactNode {
   const pathname = usePathname();
   const { currentRole } = useCurrentRole();
-
-  const visiblePills = TOP_PILL_ITEMS.filter(
-    (item) => !item.allowedRoles || item.allowedRoles.includes(currentRole)
-  );
+  const visiblePills = getRoleTopPillNav(currentRole);
 
   return (
     <nav className="top-pill-nav" aria-label="Quick module navigation">
@@ -443,16 +668,7 @@ export function TopPillNav(): ReactNode {
 export function MobileBottomNav(): ReactNode {
   const pathname = usePathname();
   const { currentRole } = useCurrentRole();
-
-  const mobileItems: { href: string; label: string; icon: string }[] = [
-    { href: "/dashboard", label: "Overview", icon: "grid" },
-    ...(currentRole === "admin" || currentRole === "manager"
-      ? [{ href: "/dashboard/live-tracking", label: "Live Map", icon: "radar" }]
-      : [{ href: "/stores", label: "Stores", icon: "building" }]),
-    { href: "/trips", label: "Trips", icon: "map-pin" },
-    { href: "/visits", label: "Visits", icon: "clipboard-list" },
-    { href: "/reports", label: "Reports", icon: "bar-chart" },
-  ];
+  const mobileItems = getRoleMobileBottomNav(currentRole);
 
   return (
     <nav className="mobile-bottom-nav" aria-label="Mobile primary navigation">

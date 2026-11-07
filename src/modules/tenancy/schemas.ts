@@ -73,6 +73,34 @@ export const addOrgMemberInputSchema = z
 
 export type AddOrgMemberInput = z.infer<typeof addOrgMemberInputSchema>;
 
+export const updateOrgMemberInputSchema = z
+  .object({
+    userId: z.string().uuid("userId must be a valid UUID"),
+    role: z.enum(ORG_ROLES).optional(),
+    status: z.enum(["active", "deactivated"]).optional(),
+    managerUserId: z
+      .string()
+      .uuid("managerUserId must be a valid UUID")
+      .nullable()
+      .optional(),
+  })
+  .strict()
+  .refine(
+    (data) =>
+      data.role !== undefined ||
+      data.status !== undefined ||
+      data.managerUserId !== undefined,
+    {
+      message: "At least one field (role, status, or managerUserId) must be provided",
+    }
+  )
+  .refine((data) => !data.managerUserId || data.managerUserId !== data.userId, {
+    message: "A member cannot be assigned as their own manager",
+    path: ["managerUserId"],
+  });
+
+export type UpdateOrgMemberInput = z.infer<typeof updateOrgMemberInputSchema>;
+
 export const switchActiveOrgInputSchema = z.object({
   orgId: z.string().uuid("orgId must be a valid UUID"),
 });

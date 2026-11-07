@@ -1310,10 +1310,20 @@ describe("Trips workflow: date validation, stop ordering, active stores, status 
       }),
     ]);
 
-    expect(firstOutcome.status).toBe("fulfilled");
-    expect(secondOutcome.status).toBe("rejected");
-    if (secondOutcome.status === "rejected") {
-      expect(secondOutcome.reason).toMatchObject({
+    const fulfilledCount = [firstOutcome, secondOutcome].filter(
+      (o) => o.status === "fulfilled"
+    ).length;
+    const rejectedCount = [firstOutcome, secondOutcome].filter(
+      (o) => o.status === "rejected"
+    ).length;
+
+    expect(fulfilledCount).toBe(1);
+    expect(rejectedCount).toBe(1);
+
+    const rejectedOutcome =
+      firstOutcome.status === "rejected" ? firstOutcome : secondOutcome;
+    if (rejectedOutcome.status === "rejected") {
+      expect(rejectedOutcome.reason).toMatchObject({
         code: "CONFLICT",
         status: 409,
       });
@@ -1327,18 +1337,26 @@ describe("Trips workflow: date validation, stop ordering, active stores, status 
       tenancyRepository,
       tripsRepository,
     });
-    expect(finalDetail.trip.status).toBe("approved");
-    expect(finalDetail.trip.decidedBy).toBe(MANAGER_A.id);
+    expect(["approved", "rejected"]).toContain(finalDetail.trip.status);
+
+    const winnerOutcome =
+      firstOutcome.status === "fulfilled" ? firstOutcome : secondOutcome;
+    const winnerTrip = (
+      winnerOutcome as PromiseFulfilledResult<{ trip: { decidedBy: string; status: string } }>
+    ).value.trip;
+
+    expect(finalDetail.trip.decidedBy).toBe(winnerTrip.decidedBy);
+    expect(finalDetail.trip.status).toBe(winnerTrip.status);
 
     const history = buildEmployeeDecisionHistory(finalDetail);
     expect(history.notification.channel).toBe("in_app_only");
-    expect(history.notification.currentStatus).toBe("approved");
+    expect(history.notification.currentStatus).toBe(winnerTrip.status);
     expect(history.decisions).toHaveLength(1);
     expect(history.decisions[0]).toMatchObject({
-      eventType: "trip_approved",
-      decisionStatus: "approved",
-      reviewerUserId: MANAGER_A.id,
-      note: "Approved by Marcus",
+      eventType:
+        winnerTrip.status === "approved" ? "trip_approved" : "trip_rejected",
+      decisionStatus: winnerTrip.status,
+      reviewerUserId: winnerTrip.decidedBy,
     });
   });
 

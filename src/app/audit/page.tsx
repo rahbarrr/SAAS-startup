@@ -1,14 +1,27 @@
 import type { ReactNode } from "react";
 import { AuditLogViewerClient } from "@/components/audit/AuditLogViewerClient";
+import { PermissionDeniedState } from "@/components/ui/PermissionDeniedState";
 import { ErrorState } from "@/components/ui/States";
 import { requireActiveWorkspace } from "@/lib/auth/workspace-context";
 import type { OrganizationAuditEvent } from "@/modules/audit/domain";
 import { SupabaseAuditRepository } from "@/modules/audit/repository";
 import { listAuditEventsForOrg } from "@/modules/audit/service";
+import { hasPermission } from "@/modules/tenancy/authorization";
 
 export default async function AuditPage(): Promise<ReactNode> {
   const context = await requireActiveWorkspace();
   const { user, activeOrgId, activeOrg, role, tenancyRepository, supabase } = context;
+
+  if (!hasPermission(role, "audit.view")) {
+    return (
+      <PermissionDeniedState
+        title="Audit Logs Restricted to Organization Administrators"
+        message="Only organization administrators have permission to view or export immutable enterprise audit logs."
+        currentRole={role}
+        requiredPermission="audit.view"
+      />
+    );
+  }
 
   let initialEvents: OrganizationAuditEvent[] = [];
   let initialCursor: string | null = null;
@@ -22,6 +35,7 @@ export default async function AuditPage(): Promise<ReactNode> {
       rawQuery: { limit: 25 },
       tenancyRepository,
       auditRepository,
+      requireAdminAuditPermission: true,
     });
 
     initialEvents = result.items;

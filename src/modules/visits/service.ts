@@ -1,7 +1,9 @@
 import "server-only";
 import { AppError } from "@/lib/http/envelope";
 import {
+  assertManagerTeamAccess,
   assertTenantResourceOwnership,
+  isUserInAuthorizedScope,
   requireOrgPermission,
   resolveTenantContext,
 } from "@/modules/tenancy/authorization";
@@ -80,12 +82,44 @@ export async function listVisitsForOrg(params: {
 
   const parsedQuery = listVisitsQuerySchema.parse(params.rawQuery ?? {});
 
+  if (
+    context.role === "manager" &&
+    parsedQuery.employeeUserId &&
+    parsedQuery.employeeUserId !== context.user.id
+  ) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: parsedQuery.employeeUserId,
+      repository: params.tenancyRepository,
+    });
+  }
+
   const effectiveQuery =
     context.role === "field_employee"
       ? { ...parsedQuery, employeeUserId: context.user.id }
       : parsedQuery;
 
-  return params.visitsRepository.listVisits(context.orgId, effectiveQuery);
+  const result = await params.visitsRepository.listVisits(context.orgId, effectiveQuery);
+
+  if (context.role === "manager") {
+    const scopedItems = [];
+    for (const visit of result.items) {
+      const inScope = await isUserInAuthorizedScope({
+        context,
+        targetUserId: visit.employeeUserId,
+        repository: params.tenancyRepository,
+      });
+      if (inScope) {
+        scopedItems.push(visit);
+      }
+    }
+    return {
+      items: scopedItems,
+      pagination: result.pagination,
+    };
+  }
+
+  return result;
 }
 
 export async function getVisitDetailForOrg(params: {
@@ -127,6 +161,14 @@ export async function getVisitDetailForOrg(params: {
       "The requested visit was not found in your active organization",
       404
     );
+  }
+
+  if (context.role === "manager" && detail.visit.employeeUserId !== context.user.id) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: detail.visit.employeeUserId,
+      repository: params.tenancyRepository,
+    });
   }
 
   return detail;

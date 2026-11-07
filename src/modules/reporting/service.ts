@@ -6,7 +6,9 @@ import {
   encodeCursor,
 } from "@/lib/http/envelope";
 import {
+  assertManagerTeamAccess,
   assertTenantResourceOwnership,
+  isUserInAuthorizedScope,
   requireOrgPermission,
   resolveTenantContext,
 } from "@/modules/tenancy/authorization";
@@ -335,6 +337,47 @@ function evaluateFilteredDashboardDataset(params: {
   };
 }
 
+async function scopeDatasetForContext(params: {
+  context: Awaited<ReturnType<typeof resolveTenantContext>>;
+  dataset: OrgOperationalDataset;
+  tenancyRepository: TenancyRepository;
+}): Promise<OrgOperationalDataset> {
+  const { context, dataset, tenancyRepository } = params;
+  if (context.role !== "manager") {
+    return dataset;
+  }
+
+  const scopedTrips = [];
+  for (const trip of dataset.trips) {
+    const inScope = await isUserInAuthorizedScope({
+      context,
+      targetUserId: trip.ownerUserId,
+      repository: tenancyRepository,
+    });
+    if (inScope) {
+      scopedTrips.push(trip);
+    }
+  }
+
+  const scopedVisits = [];
+  for (const visit of dataset.visits) {
+    const inScope = await isUserInAuthorizedScope({
+      context,
+      targetUserId: visit.employeeUserId,
+      repository: tenancyRepository,
+    });
+    if (inScope) {
+      scopedVisits.push(visit);
+    }
+  }
+
+  return {
+    ...dataset,
+    trips: scopedTrips,
+    visits: scopedVisits,
+  };
+}
+
 export async function getManagerDashboardForOrg(params: {
   user: AuthenticatedUser | null;
   candidateOrgId: unknown;
@@ -352,9 +395,26 @@ export async function getManagerDashboardForOrg(params: {
   requireOrgPermission(context, "visits:review");
 
   const filter = managerDashboardFilterSchema.parse(params.rawQuery ?? {});
-  const dataset = await params.reportingRepository.loadOrgOperationalDataset(
+  if (
+    context.role === "manager" &&
+    filter.employeeUserId &&
+    filter.employeeUserId !== context.user.id
+  ) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: filter.employeeUserId,
+      repository: params.tenancyRepository,
+    });
+  }
+
+  const rawDataset = await params.reportingRepository.loadOrgOperationalDataset(
     context.orgId
   );
+  const dataset = await scopeDatasetForContext({
+    context,
+    dataset: rawDataset,
+    tenancyRepository: params.tenancyRepository,
+  });
   const referenceDateUtc = (params.now ?? new Date()).toISOString().slice(0, 10);
 
   const { metrics, matchingStopRows } = evaluateFilteredDashboardDataset({
@@ -414,9 +474,26 @@ export async function exportManagerReportCsvForOrg(params: {
   requireOrgPermission(context, "visits:review");
 
   const filter = managerDashboardFilterSchema.parse(params.rawQuery ?? {});
-  const dataset = await params.reportingRepository.loadOrgOperationalDataset(
+  if (
+    context.role === "manager" &&
+    filter.employeeUserId &&
+    filter.employeeUserId !== context.user.id
+  ) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: filter.employeeUserId,
+      repository: params.tenancyRepository,
+    });
+  }
+
+  const rawDataset = await params.reportingRepository.loadOrgOperationalDataset(
     context.orgId
   );
+  const dataset = await scopeDatasetForContext({
+    context,
+    dataset: rawDataset,
+    tenancyRepository: params.tenancyRepository,
+  });
   const referenceDateUtc = (params.now ?? new Date()).toISOString().slice(0, 10);
 
   const { matchingStopRows } = evaluateFilteredDashboardDataset({
@@ -485,6 +562,14 @@ export async function getTripPlannedVsActualForOrg(params: {
       "The requested trip was not found in your active organization",
       404
     );
+  }
+
+  if (context.role === "manager" && trip.ownerUserId !== context.user.id) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: trip.ownerUserId,
+      repository: params.tenancyRepository,
+    });
   }
 
   const referenceDateUtc = (params.now ?? new Date()).toISOString().slice(0, 10);
@@ -560,6 +645,14 @@ export async function getVisitPlannedVsActualForOrg(params: {
       "The requested visit was not found in your active organization",
       404
     );
+  }
+
+  if (context.role === "manager" && visit.employeeUserId !== context.user.id) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: visit.employeeUserId,
+      repository: params.tenancyRepository,
+    });
   }
 
   const stop = dataset.tripStops.find(
@@ -644,9 +737,14 @@ export async function getOperationsReportForOrg(params: {
   requireOrgPermission(context, "visits:review");
 
   const filter = operationsReportFilterSchema.parse(params.rawQuery ?? {});
-  const dataset = await params.reportingRepository.loadOrgOperationalDataset(
+  const rawDataset = await params.reportingRepository.loadOrgOperationalDataset(
     context.orgId
   );
+  const dataset = await scopeDatasetForContext({
+    context,
+    dataset: rawDataset,
+    tenancyRepository: params.tenancyRepository,
+  });
   const now = params.now ?? new Date();
   const referenceDateUtc = now.toISOString().slice(0, 10);
 

@@ -33,6 +33,7 @@ export interface TeamDirectoryClientProps {
   activeOrgId: string;
   activeOrgName: string;
   isAdmin: boolean;
+  currentUserId?: string;
 }
 
 export interface CreatedInviteInfo {
@@ -49,15 +50,22 @@ export function TeamDirectoryClient({
   activeOrgId,
   activeOrgName,
   isAdmin,
+  currentUserId,
 }: TeamDirectoryClientProps): ReactNode {
   const { showToast } = useToast();
   const { currentRole } = useCurrentRole();
-  const canInvite = isAdmin || currentRole === "admin";
+  const canManage = isAdmin && currentRole === "admin";
+  const canInvite = canManage;
 
-  const members = initialMembers;
+  const [members, setMembers] = useState<readonly TeamMemberDisplay[]>(initialMembers);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selectedMember, setSelectedMember] = useState<TeamMemberDisplay | null>(null);
+  const [editRole, setEditRole] = useState<OrgRole>("field_employee");
+  const [editStatus, setEditStatus] = useState<"active" | "deactivated">("active");
+  const [editManagerId, setEditManagerId] = useState<string>("");
+  const [isUpdatingMember, setIsUpdatingMember] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
 
   // Invite modal state
   const [isInviteOpen, setIsInviteOpen] = useState(false);
@@ -173,6 +181,86 @@ export function TeamDirectoryClient({
     showToast("Invitation link copied to clipboard!", "success");
   }
 
+  function openMemberModal(member: TeamMemberDisplay) {
+    setSelectedMember(member);
+    setEditRole(member.role);
+    setEditStatus(member.status === "deactivated" ? "deactivated" : "active");
+    setEditManagerId(member.managerUserId ?? "");
+    setUpdateError(null);
+  }
+
+  async function handleUpdateMember() {
+    if (!selectedMember || !canManage) return;
+    setIsUpdatingMember(true);
+    setUpdateError(null);
+
+    try {
+      const res = await fetch(`/api/orgs/${activeOrgId}/members`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: selectedMember.userId,
+          role: editRole,
+          status: editStatus,
+          managerUserId: editManagerId || null,
+        }),
+      });
+
+      const payload = (await res.json().catch(() => null)) as {
+        data?: {
+          role: OrgRole;
+          status: MembershipStatus;
+          managerUserId: string | null;
+        };
+        error?: { message?: string } | string;
+      } | null;
+
+      if (!res.ok || !payload?.data) {
+        const msg =
+          (typeof payload?.error === "object" ? payload.error?.message : null) ??
+          "Failed to update member role or status.";
+        throw new Error(msg);
+      }
+
+      const updatedData = payload.data;
+      const managerObj = members.find((m) => m.userId === updatedData.managerUserId);
+      const nextTitle =
+        updatedData.role === "admin"
+          ? "Workspace Administrator"
+          : updatedData.role === "manager"
+            ? "Operations Manager"
+            : "Field Merchandising Representative";
+
+      const updatedMember: TeamMemberDisplay = {
+        ...selectedMember,
+        role: updatedData.role,
+        status: updatedData.status,
+        managerUserId: updatedData.managerUserId,
+        managerName: managerObj?.name,
+        title: nextTitle,
+      };
+
+      setMembers((prev) =>
+        prev.map((item) => (item.id === updatedMember.id ? updatedMember : item))
+      );
+      setSelectedMember(updatedMember);
+      showToast(`Updated ${selectedMember.name}'s membership & role`, "success");
+    } catch (err) {
+      setUpdateError(
+        err instanceof Error ? err.message : "Unable to update member settings."
+      );
+    } finally {
+      setIsUpdatingMember(false);
+    }
+  }
+
+  const availableManagers = members.filter(
+    (m) =>
+      (m.role === "admin" || m.role === "manager") &&
+      m.status === "active" &&
+      m.userId !== selectedMember?.userId
+  );
+
   return (
     <div
       className="mobile-page-stack"
@@ -181,13 +269,19 @@ export function TeamDirectoryClient({
       {/* Header section */}
       <section className="page-header" aria-labelledby="team-heading">
         <div className="page-header-text">
-          <p className="page-eyebrow">Organization Directory</p>
+          <p className="page-eyebrow">
+            {canManage ? "User, Role & Invitation Management" : "Assigned Team Scope"}
+          </p>
           <h1 id="team-heading" className="page-title">
-            Team &amp; Memberships
+            {canManage
+              ? "Team Directory, Role & User Management"
+              : "Team Directory — Assigned Team Only"}
           </h1>
           <p className="page-subtitle">
-            Workspace: <strong>{activeOrgName}</strong> • Real membership directory, role
-            assignments, and member invitations.
+            Workspace: <strong>{activeOrgName}</strong> •{" "}
+            {canManage
+              ? "View all organization employees, invite managers and employees, assign roles, and manage active status."
+              : "Operational directory of employees assigned to your team and reporting line."}
           </p>
         </div>
 
@@ -395,9 +489,9 @@ export function TeamDirectoryClient({
                     <button
                       type="button"
                       className="btn btn-sm btn-outline"
-                      onClick={() => setSelectedMember(m)}
+                      onClick={() => openMemberModal(m)}
                     >
-                      View Details
+                      {canManage ? "Manage Role / User" : "View Details"}
                     </button>
                   </td>
                 </tr>
@@ -407,20 +501,37 @@ export function TeamDirectoryClient({
         </div>
       )}
 
-      {/* Member Profile Modal */}
+      {/* Member Profile & Role Management Modal */}
       {selectedMember ? (
         <Modal
           isOpen={true}
           onClose={() => setSelectedMember(null)}
-          title={`Member Details: ${selectedMember.name}`}
+          title={
+            canManage
+              ? `Manage Member & Role: ${selectedMember.name}`
+              : `Member Details: ${selectedMember.name}`
+          }
           footer={
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setSelectedMember(null)}
-            >
-              Close
-            </button>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setSelectedMember(null)}
+                disabled={isUpdatingMember}
+              >
+                Close
+              </button>
+              {canManage ? (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleUpdateMember}
+                  disabled={isUpdatingMember}
+                >
+                  {isUpdatingMember ? "Saving…" : "Save Role & Status"}
+                </button>
+              ) : null}
+            </div>
           }
         >
           <div
@@ -431,6 +542,15 @@ export function TeamDirectoryClient({
               fontSize: "0.875rem",
             }}
           >
+            {updateError ? (
+              <div
+                className="form-error"
+                style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+              >
+                <AlertCircle size={14} aria-hidden="true" /> {updateError}
+              </div>
+            ) : null}
+
             <div
               style={{
                 display: "grid",
@@ -474,6 +594,81 @@ export function TeamDirectoryClient({
                 </div>
               </div>
             </div>
+
+            {canManage ? (
+              <div
+                style={{
+                  borderTop: "1px solid var(--border-subtle)",
+                  paddingTop: "1rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.85rem",
+                }}
+              >
+                <h4 style={{ margin: 0, fontSize: "0.9rem", fontWeight: 700 }}>
+                  Role &amp; Access Controls
+                </h4>
+                {selectedMember.userId === currentUserId ? (
+                  <p className="card-meta" style={{ margin: 0 }}>
+                    Security policy: You cannot modify your own role or deactivate your
+                    own account.
+                  </p>
+                ) : null}
+                <div className="form-group">
+                  <label htmlFor="member-role-select" className="form-label">
+                    Assigned Role
+                  </label>
+                  <select
+                    id="member-role-select"
+                    value={editRole}
+                    onChange={(e) => setEditRole(e.target.value as OrgRole)}
+                    className="form-select"
+                    disabled={selectedMember.userId === currentUserId}
+                  >
+                    <option value="admin">Administrator</option>
+                    <option value="manager">Manager</option>
+                    <option value="field_employee">Employee (Field Rep)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="member-status-select" className="form-label">
+                    Account Status
+                  </label>
+                  <select
+                    id="member-status-select"
+                    value={editStatus}
+                    onChange={(e) =>
+                      setEditStatus(e.target.value as "active" | "deactivated")
+                    }
+                    className="form-select"
+                    disabled={selectedMember.userId === currentUserId}
+                  >
+                    <option value="active">Active</option>
+                    <option value="deactivated">Deactivated</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="member-manager-select" className="form-label">
+                    Reporting Manager
+                  </label>
+                  <select
+                    id="member-manager-select"
+                    value={editManagerId}
+                    onChange={(e) => setEditManagerId(e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="">No assigned manager</option>
+                    {availableManagers.map((mgr) => (
+                      <option key={mgr.userId} value={mgr.userId}>
+                        {mgr.name} ({mgr.role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            ) : null}
 
             <div>
               <span className="card-meta">System user ID</span>
