@@ -130,3 +130,210 @@
   --accent: #D4B16E;
   --accent-hover: #E4C88F;
 }
+
+/* FieldTrack operations workspace: manager, approvals, team and reporting surfaces */
+.app-content {
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+}
+.page-header,
+.dashboard-hero {
+  position: relative;
+  padding: clamp(1rem, 2.2vw, 1.5rem);
+  border: 1px solid var(--border-default);
+  border-radius: 1.25rem;
+  background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-subtle) 100%);
+  box-shadow: 0 8px 24px rgba(16, 41, 31, 0.045);
+}
+.page-eyebrow {
+  margin: 0 0 .45rem;
+  color: var(--brand-violet-strong);
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.page-title,
+.dashboard-hero-title {
+  color: var(--text-primary);
+  letter-spacing: -.035em;
+  font-weight: 760;
+}
+.page-subtitle,
+.dashboard-hero-subtitle {
+  max-width: 72ch;
+  color: var(--text-secondary);
+}
+.card,
+.neu-card,
+.kpi-card,
+.activity-bento-card,
+.status-distribution-card {
+  border: 1px solid var(--border-default);
+  border-radius: 1.125rem;
+  background: var(--bg-surface);
+  box-shadow: 0 5px 18px rgba(16, 41, 31, .045);
+}
+.card,
+.neu-card {
+  padding: clamp(1rem, 2vw, 1.35rem);
+}
+.card-header {
+  gap: .875rem;
+  padding-bottom: .875rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.card-title,
+.dashboard-section-title {
+  color: var(--text-primary);
+  font-weight: 740;
+  letter-spacing: -.02em;
+}
+.card-meta,
+.dashboard-section-subtitle {
+  color: var(--text-muted);
+}
+.dashboard-section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.dashboard-section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .45rem .7rem;
+  border: 1px solid var(--brand-violet-border);
+  border-radius: 999px;
+  background: var(--brand-violet-soft);
+  color: var(--brand-violet-strong);
+  font-size: .72rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.dashboard-live-dot {
+  width: .45rem;
+  height: .45rem;
+  border-radius: 50%;
+  background: #2E9B68;
+  box-shadow: 0 0 0 3px rgba(46, 155, 104, .12);
+}
+.dashboard-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.kpi-grid,
+.kpi-grid--four,
+.kpi-grid--three {
+  gap: .875rem;
+}
+.kpi-card {
+  min-width: 0;
+  padding: 1.125rem;
+}
+.kpi-value {
+  color: var(--text-primary);
+  font-weight: 780;
+  letter-spacing: -.04em;
+}
+.kpi-card .card-header h3 {
+  color: var(--text-secondary);
+}
+.form-input,
+.form-select,
+.form-textarea,
+.input-field,
+.filter-bar input,
+.filter-bar select {
+  border-color: var(--border-default);
+  border-radius: .7rem;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+.filter-bar {
+  border: 1px solid var(--border-default);
+  border-radius: 1rem;
+  background: var(--bg-surface);
+  box-shadow: 0 4px 16px rgba(16, 41, 31, .035);
+}
+.btn {
+  border-radius: .7rem;
+  font-weight: 700;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+}
+.btn-primary {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--brand-on-primary);
+  box-shadow: 0 3px 9px rgba(15, 81, 50, .14);
+}
+.btn-primary:hover {
+  background: var(--brand-primary-hover);
+  border-color: var(--brand-primary-hover);
+  transform: translateY(-1px);
+}
+.btn-secondary,
+.btn-outline {
+  border-color: var(--border-default);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+.data-table,
+.table {
+  width: 100%;
+  color: var(--text-primary);
+}
+.data-table th,
+.table th {
+  padding: .85rem .9rem;
+  text-transform: uppercase;
+}
+.data-table td,
+.table td {
+  padding: .85rem .9rem;
+}
+.data-table tbody tr:last-child td,
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.table-container,
+.table-responsive {
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: .85rem;
+}
+.status-badge {
+  border: 1px solid transparent;
+}
+.modal-content,
+[role="dialog"] {
+  border-color: var(--border-default);
+}
+@media (max-width: 767px) {
+  .dashboard-section-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .dashboard-activity-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .page-header,
+  .dashboard-hero {
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+  .card,
+  .neu-card {
+    padding: 1rem;
+  }
+  .card-header {
+    align-items: flex-start;
+  }
+  .table-container,
+  .table-responsive {
+    margin-inline: -.25rem;
+  }
+}
+
