@@ -11,9 +11,10 @@ import type { OrgRole } from "@/modules/tenancy/domain";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
 import { resolveActiveWorkspaceForUser } from "@/modules/tenancy/service";
 import "./globals.css";
+import "./fieldtrack-brand.css";
 
 export const viewport: Viewport = {
-  themeColor: "#042933",
+  themeColor: "#174B35",
   width: "device-width",
   initialScale: 1,
 };
