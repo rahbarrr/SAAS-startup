@@ -504,8 +504,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: MOBILE_THEME.colors.canvasBg,
-    paddingHorizontal: 16,
-    paddingTop: 44,
+    paddingHorizontal: 20,
+    paddingTop: 52,
     paddingBottom: 16,
   },
   navBar: {
@@ -540,9 +540,11 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: MOBILE_THEME.colors.obsidianHero,
-    borderRadius: MOBILE_THEME.radii.hero,
-    padding: 15,
-    marginBottom: 8,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
   },
   headerEyebrow: {
     fontSize: 10,
@@ -553,8 +555,9 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   tripTitle: {
-    fontSize: 18,
+    fontSize: 23,
     fontWeight: "800",
+    letterSpacing: -0.5,
     color: "#FFFFFF",
   },
   tripMeta: {
@@ -605,11 +608,16 @@ const styles = StyleSheet.create({
   },
   stopCard: {
     backgroundColor: MOBILE_THEME.colors.surfaceCard,
-    borderRadius: MOBILE_THEME.radii.card,
-    padding: 14,
-    marginBottom: 8,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: MOBILE_THEME.colors.borderSubtle,
+    shadowColor: "#10291F",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.045,
+    shadowRadius: 10,
+    elevation: 2,
   },
   stopHeader: {
     flexDirection: "row",
@@ -673,9 +681,9 @@ const styles = StyleSheet.create({
   },
   manualCheckInBtn: {
     backgroundColor: MOBILE_THEME.colors.electricBlue,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: MOBILE_THEME.radii.pill,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    borderRadius: 14,
   },
   manualBtnText: {
     color: "#ffffff",
