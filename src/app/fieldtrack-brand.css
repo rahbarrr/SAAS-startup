@@ -339,3 +339,163 @@
 
 /* Global product experience: navigation,\nauthentication,\nlanding and data views */
 html,\nbody {\n  background: var(--bg-canvas);\n  color: var(--text-primary);\n}\nbody {\n  font-family: var(--font-sans);\n  text-rendering: optimizeLegibility;\n}\n::selection {\n  background: rgba(46,125,89,.18);\n  color: var(--text-primary);\n}\n:focus-visible {\n  outline: 3px solid var(--focus-ring);\n  outline-offset: 2px;\n}\na {\n  text-underline-offset: .18em;\n}\nhr {\n  border-color: var(--border-subtle);\n}\n.app-shell,\n.app-main,\n.app-content,\nmain {\n  color: var(--text-primary);\n}\n.app-main {\n  min-width: 0;\n  background: var(--bg-canvas);\n}\n.app-content {\n  width: 100%;\n  max-width: var(--content-max-width);\n  margin-inline: auto;\n  padding: clamp(1rem, 2vw, 1.75rem);\n}\n.app-header,\n.top-header,\n.header-bar {\n  background: color-mix(in srgb, var(--bg-surface) 94%, transparent);\n  border-bottom: 1px solid var(--border-default);\n  backdrop-filter: blur(14px);\n}\n.sidebar,\n.app-sidebar,\n.desktop-sidebar,\n.sidebar-nav {\n  background: var(--gradient-sidebar);\n  color: #F3F7F1;\n  border-color: rgba(255,255,255,.1);\n}\n.sidebar a,\n.app-sidebar a,\n.desktop-sidebar a {\n  color: rgba(255,255,255,.78);\n}\n.sidebar a:hover,\n.app-sidebar a:hover,\n.desktop-sidebar a:hover,\n.sidebar a[aria-current="page"],\n.app-sidebar a[aria-current="page"] {\n  color: #FFFFFF;\n  background: rgba(255,255,255,.12);\n  border-radius: .7rem;\n}\n.header-page-title,\n.header-breadcrumb-current {\n  color: var(--text-primary);\n  font-weight: 720;\n}\n.header-breadcrumb a,\n.breadcrumb-ancestor {\n  color: var(--text-muted);\n}\n.header-role-pill {\n  border: 1px solid var(--brand-violet-border);\n  background: var(--brand-violet-soft);\n  color: var(--brand-violet-strong);\n}\n.user-menu-trigger,\n.user-menu-panel,\n.org-switcher,\n.org-switcher-menu {\n  border-color: var(--border-default);\n  background: var(--bg-surface);\n  color: var(--text-primary);\n}\n.user-menu-panel {\n  box-shadow: 0 18px 48px rgba(16,41,31,.16);\n  border-radius: 1rem;\n}\n.user-menu-item:hover {\n  background: var(--bg-subtle);\n}\n.mobile-bottom-nav,\n.bottom-nav {\n  background: var(--bg-surface);\n  border-top: 1px solid var(--border-default);\n}\n.mobile-bottom-nav a[aria-current="page"],\n.bottom-nav a[aria-current="page"] {\n  color: var(--brand-primary);\n}\n.page-header {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: flex-end;\n  justify-content: space-between;\n  gap: 1rem;\n}\n.page-title {\n  font-size: clamp(1.55rem, 2.5vw, 2.1rem);\n  line-height: 1.12;\n}\n.page-subtitle {\n  line-height: 1.65;\n}\n.card,\n.neu-card,\n.kpi-card,\n.activity-bento-card,\n.status-distribution-card,\n.approval-card,\n.trip-card,\n.visit-card,\n.store-card,\n.team-member-card {\n  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;\n}\n.card:hover,\n.neu-card:hover,\n.kpi-card:hover,\n.trip-card:hover,\n.visit-card:hover,\n.store-card:hover {\n  border-color: var(--border-strong);\n  box-shadow: 0 10px 26px rgba(16,41,31,.075);\n}\n.btn:focus-visible,\nbutton:focus-visible,\ninput:focus-visible,\nselect:focus-visible,\ntextarea:focus-visible {\n  outline: 3px solid var(--focus-ring);\n  outline-offset: 2px;\n}\n.btn:disabled,\nbutton:disabled {\n  cursor: not-allowed;\n}\ninput,\nselect,\ntextarea {\n  accent-color: var(--brand-primary);\n}\ninput[type="checkbox"],\ninput[type="radio"] {\n  width: 1rem;\n  height: 1rem;\n}\n.form-label {\n  color: var(--text-secondary);\n  font-weight: 650;\n}\n.form-input,\n.form-select,\n.form-textarea,\n.input-field {\n  min-height: 2.8rem;\n  padding: .7rem .85rem;\n  border: 1px solid var(--border-default);\n  border-radius: .7rem;\n  box-shadow: none;\n  transition: border-color .16s ease, box-shadow .16s ease;\n}\n.form-input:focus,\n.form-select:focus,\n.form-textarea:focus,\n.input-field:focus {\n  border-color: var(--brand-violet-strong);\n  box-shadow: var(--focus-ring-shadow);\n  outline: none;\n}\n.form-group {\n  min-width: 0;\n}\n.alert {\n  border-radius: .8rem;\n}\n.status-badge,\n.badge-info,\n.badge-success,\n.badge-warning,\n.badge-danger {\n  border-radius: 999px;\n}\n.table,\n.data-table {\n  border-collapse: separate;\n  border-spacing: 0;\n}\n.table thead th,\n.data-table thead th {\n  background: var(--bg-subtle);\n  color: var(--text-secondary);\n  font-size: .7rem;\n  font-weight: 800;\n  letter-spacing: .055em;\n  white-space: nowrap;\n}\n.table tbody tr:hover,\n.data-table tbody tr:hover {\n  background: var(--bg-muted);\n}\n.table td,\n.data-table td {\n  border-bottom: 1px solid var(--border-subtle);\n  vertical-align: middle;\n}\n.empty-state,\n.state-card,\n.permission-denied-state {\n  border: 1px dashed var(--border-strong);\n  border-radius: 1rem;\n  background: var(--bg-surface);\n}\n.modal-backdrop {\n  background: rgba(16, 31, 23, .55);\n  backdrop-filter: blur(4px);\n}\n.modal,\n.modal-content,\n[role="dialog"] {\n  border-radius: 1.1rem;\n  background: var(--bg-surface);\n  color: var(--text-primary);\n  box-shadow: 0 24px 70px rgba(10,25,16,.22);\n}\n.auth-layout {\n  min-height: 100vh;\n  background: var(--bg-canvas);\n}\n.auth-brand-panel {\n  background: var(--gradient-sidebar);\n  color: #F5F7F1;\n}\n.auth-brand-headline {\n  color: #FFFFFF;\n  letter-spacing: -.035em;\n}\n.auth-brand-copy,\n.auth-brand-footnote {\n  color: rgba(245,247,241,.76);\n}\n.auth-feature-icon {\n  background: rgba(255,255,255,.14);\n  color: #D4A655;\n}\n.auth-form-panel {\n  background: var(--bg-canvas);\n}\n.auth-card {\n  width: min(100%, 31rem);\n  padding: clamp(1.25rem, 3vw, 2rem);\n  border: 1px solid var(--border-default);\n  border-radius: 1.25rem;\n  background: var(--bg-surface);\n  box-shadow: 0 18px 55px rgba(16,41,31,.08);\n}\n.auth-title {\n  color: var(--text-primary);\n  letter-spacing: -.035em;\n}\n.auth-subtitle,\n.auth-footer-text {\n  color: var(--text-secondary);\n}\n.auth-inline-link,\n.auth-back-link {\n  color: var(--brand-primary);\n  font-weight: 700;\n}\n.auth-divider::before,\n.auth-divider::after {\n  background: var(--border-default);\n}\n.landing-header {\n  background: color-mix(in srgb, var(--bg-canvas) 92%, transparent);\n  border-bottom: 1px solid transparent;\n  backdrop-filter: blur(16px);\n}\n.landing-header.is-scrolled {\n  background: color-mix(in srgb, var(--bg-surface) 94%, transparent);\n  border-bottom-color: var(--border-default);\n  box-shadow: 0 6px 24px rgba(16,41,31,.06);\n}\n.landing-brand-icon,\n.brand-icon-box {\n  background: var(--gradient-brand);\n  color: #FFFFFF;\n  border-radius: .8rem;\n}\n.landing-brand-name {\n  color: var(--brand-dark);\n  font-weight: 800;\n  letter-spacing: -.035em;\n}\n.landing-nav-link,\n.landing-signin-link {\n  color: var(--text-secondary);\n}\n.landing-nav-link:hover,\n.landing-signin-link:hover {\n  color: var(--brand-primary);\n}\n.landing-hero {\n  background: radial-gradient(ellipse at 50% 0%, rgba(46,125,89,.11), transparent 58%), var(--bg-canvas);\n}\n.hero-eyebrow {\n  border-color: var(--brand-violet-border);\n  background: var(--brand-violet-soft);\n  color: var(--brand-violet-strong);\n}\n.eyebrow-dot {\n  background: var(--brand-accent);\n}\n.hero-headline {\n  color: var(--text-primary);\n  letter-spacing: -.055em;\n}\n.headline-accent {\n  color: var(--brand-primary);\n}\n.hero-subhead {\n  color: var(--text-secondary);\n}\n.hero-trust-item {\n  color: var(--text-secondary);\n}\n.trust-icon {\n  color: var(--brand-primary);\n}\n.landing-mobile-drawer {\n  background: var(--bg-surface);\n  color: var(--text-primary);\n}\n.landing-mobile-backdrop {\n  background: rgba(16,31,23,.55);\n}\n.landing-drawer-link {\n  color: var(--text-primary);\n}\n.landing-drawer-link:hover {\n  background: var(--bg-subtle);\n  color: var(--brand-primary);\n}\n.landing-footer,\n.footer {\n  background: var(--brand-darker);\n  color: #F3F7F1;\n}\n.pricing-card,\n.feature-card,\n.showcase-card,\n.faq-item {\n  border-color: var(--border-default);\n  border-radius: 1rem;\n  background: var(--bg-surface);\n}\n@media (prefers-reduced-motion: reduce) {\n  *,\n  *::before,\n  *::after {\n    scroll-behavior: auto !important;\n    animation-duration: .01ms !important;\n    animation-iteration-count: 1 !important;\n    transition-duration: .01ms !important;\n  }\n}\n@media (max-width: 767px) {\n  .app-content {\n    padding: .9rem;\n    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));\n  }\n  .auth-layout {\n    display: block;\n  }\n  .auth-brand-panel {\n    display: none;\n  }\n  .auth-form-panel {\n    min-height: 100vh;\n    padding: 1rem;\n  }\n  .auth-form-inner {\n    width: 100%;\n    max-width: 31rem;\n    margin: 0 auto;\n  }\n  .auth-card {\n    padding: 1.25rem;\n    border-radius: 1rem;\n  }\n  .landing-header-container {\n    padding-inline: 1rem;\n  }\n  .hero-headline {\n    font-size: clamp(2.25rem, 10vw, 3.5rem);\n    line-height: 1.02;\n  }\n  .hero-cta-group {\n    width: 100%;\n    flex-direction: column;\n  }\n  .hero-cta-group > * {\n    width: 100%;\n    justify-content: center;\n  }\n  .hero-trust-badges {\n    flex-wrap: wrap;\n    justify-content: center;\n    gap: .65rem 1rem;\n  }\n  .page-header {\n    align-items: flex-start;\n  }\n  .table-container,\n  .table-responsive {\n    max-width: 100%;\n  }\n}\n/* Exact application shell and public-site component contracts */ .landing-viewport {\n  min-height: 100vh;\n  background: var(--bg-canvas);\n}\n.app-sidebar {\n  background: var(--gradient-sidebar);\n  color: #F3F7F1;\n  border-right: 1px solid rgba(255,255,255,.1);\n}\n.sidebar-header,\n.sidebar-content,\n.sidebar-footer {\n  color: #F3F7F1;\n}\n.sidebar-welcome-block {\n  background: rgba(255,255,255,.08);\n  border: 1px solid rgba(255,255,255,.12);\n  border-radius: 1rem;\n}\n.sidebar-welcome-heading,\n.sidebar-promo-title {\n  color: #FFFFFF;\n}\n.sidebar-welcome-subtitle,\n.sidebar-promo-meta {\n  color: rgba(255,255,255,.68);\n}\n.sidebar-promo-card {\n  background: rgba(255,255,255,.08);\n  border: 1px solid rgba(255,255,255,.12);\n  border-radius: 1rem;\n}\n.sidebar-promo-cta {\n  color: #E7EFE8;\n}\n.sidebar-nav-section {\n  margin-block: .7rem;\n}\n.sidebar-nav-group-label {\n  color: rgba(255,255,255,.55);\n  font-size: .67rem;\n  font-weight: 800;\n  letter-spacing: .1em;\n  text-transform: uppercase;\n}\n.sidebar-nav-list {\n  gap: .2rem;\n}\n.sidebar-nav-list .nav-link,\n.sidebar-nav-list a {\n  min-height: 2.65rem;\n  border-radius: .7rem;\n  color: rgba(255,255,255,.76);\n  transition: background .16s ease, color .16s ease;\n}\n.sidebar-nav-list .nav-link:hover,\n.sidebar-nav-list a:hover,\n.sidebar-nav-list .nav-link[aria-current="page"],\n.sidebar-nav-list a[aria-current="page"] {\n  color: #FFFFFF;\n  background: rgba(255,255,255,.13);\n}\n.sidebar-nav-icon {\n  color: currentColor;\n}\n.nav-badge {\n  background: rgba(212,166,85,.2);\n  color: #F0D39B;\n  border-radius: 999px;\n}\n.app-top-header {\n  background: color-mix(in srgb, var(--bg-surface) 94%, transparent);\n  border-bottom: 1px solid var(--border-default);\n  backdrop-filter: blur(14px);\n}\n.top-header-left,\n.top-header-center,\n.top-header-right {\n  min-width: 0;\n}\n.header-org-pill {\n  background: var(--bg-subtle);\n  border: 1px solid var(--border-default);\n  color: var(--text-secondary);\n  border-radius: 999px;\n}\n.header-circle-btn,\n.mobile-nav-toggle {\n  background: var(--bg-surface);\n  border: 1px solid var(--border-default);\n  color: var(--text-secondary);\n}\n.header-circle-btn:hover,\n.mobile-nav-toggle:hover {\n  background: var(--bg-subtle);\n  color: var(--brand-primary);\n}\n.top-pill-nav {\n  background: var(--bg-surface);\n  border: 1px solid var(--border-default);\n  border-radius: 999px;\n}\n.top-pill-nav a {\n  color: var(--text-secondary);\n  border-radius: 999px;\n}\n.top-pill-nav a[aria-current="page"] {\n  background: var(--brand-violet-soft);\n  color: var(--brand-primary);\n}\n.mobile-bottom-nav {\n  padding-bottom: env(safe-area-inset-bottom);\n  box-shadow: 0 -8px 24px rgba(16,41,31,.06);\n}\n.mobile-bottom-nav a {\n  min-height: 3.25rem;\n  color: var(--text-muted);\n}\n.mobile-bottom-nav a[aria-current="page"] {\n  color: var(--brand-primary);\n}\n.landing-section-container {\n  width: min(100% - 2rem, 76rem);\n  margin-inline: auto;\n}\n.pricing-section {\n  background: var(--bg-canvas);\n}\n.pricing-grid {\n  align-items: stretch;\n  gap: 1rem;\n}\n.pricing-card {\n  display: flex;\n  flex-direction: column;\n  padding: clamp(1.2rem, 2.4vw, 1.7rem);\n  border: 1px solid var(--border-default);\n  border-radius: 1.2rem;\n  background: var(--bg-surface);\n  box-shadow: 0 8px 24px rgba(16,41,31,.045);\n}\n.pricing-card-featured {\n  border: 2px solid var(--brand-primary);\n  box-shadow: 0 14px 36px rgba(15,81,50,.12);\n}\n.pricing-tier-badge {\n  background: var(--brand-violet-soft);\n  color: var(--brand-violet-strong);\n  border-radius: 999px;\n}\n.pricing-plan-name,\n.pricing-amount-row {\n  color: var(--text-primary);\n}\n.pricing-tagline,\n.pricing-note {\n  color: var(--text-secondary);\n}\n.pricing-entitlements-box {\n  background: var(--bg-subtle);\n  border: 1px solid var(--border-subtle);\n  border-radius: .8rem;\n}\n.pricing-features-list {\n  color: var(--text-secondary);\n}\n.pricing-matrix-table {\n  overflow-x: auto;\n  border: 1px solid var(--border-default);\n  border-radius: .9rem;\n  background: var(--bg-surface);\n}\n.pricing-matrix-table table {\n  width: 100%;\n}\n.pricing-faq-item {\n  padding: 1rem;\n  border: 1px solid var(--border-default);\n  border-radius: .85rem;\n  background: var(--bg-surface);\n}\n.footer-top-grid {\n  gap: 2rem;\n}\n.footer-security-badge {\n  border: 1px solid rgba(255,255,255,.18);\n  border-radius: 999px;\n}\n.footer-nav-list a,\n.footer-legal-link {\n  color: rgba(243,247,241,.72);\n}\n.footer-nav-list a:hover,\n.footer-legal-link:hover {\n  color: #FFFFFF;\n}\n@media (max-width: 767px) {\n  .landing-section-container {\n    width: min(100% - 1.5rem, 76rem);\n  }\n  .pricing-grid {\n    grid-template-columns: minmax(0,1fr);\n  }\n  .app-top-header {\n    min-height: var(--header-height);\n  }\n  .header-org-name {\n    max-width: 9rem;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n}\n
+
+/* Page-level interaction patterns shared by trips, visits, stores and settings */
+.mobile-page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.page-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+.page-two-col-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(17rem, 0.85fr);
+  gap: 1rem;
+  align-items: start;
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.state-panel {
+  border: 1px solid var(--border-default);
+  border-radius: 1rem;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  padding: 1rem;
+}
+.state-panel p, .state-panel span { color: inherit; }
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.8rem;
+  padding: 0.9rem;
+}
+.search-input-wrapper {
+  position: relative;
+  flex: 1 1 15rem;
+  min-width: min(100%, 12rem);
+}
+.search-input-wrapper .form-input,
+.search-input-wrapper input {
+  width: 100%;
+  padding-left: 2.5rem;
+}
+.search-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.tabs-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  border-bottom: 1px solid var(--border-default);
+}
+.tabs-container button, .tabs-container a {
+  min-height: 2.6rem;
+  padding: 0.55rem 0.85rem;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+}
+.tabs-container [aria-selected="true"], .tabs-container [aria-current="page"] {
+  color: var(--brand-primary);
+  border-bottom-color: var(--brand-primary);
+  font-weight: 750;
+}
+.mobile-trip-card, .approval-card, .visit-card, .store-card {
+  min-width: 0;
+  border: 1px solid var(--border-default);
+  border-radius: 1rem;
+  background: var(--bg-surface);
+  padding: 1rem;
+}
+.mobile-trip-card-title { color: var(--text-primary); font-weight: 750; }
+.settings-layout {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.7fr) minmax(0, 2fr);
+  gap: 1rem;
+  align-items: start;
+}
+.settings-nav-sidebar {
+  position: sticky;
+  top: calc(var(--header-height) + 1rem);
+  border: 1px solid var(--border-default);
+  border-radius: 1rem;
+  background: var(--bg-surface);
+  padding: 0.6rem;
+}
+.settings-nav-sidebar a, .settings-nav-sidebar button {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.65rem;
+  border-radius: 0.65rem;
+  padding: 0.6rem 0.75rem;
+  color: var(--text-secondary);
+}
+.settings-nav-sidebar a[aria-current="page"],
+.settings-nav-sidebar button[aria-current="page"] {
+  color: var(--brand-primary);
+  background: var(--brand-violet-soft);
+  font-weight: 750;
+}
+.form-sticky-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding: 0.85rem 0;
+  background: color-mix(in srgb, var(--bg-canvas) 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+.btn-sm { min-height: 2.25rem; padding: 0.45rem 0.7rem; }
+.btn-block { width: 100%; justify-content: center; }
+.sr-only-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 900px) {
+  .page-two-col-layout { grid-template-columns: minmax(0, 1fr); }
+  .settings-layout { grid-template-columns: minmax(0, 1fr); }
+  .settings-nav-sidebar {
+    position: static;
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+  }
+  .settings-nav-sidebar a, .settings-nav-sidebar button { white-space: nowrap; }
+}
+@media (max-width: 640px) {
+  .card-grid { grid-template-columns: minmax(0, 1fr); }
+  .filter-bar { align-items: stretch; }
+  .filter-bar > * { min-width: 0; }
+  .page-actions { width: 100%; }
+  .page-actions > .btn { flex: 1 1 auto; }
+  .form-sticky-actions { bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
+}
