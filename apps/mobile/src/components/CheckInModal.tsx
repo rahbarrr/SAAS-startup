@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import type { MobileTripStop } from "../types";
+import { MOBILE_THEME } from "../theme";
 
 export interface CheckInModalProps {
   visible: boolean;
@@ -150,7 +151,7 @@ export function CheckInModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(2, 29, 36, 0.68)",
+    backgroundColor: "rgba(16, 41, 31, 0.72)",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -158,10 +159,12 @@ const styles = StyleSheet.create({
   modalCard: {
     width: "100%",
     maxWidth: 420,
-    backgroundColor: "#ffffff",
-    borderRadius: 22,
+    backgroundColor: MOBILE_THEME.colors.surfaceCard,
+    borderRadius: 24,
     padding: 22,
-    shadowColor: "#021D24",
+    borderWidth: 1,
+    borderColor: MOBILE_THEME.colors.borderSubtle,
+    shadowColor: "#10291F",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
     shadowRadius: 16,
@@ -170,25 +173,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 19,
     fontWeight: "800",
-    color: "#021D24",
+    color: MOBILE_THEME.colors.textPrimary,
     marginBottom: 4,
   },
   storeName: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#216A85",
+    color: MOBILE_THEME.colors.electricBlue,
   },
   storeAddress: {
     fontSize: 13,
-    color: "#093F52",
+    color: MOBILE_THEME.colors.textSecondary,
     marginBottom: 16,
   },
   statusBox: {
-    backgroundColor: "#F1F7FA",
+    backgroundColor: MOBILE_THEME.colors.canvasBg,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#D8EAF2",
+    borderColor: MOBILE_THEME.colors.borderSubtle,
     marginBottom: 14,
   },
   row: {
@@ -253,7 +256,7 @@ const styles = StyleSheet.create({
     color: "#093F52",
   },
   confirmBtn: {
-    backgroundColor: "#216A85",
+    backgroundColor: MOBILE_THEME.colors.electricBlue,
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 999,
