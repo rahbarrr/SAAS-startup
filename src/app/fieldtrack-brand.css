@@ -471,3 +471,72 @@ input[type="checkbox"], input[type="radio"] { width: 1rem; height: 1rem; }
   .page-header { align-items: flex-start; }
   .table-container, .table-responsive { max-width: 100%; }
 }
+
+/* Exact application shell and public-site component contracts */
+.landing-viewport { min-height: 100vh; background: var(--bg-canvas); }
+.app-sidebar {
+  background: var(--gradient-sidebar); color: #F3F7F1;
+  border-right: 1px solid rgba(255,255,255,.1);
+}
+.sidebar-header, .sidebar-content, .sidebar-footer { color: #F3F7F1; }
+.sidebar-welcome-block { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 1rem; }
+.sidebar-welcome-heading, .sidebar-promo-title { color: #FFFFFF; }
+.sidebar-welcome-subtitle, .sidebar-promo-meta { color: rgba(255,255,255,.68); }
+.sidebar-promo-card { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 1rem; }
+.sidebar-promo-cta { color: #E7EFE8; }
+.sidebar-nav-section { margin-block: .7rem; }
+.sidebar-nav-group-label { color: rgba(255,255,255,.55); font-size: .67rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.sidebar-nav-list { gap: .2rem; }
+.sidebar-nav-list .nav-link, .sidebar-nav-list a {
+  min-height: 2.65rem; border-radius: .7rem; color: rgba(255,255,255,.76);
+  transition: background .16s ease, color .16s ease;
+}
+.sidebar-nav-list .nav-link:hover, .sidebar-nav-list a:hover,
+.sidebar-nav-list .nav-link[aria-current="page"], .sidebar-nav-list a[aria-current="page"] {
+  color: #FFFFFF; background: rgba(255,255,255,.13);
+}
+.sidebar-nav-icon { color: currentColor; }
+.nav-badge { background: rgba(212,166,85,.2); color: #F0D39B; border-radius: 999px; }
+.app-top-header {
+  background: color-mix(in srgb, var(--bg-surface) 94%, transparent);
+  border-bottom: 1px solid var(--border-default); backdrop-filter: blur(14px);
+}
+.top-header-left, .top-header-center, .top-header-right { min-width: 0; }
+.header-org-pill { background: var(--bg-subtle); border: 1px solid var(--border-default); color: var(--text-secondary); border-radius: 999px; }
+.header-circle-btn, .mobile-nav-toggle {
+  background: var(--bg-surface); border: 1px solid var(--border-default); color: var(--text-secondary);
+}
+.header-circle-btn:hover, .mobile-nav-toggle:hover { background: var(--bg-subtle); color: var(--brand-primary); }
+.top-pill-nav { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 999px; }
+.top-pill-nav a { color: var(--text-secondary); border-radius: 999px; }
+.top-pill-nav a[aria-current="page"] { background: var(--brand-violet-soft); color: var(--brand-primary); }
+.mobile-bottom-nav { padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -8px 24px rgba(16,41,31,.06); }
+.mobile-bottom-nav a { min-height: 3.25rem; color: var(--text-muted); }
+.mobile-bottom-nav a[aria-current="page"] { color: var(--brand-primary); }
+.landing-section-container { width: min(100% - 2rem, 76rem); margin-inline: auto; }
+.pricing-section { background: var(--bg-canvas); }
+.pricing-grid { align-items: stretch; gap: 1rem; }
+.pricing-card {
+  display: flex; flex-direction: column; padding: clamp(1.2rem, 2.4vw, 1.7rem);
+  border: 1px solid var(--border-default); border-radius: 1.2rem;
+  background: var(--bg-surface); box-shadow: 0 8px 24px rgba(16,41,31,.045);
+}
+.pricing-card-featured { border: 2px solid var(--brand-primary); box-shadow: 0 14px 36px rgba(15,81,50,.12); }
+.pricing-tier-badge { background: var(--brand-violet-soft); color: var(--brand-violet-strong); border-radius: 999px; }
+.pricing-plan-name, .pricing-amount-row { color: var(--text-primary); }
+.pricing-tagline, .pricing-note { color: var(--text-secondary); }
+.pricing-entitlements-box { background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: .8rem; }
+.pricing-features-list { color: var(--text-secondary); }
+.pricing-matrix-table { overflow-x: auto; border: 1px solid var(--border-default); border-radius: .9rem; background: var(--bg-surface); }
+.pricing-matrix-table table { width: 100%; }
+.pricing-faq-item { padding: 1rem; border: 1px solid var(--border-default); border-radius: .85rem; background: var(--bg-surface); }
+.footer-top-grid { gap: 2rem; }
+.footer-security-badge { border: 1px solid rgba(255,255,255,.18); border-radius: 999px; }
+.footer-nav-list a, .footer-legal-link { color: rgba(243,247,241,.72); }
+.footer-nav-list a:hover, .footer-legal-link:hover { color: #FFFFFF; }
+@media (max-width: 767px) {
+  .landing-section-container { width: min(100% - 1.5rem, 76rem); }
+  .pricing-grid { grid-template-columns: minmax(0,1fr); }
+  .app-top-header { min-height: var(--header-height); }
+  .header-org-name { max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
