@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import type { GeofenceConsentState } from "../types";
+import { MOBILE_THEME } from "../theme";
 
 export interface GeofenceStatusBannerProps {
   isMonitoring: boolean;
@@ -98,8 +99,8 @@ const styles = StyleSheet.create({
     marginVertical: 6,
   },
   bannerActive: {
-    backgroundColor: "#ECFDF5",
-    borderColor: "#A7F3D0",
+    backgroundColor: MOBILE_THEME.colors.emeraldSoft,
+    borderColor: MOBILE_THEME.colors.emeraldLive,
     borderWidth: 1,
   },
   bannerWarning: {
@@ -108,8 +109,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   bannerInactive: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#D8EAF2",
+    backgroundColor: MOBILE_THEME.colors.surfaceCard,
+    borderColor: MOBILE_THEME.colors.borderSubtle,
     borderWidth: 1,
   },
   textContainer: {
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#021D24",
+    color: MOBILE_THEME.colors.textPrimary,
     marginBottom: 2,
   },
   textActive: {
@@ -130,11 +131,11 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 11,
-    color: "#093F52",
+    color: MOBILE_THEME.colors.textSecondary,
     lineHeight: 15,
   },
   actionButton: {
-    backgroundColor: "#216A85",
+    backgroundColor: MOBILE_THEME.colors.electricBlue,
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 999,
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   revokeButton: {
-    borderColor: "#65A7C2",
+    borderColor: MOBILE_THEME.colors.borderStrong,
     borderWidth: 1,
     backgroundColor: "#ffffff",
     paddingHorizontal: 12,
