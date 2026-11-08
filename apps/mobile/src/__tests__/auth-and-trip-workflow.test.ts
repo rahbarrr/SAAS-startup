@@ -350,6 +350,14 @@ describe("FieldTrack Mobile Auth & Trip Loading Workflow", () => {
       .fn()
       .mockImplementation(async (url: string, init?: RequestInit) => {
         if (url.endsWith("/api/orgs") && init?.method === "POST") {
+          const payload = JSON.parse(String(init?.body ?? "{}"));
+          expect(payload).toMatchObject({
+            name: "New Field Ops",
+            slug: "new-field-ops",
+            industry: "Field Operations",
+            companySize: "1-10",
+            country: "India",
+          });
           return {
             ok: true,
             status: 201,

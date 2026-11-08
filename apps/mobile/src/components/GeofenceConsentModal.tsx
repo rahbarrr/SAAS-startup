@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { ConsentManager } from "../services/consent";
 import type { GeofenceConsentState } from "../types";
+import { MOBILE_THEME } from "../theme";
 
 export interface GeofenceConsentModalProps {
   visible: boolean;
@@ -116,7 +117,7 @@ export function GeofenceConsentModal({
               <Switch
                 value={consentGiven}
                 onValueChange={handleToggleConsent}
-                trackColor={{ false: "#cbd5e1", true: "#2563eb" }}
+                trackColor={{ false: "#cbd5e1", true: MOBILE_THEME.colors.electricBlue }}
               />
             </View>
 
@@ -159,13 +160,15 @@ export function GeofenceConsentModal({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(2, 29, 36, 0.68)",
+    backgroundColor: "rgba(16, 41, 31, 0.72)",
     justifyContent: "center",
     padding: 16,
   },
   modalContainer: {
-    backgroundColor: "#ffffff",
-    borderRadius: 22,
+    backgroundColor: MOBILE_THEME.colors.surfaceCard,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: MOBILE_THEME.colors.borderSubtle,
     maxHeight: "85%",
     overflow: "hidden",
   },
@@ -175,12 +178,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#021D24",
+    color: MOBILE_THEME.colors.textPrimary,
     marginBottom: 12,
   },
   infoBox: {
-    backgroundColor: "#F1F7FA",
-    borderColor: "#D8EAF2",
+    backgroundColor: MOBILE_THEME.colors.canvasBg,
+    borderColor: MOBILE_THEME.colors.borderSubtle,
     borderWidth: 1,
     borderRadius: 16,
     padding: 14,
@@ -194,7 +197,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 13,
-    color: "#093F52",
+    color: MOBILE_THEME.colors.textSecondary,
     lineHeight: 18,
     marginBottom: 8,
   },
@@ -240,7 +243,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   primaryButton: {
-    backgroundColor: "#216A85",
+    backgroundColor: MOBILE_THEME.colors.electricBlue,
     paddingVertical: 11,
     borderRadius: 999,
     alignItems: "center",

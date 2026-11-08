@@ -49,6 +49,7 @@ export default async function TripsPage(): Promise<ReactNode> {
       initialTrips={trips}
       activeOrgId={activeOrgId}
       activeOrgName={activeOrg.name}
+      currentUserId={user.id}
     />
   );
 }

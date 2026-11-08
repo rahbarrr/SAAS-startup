@@ -294,7 +294,12 @@ export function TripSelectorScreen({
       <View style={styles.kpiGridRow}>
         <View style={styles.kpiCompactCard}>
           <View style={styles.kpiCompactHeader}>
-            <View style={[styles.kpiDot, { backgroundColor: MOBILE_THEME.colors.electricBlue }]} />
+            <View
+              style={[
+                styles.kpiDot,
+                { backgroundColor: MOBILE_THEME.colors.electricBlue },
+              ]}
+            />
             <Text style={styles.kpiCompactLabel}>Active Routes</Text>
           </View>
           <Text style={styles.kpiCompactValue}>{executableTrips.length}</Text>
@@ -302,7 +307,12 @@ export function TripSelectorScreen({
         </View>
         <View style={styles.kpiCompactCard}>
           <View style={styles.kpiCompactHeader}>
-            <View style={[styles.kpiDot, { backgroundColor: MOBILE_THEME.colors.emeraldLive }]} />
+            <View
+              style={[
+                styles.kpiDot,
+                { backgroundColor: MOBILE_THEME.colors.emeraldLive },
+              ]}
+            />
             <Text style={styles.kpiCompactLabel}>Store Geofence</Text>
           </View>
           <Text style={styles.kpiCompactValue}>150m</Text>
@@ -437,8 +447,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: MOBILE_THEME.colors.canvasBg,
-    paddingHorizontal: 16,
-    paddingTop: 44,
+    paddingHorizontal: 20,
+    paddingTop: 52,
     paddingBottom: 16,
   },
   topBar: {
@@ -452,8 +462,9 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   screenTitle: {
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: "800",
+    letterSpacing: -0.7,
     color: MOBILE_THEME.colors.textPrimary,
   },
   userEmail: {
@@ -465,8 +476,8 @@ const styles = StyleSheet.create({
     backgroundColor: MOBILE_THEME.colors.surfaceCard,
     borderWidth: 1,
     borderColor: MOBILE_THEME.colors.borderSubtle,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
     borderRadius: MOBILE_THEME.radii.pill,
   },
   signOutText: {
@@ -511,9 +522,11 @@ const styles = StyleSheet.create({
   },
   heroObsidianCard: {
     backgroundColor: MOBILE_THEME.colors.obsidianHero,
-    borderRadius: MOBILE_THEME.radii.hero,
-    padding: 15,
-    marginBottom: 12,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
   },
   heroHeaderRow: {
     flexDirection: "row",
@@ -539,10 +552,15 @@ const styles = StyleSheet.create({
   kpiCompactCard: {
     flex: 1,
     backgroundColor: MOBILE_THEME.colors.surfaceCard,
-    borderRadius: MOBILE_THEME.radii.card,
-    padding: 12,
+    borderRadius: 20,
+    padding: 15,
     borderWidth: 1,
     borderColor: MOBILE_THEME.colors.borderSubtle,
+    shadowColor: "#10291F",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   kpiCompactHeader: {
     flexDirection: "row",
@@ -745,11 +763,16 @@ const styles = StyleSheet.create({
   },
   tripCard: {
     backgroundColor: MOBILE_THEME.colors.surfaceCard,
-    borderRadius: MOBILE_THEME.radii.card,
-    padding: 15,
-    marginBottom: 10,
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: MOBILE_THEME.colors.borderSubtle,
+    shadowColor: "#10291F",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.045,
+    shadowRadius: 10,
+    elevation: 2,
   },
   tripCardHeader: {
     flexDirection: "row",
@@ -792,10 +815,10 @@ const styles = StyleSheet.create({
   },
   selectTripBtn: {
     backgroundColor: MOBILE_THEME.colors.electricBlue,
-    borderRadius: MOBILE_THEME.radii.pill,
-    paddingVertical: 11,
+    borderRadius: 14,
+    paddingVertical: 14,
     alignItems: "center",
-    marginTop: 4,
+    marginTop: 8,
   },
   selectTripBtnText: {
     color: "#ffffff",

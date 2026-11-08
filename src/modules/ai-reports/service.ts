@@ -2,7 +2,11 @@ import "server-only";
 import { z } from "zod";
 import { isAiReportsEnabled } from "@/lib/env/startup";
 import { AppError } from "@/lib/http/envelope";
-import { hasOrgPermission, resolveTenantContext } from "@/modules/tenancy/authorization";
+import {
+  assertManagerTeamAccess,
+  hasOrgPermission,
+  resolveTenantContext,
+} from "@/modules/tenancy/authorization";
 import type { AuthenticatedUser } from "@/modules/tenancy/domain";
 import type { TenancyRepository } from "@/modules/tenancy/repository";
 import type { VisitsRepository } from "@/modules/visits/repository";
@@ -75,6 +79,13 @@ export async function getVisitAiReportDraftsStateForOrg(params: {
       "You do not have permission to access this visit",
       403
     );
+  }
+  if (context.role === "manager" && !isOwner) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: visitDetail.visit.employeeUserId,
+      repository: params.tenancyRepository,
+    });
   }
 
   const aiReportsSystemEnabled = isAiReportsEnabled();
@@ -170,6 +181,13 @@ export async function generateVisitAiReportDraftForOrg(params: {
       "You do not have permission to generate a report draft for this visit",
       403
     );
+  }
+  if (context.role === "manager" && !isOwner) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: visitDetail.visit.employeeUserId,
+      repository: params.tenancyRepository,
+    });
   }
 
   // 1. Check master system kill switch & visit eligibility
@@ -517,6 +535,13 @@ export async function reviewVisitAiReportDraftForOrg(params: {
       "You do not have permission to review or edit this AI report draft",
       403
     );
+  }
+  if (context.role === "manager" && !isOwner) {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: visitDetail.visit.employeeUserId,
+      repository: params.tenancyRepository,
+    });
   }
 
   const existingDraft = await params.aiReportsRepository.getVisitAiReportDraftById(

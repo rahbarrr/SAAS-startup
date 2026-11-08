@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/auth/session";
-import { jsonError, jsonSuccess } from "@/lib/http/envelope";
+import { AppError, jsonError, jsonSuccess } from "@/lib/http/envelope";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import { SupabaseAuditRepository } from "@/modules/audit/repository";
 import { SupabaseLocationRepository } from "@/modules/location/repository";
@@ -28,7 +28,12 @@ export async function POST(
     const locationRepository = new SupabaseLocationRepository(supabase);
     const auditRepository = new SupabaseAuditRepository(supabase);
 
-    const body = (await request.json()) as unknown;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      throw new AppError("VALIDATION_ERROR", "Request body must be valid JSON", 400);
+    }
 
     const result = await startTripTrackingSession({
       user,
@@ -59,7 +64,12 @@ export async function DELETE(
     const locationRepository = new SupabaseLocationRepository(supabase);
     const auditRepository = new SupabaseAuditRepository(supabase);
 
-    const body = (await request.json()) as unknown;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      throw new AppError("VALIDATION_ERROR", "Request body must be valid JSON", 400);
+    }
 
     const result = await stopTripTrackingSession({
       user,

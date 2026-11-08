@@ -2,6 +2,7 @@ import "server-only";
 import { AppError } from "@/lib/http/envelope";
 import type { StoresRepository } from "@/modules/stores/repository";
 import {
+  assertManagerTeamAccess,
   assertTenantResourceOwnership,
   requireOrgPermission,
   resolveTenantContext,
@@ -45,6 +46,14 @@ export async function generateRouteOptimizationProposalForTrip(params: {
 
   if (!detail) {
     throw new AppError("NOT_FOUND", "Trip not found in your organization", 404);
+  }
+
+  if (context.role === "manager") {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: detail.trip.ownerUserId,
+      repository: params.tenancyRepository,
+    });
   }
 
   // Fetch store coordinates and metadata
@@ -113,6 +122,14 @@ export async function applyOptimizedRouteToTrip(params: {
     throw new AppError("NOT_FOUND", "Trip not found in your organization", 404);
   }
 
+  if (context.role === "manager") {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: detail.trip.ownerUserId,
+      repository: params.tenancyRepository,
+    });
+  }
+
   const trip = detail.trip;
 
   if (trip.status === "approved" && !params.confirmApprovedTripModification) {
@@ -124,8 +141,9 @@ export async function applyOptimizedRouteToTrip(params: {
   }
 
   // Transform proposed stops into TripStopInput format
-  const stopsInput = params.proposedStopOrder.map((s) => ({
+  const stopsInput = params.proposedStopOrder.map((s, idx) => ({
     storeId: s.storeId,
+    sequenceNumber: idx + 1,
     plannedAt: s.plannedAt ?? null,
   }));
 
@@ -136,6 +154,8 @@ export async function applyOptimizedRouteToTrip(params: {
     candidateTripId: trip.id,
     rawInput: {
       title: trip.title,
+      startLocation: trip.startLocation ?? "Not specified",
+      destinationCity: trip.destinationCity ?? "Not specified",
       startDate: trip.startDate,
       endDate: trip.endDate,
       purpose: trip.purpose,

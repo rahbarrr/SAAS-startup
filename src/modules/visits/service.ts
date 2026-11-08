@@ -389,6 +389,14 @@ export async function updateVisitExecutionForOrg(params: {
     );
   }
 
+  if (context.role === "manager") {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: existing.visit.employeeUserId,
+      repository: params.tenancyRepository,
+    });
+  }
+
   if (existing.visit.status !== "in_progress") {
     throw new AppError(
       "CONFLICT",
@@ -452,6 +460,14 @@ export async function requestEvidenceUploadTicketForOrg(params: {
     );
   }
 
+  if (context.role === "manager") {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: existing.visit.employeeUserId,
+      repository: params.tenancyRepository,
+    });
+  }
+
   if (existing.visit.status !== "in_progress") {
     throw new AppError(
       "CONFLICT",
@@ -509,6 +525,14 @@ export async function confirmEvidenceUploadForOrg(params: {
       "The requested visit was not found in your active organization",
       404
     );
+  }
+
+  if (context.role === "manager") {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: existing.visit.employeeUserId,
+      repository: params.tenancyRepository,
+    });
   }
 
   if (existing.visit.status !== "in_progress") {
@@ -611,6 +635,14 @@ export async function getSignedEvidenceDownloadUrlForOrg(params: {
     );
   }
 
+  if (context.role === "manager") {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: existing.visit.employeeUserId,
+      repository: params.tenancyRepository,
+    });
+  }
+
   const matchingEvidence = existing.evidence.find(
     (e) => e.id === evidenceId && e.orgId === context.orgId && e.visitId === visitId
   );
@@ -674,6 +706,14 @@ export async function checkOutVisitForOrg(params: {
       "The requested visit was not found in your active organization",
       404
     );
+  }
+
+  if (context.role === "manager") {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: existing.visit.employeeUserId,
+      repository: params.tenancyRepository,
+    });
   }
 
   // Safe idempotent retry if the visit was already checked out with the same idempotencyKey

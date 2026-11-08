@@ -377,10 +377,18 @@ export function TripDetailClient({
           <h1 id="trip-detail-heading" className="page-title">
             {trip.title}
           </h1>
-          <p className="page-subtitle" style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-            <Calendar size={14} style={{ color: "var(--text-muted)" }} aria-hidden="true" />
+          <p
+            className="page-subtitle"
+            style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}
+          >
+            <Calendar
+              size={14}
+              style={{ color: "var(--text-muted)" }}
+              aria-hidden="true"
+            />
             <span>
-              <strong>{trip.startDate}</strong> to <strong>{trip.endDate}</strong> • Trip ID: <code>{trip.id}</code>
+              <strong>{trip.startDate}</strong> to <strong>{trip.endDate}</strong> • Trip
+              ID: <code>{trip.id}</code>
             </span>
           </p>
         </div>
@@ -516,7 +524,12 @@ export function TripDetailClient({
                         onClick={handleOpenRouteOptimizer}
                         disabled={isOptimizing}
                         className="btn btn-secondary"
-                        style={{ fontSize: "0.8125rem", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+                        style={{
+                          fontSize: "0.8125rem",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.35rem",
+                        }}
                       >
                         <Zap size={14} aria-hidden="true" />
                         <span>{isOptimizing ? "Optimizing…" : "Optimize Route"}</span>
@@ -637,7 +650,9 @@ export function TripDetailClient({
                               }}
                             >
                               <Check size={11} strokeWidth={2.5} aria-hidden="true" />
-                              <span>({lat.toFixed(4)}, {lng.toFixed(4)})</span>
+                              <span>
+                                ({lat.toFixed(4)}, {lng.toFixed(4)})
+                              </span>
                             </span>
                           ) : (
                             <span
@@ -654,7 +669,11 @@ export function TripDetailClient({
                                 gap: "0.25rem",
                               }}
                             >
-                              <AlertTriangle size={11} strokeWidth={2.5} aria-hidden="true" />
+                              <AlertTriangle
+                                size={11}
+                                strokeWidth={2.5}
+                                aria-hidden="true"
+                              />
                               <span>Missing Coordinates</span>
                             </span>
                           )}
@@ -686,7 +705,7 @@ export function TripDetailClient({
                             Visit ({visitsState[stop.id]?.status}) →
                           </Link>
                         ) : stop.status === "planned" &&
-                          trip.status === "approved" &&
+                          (trip.status === "approved" || trip.status === "in_progress") &&
                           isOwner ? (
                           <button
                             type="button"
@@ -923,9 +942,19 @@ export function TripDetailClient({
               >
                 <h2
                   id="location-tracking-heading"
-                  style={{ margin: 0, fontSize: "1.125rem", display: "flex", alignItems: "center", gap: "0.375rem" }}
+                  style={{
+                    margin: 0,
+                    fontSize: "1.125rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.375rem",
+                  }}
                 >
-                  <MapPin size={18} style={{ color: "var(--brand-primary)" }} aria-hidden="true" />
+                  <MapPin
+                    size={18}
+                    style={{ color: "var(--brand-primary)" }}
+                    aria-hidden="true"
+                  />
                   <span>Active Trip Tracking</span>
                 </h2>
                 {isTrackingActive ? (
@@ -1030,10 +1059,19 @@ export function TripDetailClient({
                       onClick={() => void handleRecordBreadcrumb()}
                       disabled={isRecordingLocation}
                       className="btn btn-secondary"
-                      style={{ width: "100%", fontSize: "0.8125rem", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.35rem" }}
+                      style={{
+                        width: "100%",
+                        fontSize: "0.8125rem",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "0.35rem",
+                      }}
                     >
                       <MapPin size={14} aria-hidden="true" />
-                      <span>{isRecordingLocation ? "Recording…" : "Record Checkpoint Now"}</span>
+                      <span>
+                        {isRecordingLocation ? "Recording…" : "Record Checkpoint Now"}
+                      </span>
                     </button>
                     <button
                       type="button"
@@ -1062,7 +1100,15 @@ export function TripDetailClient({
                   gap: "0.375rem",
                 }}
               >
-                <AlertTriangle size={14} style={{ color: "var(--status-warning-text, #d97706)", flexShrink: 0, marginTop: "1px" }} aria-hidden="true" />
+                <AlertTriangle
+                  size={14}
+                  style={{
+                    color: "var(--status-warning-text, #d97706)",
+                    flexShrink: 0,
+                    marginTop: "1px",
+                  }}
+                  aria-hidden="true"
+                />
                 <span>
                   <strong>Web Browser Limitation:</strong> Background GPS tracking when
                   the browser is closed or suspended is not supported on iOS Safari /

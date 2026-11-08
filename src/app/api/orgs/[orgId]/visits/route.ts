@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { AppError, jsonError, jsonSuccess } from "@/lib/http/envelope";
 import { createUserServerSupabaseClient } from "@/lib/supabase/server";
+import { SupabaseStoresRepository } from "@/modules/stores/repository";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
 import { SupabaseVisitsRepository } from "@/modules/visits/repository";
 import { checkInStopForOrg, listVisitsForOrg } from "@/modules/visits/service";
@@ -56,6 +57,7 @@ export async function POST(
     const user = await getAuthenticatedUser(supabase);
     const tenancyRepository = new SupabaseTenancyRepository(supabase);
     const visitsRepository = new SupabaseVisitsRepository(supabase);
+    const storesRepository = new SupabaseStoresRepository(supabase);
 
     let body: unknown;
     try {
@@ -70,6 +72,7 @@ export async function POST(
       rawInput: body,
       tenancyRepository,
       visitsRepository,
+      storesRepository,
     });
 
     return jsonSuccess(created, 201);

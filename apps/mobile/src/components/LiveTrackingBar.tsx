@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import type { LiveTrackingState } from "../types";
+import { MOBILE_THEME } from "../theme";
 
 export interface LiveTrackingBarProps {
   trackingState: LiveTrackingState;
@@ -69,12 +70,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   barActive: {
-    backgroundColor: "#C7E5F2",
-    borderColor: "#65A7C2",
+    backgroundColor: MOBILE_THEME.colors.electricBlueSoft,
+    borderColor: MOBILE_THEME.colors.borderStrong,
   },
   barInactive: {
     backgroundColor: "#FFFFFF",
-    borderColor: "#D8EAF2",
+    borderColor: MOBILE_THEME.colors.borderSubtle,
   },
   left: {
     flexDirection: "row",
@@ -89,19 +90,19 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   dotPulse: {
-    backgroundColor: "#10B981",
+    backgroundColor: MOBILE_THEME.colors.emeraldLive,
   },
   dotInactive: {
-    backgroundColor: "#65A7C2",
+    backgroundColor: MOBILE_THEME.colors.forest400,
   },
   statusTitle: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#021D24",
+    color: MOBILE_THEME.colors.textPrimary,
   },
   statusSubtitle: {
     fontSize: 11,
-    color: "#093F52",
+    color: MOBILE_THEME.colors.textSecondary,
     marginTop: 2,
   },
   button: {
@@ -111,8 +112,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   buttonStart: {
-    backgroundColor: "#216A85",
-    borderColor: "#216A85",
+    backgroundColor: MOBILE_THEME.colors.electricBlue,
+    borderColor: MOBILE_THEME.colors.electricBlue,
   },
   buttonStartText: {
     color: "#ffffff",
