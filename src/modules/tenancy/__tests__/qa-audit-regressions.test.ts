@@ -1,4 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
+
+vi.mock("../../../../apps/mobile/src/services/auth", () => ({
+  normalizeOrganizationMemberships: vi.fn((list: unknown) =>
+    Array.isArray(list) ? list : []
+  ),
+}));
+
 import {
   applyOptimizedRouteToTrip,
   generateRouteOptimizationProposalForTrip,
@@ -18,6 +25,8 @@ import {
   loadOfflineQueue,
   syncAllBrowserOfflineQueues,
 } from "@/lib/offline/sync-queue";
+import { FieldTrackMobileApiClient } from "../../../../apps/mobile/src/services/api";
+import { createOrganizationInputSchema } from "@/modules/tenancy/schemas";
 import type { TenancyRepository } from "@/modules/tenancy/repository";
 import type { TripsRepository } from "@/modules/trips/repository";
 import type { StoresRepository } from "@/modules/stores/repository";
@@ -476,5 +485,32 @@ describe("QA Audit Regressions — Browser Offline Sync Executor & Mobile API", 
     expect(
       loadOfflineQueue({ orgId: ORG_ID, userId: TEAM_REP_ID, storage: mockStorage })
     ).toHaveLength(0);
+  });
+
+  it("sends complete valid organization payload from FieldTrackMobileApiClient.createOrganization", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        data: { id: ORG_ID, name: "Acme Field", slug: "acme-field" },
+      }),
+    } as Response);
+
+    const client = new FieldTrackMobileApiClient({
+      baseUrl: "https://fieldtrack.example.com",
+      authToken: "test-token",
+      orgId: ORG_ID,
+    });
+
+    await client.createOrganization({
+      name: "Acme Field",
+      slug: "acme-field",
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const bodySent = JSON.parse(String(fetchSpy.mock.calls[0]?.[1]?.body));
+    const parsed = createOrganizationInputSchema.safeParse(bodySent);
+    expect(parsed.success).toBe(true);
+    fetchSpy.mockRestore();
   });
 });
