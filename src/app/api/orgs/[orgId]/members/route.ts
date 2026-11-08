@@ -36,7 +36,7 @@ export async function GET(
       candidateOrgId: orgId,
       rawQuery,
       repository,
-      scopeToAssignedTeam: searchParams.get("scope") === "team",
+      scopeToAssignedTeam: true,
     });
 
     return jsonSuccess(result.items, 200, {

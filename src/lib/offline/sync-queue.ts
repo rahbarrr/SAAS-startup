@@ -574,3 +574,188 @@ export async function processOfflineSyncQueue(params: {
     operations: updatedQueue,
   };
 }
+
+/**
+ * Default browser fetch executor for queued offline operations against FieldTrack API endpoints.
+ */
+export function createBrowserSyncExecutor(
+  customFetch: typeof fetch = fetch
+): SyncExecutorFn {
+  return async (op: QueuedOfflineOperation) => {
+    let url = "";
+    let method: "POST" | "PATCH" = "POST";
+    let bodyPayload: Record<string, unknown> = {
+      ...op.payload,
+      idempotencyKey: op.idempotencyKey,
+    };
+
+    switch (op.operationType) {
+      case "checkin_stop":
+        url = `/api/orgs/${encodeURIComponent(op.orgId)}/visits`;
+        method = "POST";
+        bodyPayload = {
+          tripStopId: op.targetId,
+          ...op.payload,
+          idempotencyKey: op.idempotencyKey,
+        };
+        break;
+      case "save_checklist":
+        url = `/api/orgs/${encodeURIComponent(op.orgId)}/visits/${encodeURIComponent(op.targetId)}`;
+        method = "PATCH";
+        break;
+      case "checkout_visit":
+        url = `/api/orgs/${encodeURIComponent(op.orgId)}/visits/${encodeURIComponent(op.targetId)}/check-out`;
+        method = "POST";
+        break;
+      case "record_evidence":
+        url = `/api/orgs/${encodeURIComponent(op.orgId)}/visits/${encodeURIComponent(op.targetId)}/evidence/confirm`;
+        method = "POST";
+        break;
+      default:
+        return {
+          success: false,
+          errorMessage: `Unsupported offline operation '${String(op.operationType)}'.`,
+        };
+    }
+
+    try {
+      const response = await customFetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyPayload),
+      });
+
+      const parsed = (await response.json().catch(() => null)) as {
+        data?: Record<string, unknown>;
+        error?: { code?: string; message?: string };
+      } | null;
+
+      if (response.ok) {
+        return {
+          success: true,
+          serverResponse: parsed?.data,
+        };
+      }
+
+      const errorMessage =
+        parsed?.error?.message ?? `Synchronization failed (${response.status})`;
+
+      if (response.status === 401) {
+        return {
+          success: false,
+          isSessionExpired: true,
+          errorMessage,
+        };
+      }
+
+      if (response.status === 403) {
+        return {
+          success: false,
+          isAccessRevoked: true,
+          errorMessage,
+        };
+      }
+
+      if (response.status === 409) {
+        return {
+          success: false,
+          isConflict: true,
+          errorMessage,
+          conflictDetails: {
+            serverUpdatedAt: new Date().toISOString(),
+            conflictReason: errorMessage,
+            clientPayload: op.payload,
+          },
+        };
+      }
+
+      return {
+        success: false,
+        errorMessage,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        errorMessage:
+          err instanceof Error ? err.message : "Network error during offline sync",
+      };
+    }
+  };
+}
+
+/**
+ * Discovers all tenant/user offline queues in browser storage and processes pending operations.
+ */
+export async function syncAllBrowserOfflineQueues(params?: {
+  orgId?: string;
+  userId?: string;
+  storage?: StorageLike & { length?: number; key?: (index: number) => string | null };
+  executor?: SyncExecutorFn;
+  now?: Date;
+}): Promise<{
+  totalProcessed: number;
+  syncedCount: number;
+  failedCount: number;
+  conflictCount: number;
+}> {
+  const store = resolveStorage(params?.storage) as
+    (StorageLike & { length?: number; key?: (index: number) => string | null }) | null;
+  if (!store) {
+    return { totalProcessed: 0, syncedCount: 0, failedCount: 0, conflictCount: 0 };
+  }
+
+  const executor = params?.executor ?? createBrowserSyncExecutor();
+  const pairs = new Map<string, { orgId: string; userId: string }>();
+
+  if (params?.orgId && params?.userId) {
+    pairs.set(`${params.orgId}_${params.userId}`, {
+      orgId: params.orgId,
+      userId: params.userId,
+    });
+  } else if (typeof store.length === "number" && typeof store.key === "function") {
+    for (let i = 0; i < store.length; i++) {
+      const key = store.key(i);
+      if (key && key.startsWith(QUEUE_STORAGE_PREFIX)) {
+        const raw = store.getItem(key);
+        if (!raw) continue;
+        try {
+          const ops = JSON.parse(raw) as QueuedOfflineOperation[];
+          if (Array.isArray(ops) && ops[0]?.orgId && ops[0]?.userId) {
+            pairs.set(`${ops[0].orgId}_${ops[0].userId}`, {
+              orgId: ops[0].orgId,
+              userId: ops[0].userId,
+            });
+          }
+        } catch {
+          // Ignore malformed entries
+        }
+      }
+    }
+  }
+
+  let totalProcessed = 0;
+  let syncedCount = 0;
+  let failedCount = 0;
+  let conflictCount = 0;
+
+  for (const { orgId, userId } of pairs.values()) {
+    const res = await processOfflineSyncQueue({
+      orgId,
+      userId,
+      executor,
+      storage: store,
+      now: params?.now,
+    });
+    purgeCompletedOperations({ orgId, userId, storage: store });
+    totalProcessed += res.totalProcessed;
+    syncedCount += res.syncedCount;
+    failedCount += res.failedCount;
+    conflictCount += res.conflictCount;
+  }
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("ft_offline_queue_changed"));
+  }
+
+  return { totalProcessed, syncedCount, failedCount, conflictCount };
+}

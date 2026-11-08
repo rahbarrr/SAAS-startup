@@ -5,7 +5,12 @@ import { createUserServerSupabaseClient } from "@/lib/supabase/server";
 import { SupabaseLocationRepository } from "@/modules/location/repository";
 import { evaluateTripRouteActivity } from "@/modules/routing/intelligence";
 import { SupabaseStoresRepository } from "@/modules/stores/repository";
-import { resolveTenantContext } from "@/modules/tenancy/authorization";
+import {
+  assertManagerTeamAccess,
+  assertTenantResourceOwnership,
+  requireOrgPermission,
+  resolveTenantContext,
+} from "@/modules/tenancy/authorization";
 import { SupabaseTenancyRepository } from "@/modules/tenancy/repository";
 import { SupabaseTripsRepository } from "@/modules/trips/repository";
 import { SupabaseVisitsRepository } from "@/modules/visits/repository";
@@ -28,15 +33,32 @@ export async function GET(
     const storesRepository = new SupabaseStoresRepository(supabase);
     const locationRepository = new SupabaseLocationRepository(supabase);
 
-    await resolveTenantContext({
+    const tenantContext = await resolveTenantContext({
       user,
       candidateOrgId: orgId,
       repository: tenancyRepository,
     });
 
+    requireOrgPermission(tenantContext, "trips:read_own");
+
     const tripDetail = await tripsRepository.getTripDetail(orgId, tripId);
+    assertTenantResourceOwnership({
+      context: tenantContext,
+      resource: tripDetail?.trip,
+      requireOwnership: true,
+      allowManagerOverride: true,
+    });
+
     if (!tripDetail) {
       throw new AppError("NOT_FOUND", "Trip not found", 404);
+    }
+
+    if (tenantContext.role === "manager") {
+      await assertManagerTeamAccess({
+        context: tenantContext,
+        targetUserId: tripDetail.trip.ownerUserId,
+        repository: tenancyRepository,
+      });
     }
 
     const [allVisits, latestLoc] = await Promise.all([

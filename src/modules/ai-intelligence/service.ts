@@ -4,7 +4,9 @@ import type { AuditRepository } from "@/modules/audit/repository";
 import type { ReportingRepository } from "@/modules/reporting/repository";
 import type { StoresRepository } from "@/modules/stores/repository";
 import {
+  assertManagerTeamAccess,
   assertTenantResourceOwnership,
+  isUserInAuthorizedScope,
   requireAnyOrgRole,
   requireOrgPermission,
   resolveTenantContext,
@@ -56,6 +58,14 @@ export async function generateTripPlanAssistantForOrg(params: {
     requireOwnership: true,
     allowManagerOverride: true,
   });
+
+  if (context.role === "manager") {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: detail.trip.ownerUserId,
+      repository: params.tenancyRepository,
+    });
+  }
 
   const trip = detail.trip;
 
@@ -278,6 +288,14 @@ export async function applyTripPlanRecommendationForOrg(params: {
     allowManagerOverride: true,
   });
 
+  if (context.role === "manager") {
+    await assertManagerTeamAccess({
+      context,
+      targetUserId: detail.trip.ownerUserId,
+      repository: params.tenancyRepository,
+    });
+  }
+
   const parsed = applyTripPlanRecommendationSchema.parse(params.rawInput);
 
   if (detail.trip.status === "approved" && !parsed.confirmApprovedTripModification) {
@@ -363,9 +381,53 @@ export async function getManagerDailyBriefingForOrg(params: {
       ? (params.rawQuery as { date: string }).date
       : todayYmd;
 
-  const dataset = await params.reportingRepository.loadOrgOperationalDataset(
+  const rawDataset = await params.reportingRepository.loadOrgOperationalDataset(
     context.orgId
   );
+
+  let authorizedTrips = rawDataset.trips;
+  let authorizedVisits = rawDataset.visits;
+  if (context.role === "manager") {
+    const uniqueUserIds = new Set<string>([
+      ...rawDataset.trips.map((t) => t.ownerUserId),
+      ...rawDataset.visits.map((v) => v.employeeUserId),
+    ]);
+    const allowedUserIds = new Set<string>();
+    for (const uid of uniqueUserIds) {
+      const allowed = await isUserInAuthorizedScope({
+        context,
+        targetUserId: uid,
+        repository: params.tenancyRepository,
+      });
+      if (allowed) {
+        allowedUserIds.add(uid);
+      }
+    }
+    authorizedTrips = rawDataset.trips.filter((t) => allowedUserIds.has(t.ownerUserId));
+    authorizedVisits = rawDataset.visits.filter((v) =>
+      allowedUserIds.has(v.employeeUserId)
+    );
+  }
+  const authorizedTripIds = new Set(authorizedTrips.map((t) => t.id));
+  const authorizedTripStops =
+    context.role === "manager"
+      ? rawDataset.tripStops.filter((s) => authorizedTripIds.has(s.tripId))
+      : rawDataset.tripStops;
+  const authorizedVisitIds = new Set(authorizedVisits.map((v) => v.id));
+  const dataset = {
+    ...rawDataset,
+    trips: authorizedTrips,
+    tripStops: authorizedTripStops,
+    visits: authorizedVisits,
+    checklistItems:
+      context.role === "manager"
+        ? rawDataset.checklistItems.filter((c) => authorizedVisitIds.has(c.visitId))
+        : rawDataset.checklistItems,
+    evidence:
+      context.role === "manager"
+        ? rawDataset.evidence.filter((e) => authorizedVisitIds.has(e.visitId))
+        : rawDataset.evidence,
+  };
 
   // 1. Trips scheduled for today
   const tripsToday = dataset.trips.filter(

@@ -88,6 +88,9 @@ export class FieldTrackMobileApiClient {
   async createOrganization(params: {
     name: string;
     slug: string;
+    industry?: string;
+    companySize?: "1-10" | "11-50" | "51-200" | "201-1000" | "1000+";
+    country?: string;
   }): Promise<{ id: string; name: string; slug: string }> {
     const url = `${this.config.baseUrl}/api/orgs`;
     const response = await fetch(url, {
@@ -96,6 +99,9 @@ export class FieldTrackMobileApiClient {
       body: JSON.stringify({
         name: params.name.trim(),
         slug: params.slug.trim().toLowerCase(),
+        industry: params.industry?.trim() || "Field Operations",
+        companySize: params.companySize ?? "1-10",
+        country: params.country?.trim() || "India",
       }),
     });
 

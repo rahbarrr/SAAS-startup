@@ -89,8 +89,8 @@ export function CheckInModal({
           {isOutside && (
             <View style={styles.alertBanner}>
               <Text style={styles.alertText}>
-                Notice: You are currently outside the 150m store geofence. Check-in will be
-                flagged for manager review.
+                Notice: You are currently outside the 150m store geofence. Check-in will
+                be flagged for manager review.
               </Text>
             </View>
           )}
@@ -107,8 +107,8 @@ export function CheckInModal({
           {!hasCoords && (
             <View style={styles.alertBanner}>
               <Text style={styles.alertText}>
-                Notice: Device location unavailable. Offline check-in will be marked pending
-                verification.
+                Notice: Device location unavailable. Offline check-in will be marked
+                pending verification.
               </Text>
             </View>
           )}

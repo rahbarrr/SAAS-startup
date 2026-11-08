@@ -2,7 +2,10 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { Radio, AlertTriangle, RefreshCw, CheckCircle2 } from "lucide-react";
-import type { QueuedOfflineOperation } from "@/lib/offline/sync-queue";
+import {
+  type QueuedOfflineOperation,
+  syncAllBrowserOfflineQueues,
+} from "@/lib/offline/sync-queue";
 
 export function PwaOfflineSyncIndicator(): ReactNode {
   const [isOffline, setIsOffline] = useState(false);
@@ -60,6 +63,9 @@ export function PwaOfflineSyncIndicator(): ReactNode {
     function handleOnline() {
       setIsOffline(false);
       refreshQueueStats();
+      void syncAllBrowserOfflineQueues().then(() => {
+        refreshQueueStats();
+      });
       if (wasOffline) {
         setShowReconnectedBanner(true);
         setTimeout(() => {
@@ -120,9 +126,9 @@ export function PwaOfflineSyncIndicator(): ReactNode {
   async function handleTriggerSync() {
     setIsSyncing(true);
     try {
-      // Notify components to process local queues
+      // Notify components and process queued browser operations
       window.dispatchEvent(new CustomEvent("ft_process_sync_request"));
-      await new Promise((r) => setTimeout(r, 1200));
+      await syncAllBrowserOfflineQueues();
       refreshQueueStats();
     } finally {
       setIsSyncing(false);
@@ -232,7 +238,11 @@ export function PwaOfflineSyncIndicator(): ReactNode {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <RefreshCw size={16} className={`shrink-0 ${isSyncing ? "animate-spin" : ""}`} aria-hidden="true" />
+          <RefreshCw
+            size={16}
+            className={`shrink-0 ${isSyncing ? "animate-spin" : ""}`}
+            aria-hidden="true"
+          />
           <span>
             <strong>Pending Synchronization:</strong> You have {pendingCount} offline
             change{pendingCount === 1 ? "" : "s"} waiting to sync to the server.
@@ -268,7 +278,11 @@ export function PwaOfflineSyncIndicator(): ReactNode {
           gap: "0.5rem",
         }}
       >
-        <CheckCircle2 size={16} className="shrink-0 text-emerald-600" aria-hidden="true" />
+        <CheckCircle2
+          size={16}
+          className="shrink-0 text-emerald-600"
+          aria-hidden="true"
+        />
         <span>
           <strong>Back Online:</strong> Internet connection restored. Ready to sync with
           server.

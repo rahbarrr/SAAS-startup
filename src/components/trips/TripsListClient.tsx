@@ -21,12 +21,14 @@ export interface TripsListClientProps {
   initialTrips: readonly Trip[];
   activeOrgName: string;
   activeOrgId?: string;
+  currentUserId?: string;
 }
 
 export function TripsListClient({
   initialTrips = [],
   activeOrgName,
   activeOrgId: _activeOrgId,
+  currentUserId,
 }: TripsListClientProps): ReactNode {
   const { currentRole } = useCurrentRole();
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -172,7 +174,9 @@ export function TripsListClient({
             onClick={() => setShowMobileFilters((prev) => !prev)}
             aria-expanded={showMobileFilters}
           >
-            {showMobileFilters ? "Hide Filters" : `Filters${statusFilter !== "all" ? " • 1" : ""}`}
+            {showMobileFilters
+              ? "Hide Filters"
+              : `Filters${statusFilter !== "all" ? " • 1" : ""}`}
           </button>
         </div>
 
@@ -185,7 +189,14 @@ export function TripsListClient({
             flexWrap: "wrap",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flex: "1 1 auto" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              flex: "1 1 auto",
+            }}
+          >
             <label
               htmlFor="trip-status-filter"
               className="form-label"
@@ -248,7 +259,8 @@ export function TripsListClient({
           {filteredTrips.map((trip) => {
             const isManagerOrAdmin = currentRole === "admin" || currentRole === "manager";
             const canEdit =
-              trip.status === "draft" || trip.status === "changes_requested";
+              (!currentUserId || trip.ownerUserId === currentUserId) &&
+              (trip.status === "draft" || trip.status === "changes_requested");
 
             return (
               <article
@@ -260,11 +272,21 @@ export function TripsListClient({
               >
                 <div className="card-header" style={{ gap: "0.5rem" }}>
                   <div
-                    style={{ display: "flex", flexDirection: "column", gap: "0.2rem", minWidth: 0, flex: 1 }}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.2rem",
+                      minWidth: 0,
+                      flex: 1,
+                    }}
                   >
                     <div
                       className="flex-row-center"
-                      style={{ justifyContent: "space-between", flexWrap: "wrap", gap: "0.375rem" }}
+                      style={{
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: "0.375rem",
+                      }}
                     >
                       <Link
                         href={`/trips/${trip.id}`}
@@ -294,9 +316,8 @@ export function TripsListClient({
                       }}
                     >
                       <Calendar size={13} aria-hidden="true" />
-                      <strong>{trip.startDate}</strong> →{" "}
-                      <strong>{trip.endDate}</strong> • Rep:{" "}
-                      <code>{trip.ownerUserId.slice(0, 8)}</code>
+                      <strong>{trip.startDate}</strong> → <strong>{trip.endDate}</strong>{" "}
+                      • Rep: <code>{trip.ownerUserId.slice(0, 8)}</code>
                     </p>
                   </div>
                 </div>
@@ -371,8 +392,21 @@ export function TripsListClient({
               >
                 <div>
                   <strong>{trip.title}</strong>
-                  <div className="card-meta" style={{ marginTop: "0.25rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                    <Calendar size={13} strokeWidth={2} aria-hidden="true" style={{ color: "var(--text-muted)" }} />
+                  <div
+                    className="card-meta"
+                    style={{
+                      marginTop: "0.25rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.35rem",
+                    }}
+                  >
+                    <Calendar
+                      size={13}
+                      strokeWidth={2}
+                      aria-hidden="true"
+                      style={{ color: "var(--text-muted)" }}
+                    />
                     <span>
                       {trip.startDate} → {trip.endDate} • {trip.ownerUserId}
                     </span>

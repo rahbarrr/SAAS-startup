@@ -82,6 +82,28 @@ export default async function EditTripPage(props: EditTripPageProps): Promise<Re
     );
   }
 
+  const isOwner = tripDetail.trip.ownerUserId === user.id;
+  const isEditableStatus =
+    tripDetail.trip.status === "draft" || tripDetail.trip.status === "changes_requested";
+
+  if (!isOwner || !isEditableStatus) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        <Link href={`/trips/${tripId}`} className="card-meta">
+          ← Back to Trip Details
+        </Link>
+        <ErrorState
+          title="Trip cannot be edited"
+          message={
+            !isOwner
+              ? "Only the assigned field representative who owns this trip can edit its draft."
+              : `Trips in '${tripDetail.trip.status}' status cannot be modified.`
+          }
+        />
+      </div>
+    );
+  }
+
   return (
     <TripPlanForm
       activeOrgId={activeOrgId}

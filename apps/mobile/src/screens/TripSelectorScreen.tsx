@@ -294,7 +294,12 @@ export function TripSelectorScreen({
       <View style={styles.kpiGridRow}>
         <View style={styles.kpiCompactCard}>
           <View style={styles.kpiCompactHeader}>
-            <View style={[styles.kpiDot, { backgroundColor: MOBILE_THEME.colors.electricBlue }]} />
+            <View
+              style={[
+                styles.kpiDot,
+                { backgroundColor: MOBILE_THEME.colors.electricBlue },
+              ]}
+            />
             <Text style={styles.kpiCompactLabel}>Active Routes</Text>
           </View>
           <Text style={styles.kpiCompactValue}>{executableTrips.length}</Text>
@@ -302,7 +307,12 @@ export function TripSelectorScreen({
         </View>
         <View style={styles.kpiCompactCard}>
           <View style={styles.kpiCompactHeader}>
-            <View style={[styles.kpiDot, { backgroundColor: MOBILE_THEME.colors.emeraldLive }]} />
+            <View
+              style={[
+                styles.kpiDot,
+                { backgroundColor: MOBILE_THEME.colors.emeraldLive },
+              ]}
+            />
             <Text style={styles.kpiCompactLabel}>Store Geofence</Text>
           </View>
           <Text style={styles.kpiCompactValue}>150m</Text>

@@ -4,7 +4,12 @@ import path from "node:path";
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts", "scripts/**/*.test.ts"],
+    include: [
+      "src/**/*.test.ts",
+      "src/**/*.test.tsx",
+      "apps/mobile/src/**/*.test.ts",
+      "scripts/**/*.test.ts",
+    ],
     clearMocks: true,
     restoreMocks: true,
     hookTimeout: 30000,

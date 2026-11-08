@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, type ReactNode, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { AlertTriangle, Check, MapPin, Trash2 } from "lucide-react";
 import { TripPlannerMap } from "@/components/maps";
 import { ErrorState } from "@/components/ui/States";
@@ -79,6 +79,16 @@ export function TripPlanForm({
       )
     : [];
   const actionGuard = createInFlightActionGuard();
+
+  useEffect(() => {
+    if (destinationStores.length === 0) {
+      setSelectedStoreId("");
+      return;
+    }
+    if (!destinationStores.some((s) => s.id === selectedStoreId)) {
+      setSelectedStoreId(destinationStores[0]?.id ?? "");
+    }
+  }, [destinationStores, selectedStoreId]);
 
   function handleAddStop() {
     setError(null);
@@ -666,7 +676,9 @@ export function TripPlanForm({
                             }}
                           >
                             <Check size={11} strokeWidth={2.5} aria-hidden="true" />
-                            <span>({lat.toFixed(4)}, {lng.toFixed(4)})</span>
+                            <span>
+                              ({lat.toFixed(4)}, {lng.toFixed(4)})
+                            </span>
                           </span>
                         ) : (
                           <span
@@ -683,7 +695,11 @@ export function TripPlanForm({
                               gap: "0.25rem",
                             }}
                           >
-                            <AlertTriangle size={11} strokeWidth={2.5} aria-hidden="true" />
+                            <AlertTriangle
+                              size={11}
+                              strokeWidth={2.5}
+                              aria-hidden="true"
+                            />
                             <span>Missing Coordinates</span>
                           </span>
                         )}

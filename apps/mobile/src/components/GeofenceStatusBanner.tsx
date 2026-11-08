@@ -42,8 +42,8 @@ export function GeofenceStatusBanner({
             Missing Location Permissions
           </Text>
           <Text style={styles.description}>
-            Foreground: {consentState.foregroundGranted ? "Granted" : "Denied"} • Background:{" "}
-            {consentState.backgroundGranted ? "Granted" : "Denied"}.
+            Foreground: {consentState.foregroundGranted ? "Granted" : "Denied"} •
+            Background: {consentState.backgroundGranted ? "Granted" : "Denied"}.
           </Text>
         </View>
         <TouchableOpacity
